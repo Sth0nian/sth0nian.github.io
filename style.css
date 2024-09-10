@@ -29,7 +29,10 @@
     font-size: 32px;
     display: none;
     z-index: 1000;
-    width: 1180px;
+    max-width: 100vw;
+      max-height: 100vh;
+      width: auto;
+      height: auto;
     text-align: left;
     font-family: 'Silkscreen', sans-serif; /* Apply the correct font */
   }
