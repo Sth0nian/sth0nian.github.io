@@ -14,9 +14,10 @@
   canvas {
     display: block;
     margin: 0px auto 0 auto; /* Horizontally center with margin */
-    max-height: 720px; /* Maximum height */
-    width: auto; /* Ensure width scales proportionally */
-    height: auto; /* Maintain aspect ratio */
+    max-width: 100vw;
+      max-height: 100vh;
+      width: auto;
+      height: auto;
   }
   
   /* Styling for the info bubble */
@@ -33,3 +34,9 @@
     font-family: 'Silkscreen', sans-serif; /* Apply the correct font */
   }
   
+  @media only screen and (max-width: 600px) {
+    canvas {
+      width: 100vw; /* Scale canvas to fit mobile width */
+      height: auto; /* Maintain aspect ratio */
+    }
+  }
