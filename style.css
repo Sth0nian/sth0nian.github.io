@@ -1,0 +1,35 @@
+  /* Ensure the body and html take up the full height */
+  @font-face {
+    font-family: 'Silkscreen';
+    src: url('./fonts/Silkscreen-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  body, html {
+    height: 2000px;
+    margin: 0;
+  }
+  
+  /* Canvas styling */
+  canvas {
+    display: block;
+    margin: 0px auto 0 auto; /* Horizontally center with margin */
+    max-height: 720px; /* Maximum height */
+    width: auto; /* Ensure width scales proportionally */
+    height: auto; /* Maintain aspect ratio */
+  }
+  
+  /* Styling for the info bubble */
+  #infoBubble {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 2px solid black;
+    padding: 10px;
+    font-size: 32px;
+    display: none;
+    z-index: 1000;
+    width: 1180px;
+    text-align: left;
+    font-family: 'Silkscreen', sans-serif; /* Apply the correct font */
+  }
+  

@@ -1,0 +1,59 @@
+[
+    {
+      "x": 100,
+      "y": 420, 
+      "width": 110, 
+      "height": 60,
+      "label": "King Ho",
+      "info": "<b>HI!</b><br><br>My name is <b>King Toi Ho</b><br><br>👨🏽‍💻👩🏼‍💼👶🏼👱🏻<br>I am 38 years old, live in Hilversum (NL), am a father of two, partner of one and owner of two cats.<br><br>🧑‍🍳☕⚽🪴<br>I am an amateur cook, barista, footballer and gardener, though sometimes I like to think of myself as a self-proclaimed coffee-snob when I pull the perfect shot of espresso.<br><br>🚌🇳🇱🏴󠁧󠁢󠁥󠁮󠁧󠁿🎓<br>I grew up between The Netherlands and England where my studies took me from high school doing the International Baccalaureate in Hilversum. I then proceded to Law in Westminster, London when I switched to Sociology at UCR in Middelburg after which I completed Computer Games Development in Southampton to then finally go on to Software Engineering in the VU in Amsterdam.<br><br>🌍☮️✌️💻<br>I left my studies to work on my own projects and was quickly recruited by Greenpeace International where I worked IT Support. I very quickly became team lead then moved over to the SRE team and became scrum master there with a specialty focusing on GCP Cloud infrastructure and IaC DevOps. After this challenge I moved to the Data Platform team as Lead Engineer and IaC Specialist (on top of Scum Master duties).<br><br><i>Use \"A\", \"D\" and \"Spacebar\" to move around the map. Double jump and explore!</i>"
+    },
+    {
+      "x": 255,
+      "y": 300,
+      "width": 110,
+      "height": 60,
+      "label": "DevOps",
+      "info": "<b>The move to Gitlab:</b><br>We moved our infrastructure deployment entirely to Gitlab to where we could have version controlled, Scrum-managed, CICD testing and deployments. I personally was involved in developing the deployment of Gitlab self-hosted in GCP and having that same Gitlab instance update and manage itself.<br><br>GitLab Pipelines:<br>With the move to Gitlab it was natural to transition manual deployments to automated and templated ones. I quickly started writing boilerplate code to be deployed using .gitlab-ci.yml pipelines which could be re-used, updated post-deployment and with auto-update features.<br><br>Stages and Jobs for everything^tm:<br>having mastered the terraform and gitlab nuances, the next step for me was to focus on how the jobs were split up into logical parts in the CI pipelines. Being able to ensure the correct order of security gates, linting, testing and deployment from test->production required a good level of orchestration which as a team we managed effectively with minimal resource use resulting in minimal financial and environmental impact."
+    },
+    {
+      "x": 410,
+      "y": 180, 
+      "width": 110, 
+      "height": 60,
+      "label": "IaC",
+      "info": "<b>Terraform:</b><br>The use of terraform in the CICD pipeline context provided as much of a challenge as it did a benefit. With so many legacy systems to be replaced, migrated and/or removed, a structured way to see the hardware was a natural progression for us. I personally worked on getting terraform resources in GCP migrated and secured as well as training fellow colleagues on how terraform data / resources and modules work.<br><br><b>TF Providers: Google, Vault, OKTA, Cloudflare, Airbyte:</b><br>Nowadays we use IaC to create quick deployments of full stacks for testing pre-deployment / pre-update of existing deployments. The whole mindset behind separating the persistent data from the \"disposable\" hardware has been crucial to being able to conduct better more thorough tests on would-be systems / services. From VMs to BigQuery tables to GCS buckets and more, I have deployed a lot of different infrastructure across a majority of the ever-increasing GCP range.<br><br><b>Config Too!:</b><br>We have also configured various cloud-based services (Cloudflare and Airbyte) using their own in-house providers."
+    },
+    {
+      "x": 565,
+      "y": 300, 
+      "width": 110,
+      "height": 60,
+      "label": "Data",
+      "info": "<b>The Modern Data Stack</b><br> We moved from traditional code and methods written in python / bash to a standardised way to get our data from A to B. We leveraged self-hosted ingestion tools (Airbyte/MageAI), Transformation libraries (always DBT) and a data-lake platform (BigQuery) to get, clean, structure, apply policy to and share data to our stakeholders. Our platform handles large amounts of donation/engagement data from the large majority of our offices.<br><br><b>Data Governance</b><br>Again using Terraform we have been able to classify, restrict and change the way that different actors can interact with the same data in BigQuery using tags, google groups and pre-defined policy rules."
+    },
+    {
+      "x": 720,
+      "y": 180,
+      "width": 120,
+      "height": 60,
+      "label": "GCP",
+      "info": "<b>GCP: Managing cloud infrastructure with GCP:</b><br>GCP was always widely seen as the one with the 'greenest' choices amongst cloud infrastructures. It has remained the case for a while because of this we always invested a lot of time and made decisions to be able to leverage the most environmentally friendly solutions we could.<br><br><b>BigQuery:</b><br>BigQuery has been the biggest asset in moving towards our data-lake solution. Personally I have built datasets and tables from scratch to be able to accommodate a number of data storage needs.<br><br><b>GCE:</b><br>In the beginning we were moving over from VMWare to GCP, we had to leverage 100's of VMs to replace our bare-metal hosted applications. Later on this became largely redundant with microservices / \"serverless\" services and others, but having a familiar interface for networking, disk provisioning and imaging that was not so far off what we knew meant we could get past the standard stuff quite easily and then start looking ad decomissioning the legacy stuff more quickly.<br><br><b>Cloud Run / Cloud Functions / AppScripts:</b><br> Our user / stakeholder needs/problems did not vanish overnight with the transition to the cloud (as most providers would have you believe). It was however much less expensive, more more scalable and easily servicable to be able to deploy cloud hosted services and occasionally leverage things like appscripts to super-power Google Sheet data."
+    },
+    {
+      "x": 875,
+      "y": 300,
+      "width": 110,
+      "height": 60,
+      "label": "Passion",
+      "info": "Having some formal education in programming I was not without a good start in my tech career, however the majority of what I have learnt has been due to a combination of having a real drive to figure something out, how to take a fun idea into something robust and finding the closest person to a guru I can find to learn from. It has always been my drive to better myself and I have been fortunate enough to be able to always do so.<br><br>Being able to do all this in the context of an activist organisation that allows me to both contribute positively to the health of the environment as well as better myself on a daily basis, I feel I have always been in the most fortunate situation of loving what I do and doing what I love."
+    },
+    {
+      "x": 1000,
+      "y": 400, 
+      "width": 110, 
+      "height": 60,
+      "label": "Thanks",
+      "info": "Thank you for playing!"
+    }
+  ]
+  
