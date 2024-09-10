@@ -31,14 +31,16 @@
     z-index: 1000;
     max-width: 1180px;
       width: auto;
-      height: auto;
     text-align: left;
     font-family: 'Silkscreen', sans-serif; /* Apply the correct font */
   }
   
-  @media only screen and (max-width: 600px) {
+  @media only screen and (max-width: 400px) {
     canvas {
       width: 100vw; /* Scale canvas to fit mobile width */
-      height: auto; /* Maintain aspect ratio */
+    }
+    #infoBubble {
+      height: 3000px; /* Maintain aspect ratio */
+      font-size: 22px;
     }
   }
