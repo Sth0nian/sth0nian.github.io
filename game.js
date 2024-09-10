@@ -275,6 +275,7 @@ function update() {
   checkPlatformCollision();
   checkBoundaries();
   requestAnimationFrame(update);
+  updateInfoBubbleVisibility();
 }
 
 function loadPlatformsAndStart() {
@@ -324,6 +325,15 @@ function updatePlayerMovement() {
     }
   }
 }
+function updateInfoBubbleVisibility() {
+  const infoBubble = document.getElementById('infoBubble');
+  if (window.innerWidth < 1032) {
+    infoBubble.style.display = 'none'; // Hide the infoBubble
+  } else {
+    infoBubble.style.display = 'block'; // Show the infoBubble
+  }
+}
+window.addEventListener('resize', updateInfoBubbleVisibility);
 
 // get all the canvas/dom/window listeners and redirect them. also prevent spacebar from scrolling down cause thats just weird.
 canvas.addEventListener('click', handleInteraction);

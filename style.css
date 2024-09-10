@@ -8,6 +8,8 @@
   body, html {
     height: 2000px;
     margin: 0;
+    text-align: left;
+    font-family: 'Silkscreen', sans-serif; /* Apply the correct font */
   }
   
   /* Canvas styling */
@@ -19,7 +21,9 @@
       width: auto;
       height: auto;
   }
-  
+  #mobileContent {
+    display: none;
+  }
   /* Styling for the info bubble */
   #infoBubble {
     position: absolute;
@@ -35,12 +39,18 @@
     font-family: 'Silkscreen', sans-serif; /* Apply the correct font */
   }
   
-  @media only screen and (max-width: 400px) {
+  @media only screen and (max-width: 1032px) {
     canvas {
-      width: 100vw; /* Scale canvas to fit mobile width */
+      display: none;
+      /*width: 100vw; /* Scale canvas to fit mobile width */
     }
     #infoBubble {
-      height: 3000px; /* Maintain aspect ratio */
-      font-size: 22px;
+      display: none;
+    }
+    #mobileContent {
+      display:block;
+      font-size: 32px;
     }
   }
+
+  
