@@ -102,35 +102,57 @@ class Enemy {
     this.frameDelay = 10; // Animation speed
     this.jumping = false; // Detect if the enemy is in the air
     this.facingLeft = true; // Initially, the enemy is moving left
+
+    this.isDying = false;  // Is the enemy in the process of dying
+    this.rotationAngle = 0;  // Tracks the current rotation
+    this.jumpHeight = -10;  // Jump upwards by 10px when dying
+    this.rotationSpeed = 720 / 100;  // Rotate 720 degrees over the animation (adjust this for speed)
   }
 
   // Update enemy position, apply gravity, and animate
   update() {
-    // Apply gravity
-    this.dy += this.gravity;
-    if (this.dy > this.maxFallSpeed) {
-      this.dy = this.maxFallSpeed; // Cap the fall speed
+    if (this.isDying) {
+      this.handleDeathAnimation();  // Handle death animation if the enemy is dying
+      console.log(this.isDying)
+    } else {
+      // Regular update when the enemy is not dying
+      this.dy += this.gravity;
+      if (this.dy > this.maxFallSpeed) {
+        this.dy = this.maxFallSpeed; // Cap the fall speed
+      }
+      this.y += this.dy;
+      this.x += this.dx;
+      this.checkWallCollision();
+      this.checkPlatformCollision();
+      this.checkFloorCollision();
+      this.animate();
     }
-    this.y += this.dy;
-
-    // Update position horizontally
-    this.x += this.dx;
-
-    // Check if enemy hits walls and change direction
-    this.checkWallCollision();
-
-    // Check for platform or floor collisions
-    this.checkPlatformCollision();
-    this.checkFloorCollision(); // Check for the floor
-
-    // Animate the enemy
-    this.animate();
   }
 
-  // Check if the enemy hits the left or right boundary and change direction
+  // Death animation logic
+  handleDeathAnimation() {
+    // Rotate the enemy by increasing the angle
+    this.rotationAngle += this.rotationSpeed;
+  
+    // Make the enemy jump up slightly and then fall down
+    if (this.jumpHeight < 0) {
+      this.y += this.jumpHeight;
+      this.jumpHeight++;  // Reduce jump height each frame until it reaches 0
+    } else {
+      this.dy += this.gravity;  // Apply gravity after jumping
+      this.y += this.dy;
+    }
+  
+    // Remove the enemy once it falls off the screen
+    if (this.y > canvas.height+400) {
+      enemies = enemies.filter(e => e !== this);  // Remove enemy from the list
+    }
+  }
+
+  // Check if the enemy hits the left or right boundary of the game world and change direction
   checkWallCollision() {
     const leftWallBoundary = 46; // Example wall at 46px from the left
-    const rightWallBoundary = gameWorldWidth-46; // Game world's right boundary
+    const rightWallBoundary = gameWorldWidth - 46; // Game world's right boundary
   
     // Prevent enemy from going off the left side of the game world
     if (this.x < leftWallBoundary) {
@@ -190,36 +212,48 @@ class Enemy {
     }
   }
 
-  // Draw the enemy, and flip it if moving right
+  // Draw the enemy, apply rotation if dying
   draw() {
     const scaledWidth = enemyWidth * enemyScaleFactor;
     const scaledHeight = enemyHeight * enemyScaleFactor;
-
+  
     ctx.save(); // Save the current canvas state
-
-    if (!this.facingLeft) {
+  
+    if (this.isDying) {
+      // Apply rotation during death animation
+      ctx.translate(this.x + scaledWidth / 2 - camera.x, this.y + scaledHeight / 2);
+      ctx.rotate((this.rotationAngle * Math.PI) / 180);  // Rotate by the calculated angle
+      ctx.translate(-(this.x + scaledWidth / 2 - camera.x), -(this.y + scaledHeight / 2));
+      this.handleDeathAnimation()
+      ctx.drawImage(
+        enemySpriteSheet,
+        this.currentFrame * enemyWidth, 0,
+        enemyWidth, enemyHeight,
+        this.x - camera.x, this.y,
+        scaledWidth, scaledHeight
+      );
+    } else if (!this.facingLeft) {
       // Flip horizontally by scaling the context to -1 when moving right
       ctx.scale(-1, 1);
-      // Draw the enemy flipped horizontally (adjust the x position accordingly)
       ctx.drawImage(
-        enemySpriteSheet, 
-        this.currentFrame * enemyWidth, 0, 
-        enemyWidth, enemyHeight, 
-        -(this.x + scaledWidth - camera.x), this.y, // Negate x position for flip
+        enemySpriteSheet,
+        this.currentFrame * enemyWidth, 0,
+        enemyWidth, enemyHeight,
+        -(this.x + scaledWidth - camera.x), this.y,
         scaledWidth, scaledHeight
       );
     } else {
       // Draw normally if facing left
       ctx.drawImage(
-        enemySpriteSheet, 
-        this.currentFrame * enemyWidth, 0, 
-        enemyWidth, enemyHeight, 
-        this.x - camera.x, this.y, 
+        enemySpriteSheet,
+        this.currentFrame * enemyWidth, 0,
+        enemyWidth, enemyHeight,
+        this.x - camera.x, this.y,
         scaledWidth, scaledHeight
       );
     }
-
-    ctx.restore(); // Restore the canvas state (undo the flip)
+  
+    ctx.restore(); // Restore the canvas state (undo the flip and rotation)
   }
 }
 
@@ -245,7 +279,9 @@ function spawnEnemy() {
 
 function updateEnemies() {
   enemies.forEach((enemy, index) => {
-    enemy.update();
+    if (!enemy.isDying) {
+      enemy.update();
+    }
     enemy.draw();
 
     const playerRect = {
@@ -265,26 +301,20 @@ function updateEnemies() {
     // Check for collision between player and enemy
     if (checkCollision(playerRect, enemyRect)) {
       // Check if the player hits the enemy from above (kill the enemy)
-      if (player.y + player.height <= enemy.y + enemy.height / 2) {
-        // Kill the enemy and remove it from the game
-        enemies.splice(index, 1);
+      if (player.y + player.height <= enemy.y + enemy.height / 2 && !enemy.isDying) {
+        enemy.isDying = true;  // Trigger death animation
         enemiesKilled++; // Increment the kill counter
-
         player.dy = -10; // Bounce the player upwards after killing the enemy
-      } else if (!damageCooldown) {
+      } else if (!damageCooldown && !enemy.isDying) {
         // Take damage and push both player and enemy away from each other
         damageTaken++;
-
         activateCooldown();
-        player.dy = -10; 
-        // Apply push back effect to both player and enemy
+        player.dy = -10;
         if (player.x < enemy.x) {
-          // Player is to the left of the enemy
           player.dx = -4; // Push player left
           enemy.dx += 4;  // Push enemy slightly right
           enemy.facingLeft = false; // Enemy is now moving right
         } else {
-          // Player is to the right of the enemy
           player.dx = 4;  // Push player right
           enemy.dx -= 4;  // Push enemy slightly left
           enemy.facingLeft = true; // Enemy is now moving left
@@ -292,13 +322,35 @@ function updateEnemies() {
       }
     }
 
-    // Remove enemies if they fall out of the world or move off the screen to the left
-    if (enemy.y > canvas.height || enemy.x + enemy.width < 0) {
+    // Remove enemies if they fall off the screen
+    if (enemy.isDying && enemy.y > canvas.height) {
+      console.log('enemy removed')
       enemies.splice(index, 1);
     }
+
   });
 }
 
+
+function checkEnemyCollisions() {
+  for (let i = 0; i < enemies.length; i++) {
+    for (let j = i + 1; j < enemies.length; j++) {
+      const enemy1 = enemies[i];
+      const enemy2 = enemies[j];
+
+      // Check if enemy1 and enemy2 are colliding
+      if (checkCollision(enemy1, enemy2)) {
+        // Reverse direction for both enemies upon collision
+        enemy1.dx = -enemy1.dx;
+        enemy2.dx = -enemy2.dx;
+
+        // Update facing direction based on the new dx
+        enemy1.facingLeft = enemy1.dx < 0;
+        enemy2.facingLeft = enemy2.dx < 0;
+      }
+    }
+  }
+}
 function activateCooldown() {
   damageCooldown = true;
   setTimeout(() => {
@@ -563,6 +615,7 @@ function update() {
   player.dy += player.gravity;
   updatePlayerMovement();
   checkPlatformCollision();
+  checkEnemyCollisions();
   checkBoundaries();
   updateCamera();
   requestAnimationFrame(update);
