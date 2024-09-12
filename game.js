@@ -10,6 +10,8 @@ const grassTexture = new Image();
 grassTexture.src = './floor.png';
 const stoneTexture = new Image();
 stoneTexture.src = './wall.png';
+const enemySpriteSheet = new Image();
+enemySpriteSheet.src = './enemy.png';
 
 // Canvas / graphics vars
 canvas.width = 1200;
@@ -37,6 +39,17 @@ let player = {
   maxJumps: 2
 };
 
+// List to store enemies
+let enemies = [];
+
+// Enemy properties
+const enemyWidth = 13;
+const enemyHeight = 24;
+const enemyScaleFactor = 5.5; // Adjust scale of the enemy
+const maxEnemies = 5;
+let enemySpawnInterval = 10000; // Spawn an enemy every 10 seconds
+let lastEnemySpawnTime = 0;
+
 // Camera object
 let camera = {
   x: 0, // Start at the left of the world
@@ -56,6 +69,159 @@ let walkCycleTime = 0;
 let platforms = [];
 let kingHoPlatform = null;
 let time = 0;
+
+class Enemy {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.width = enemyWidth * enemyScaleFactor;
+    this.height = enemyHeight * enemyScaleFactor;
+    this.dx = -2; // Start moving left
+    this.dy = 0; // Vertical speed
+    this.gravity = 0.5; // Gravity
+    this.maxFallSpeed = 10; // Limit the fall speed
+    this.currentFrame = 0; // For animation
+    this.frameCount = 0;
+    this.frameDelay = 10; // Animation speed
+    this.jumping = false; // Detect if the enemy is in the air
+    this.facingLeft = true; // Initially, the enemy is moving left
+  }
+
+  // Update enemy position, apply gravity, and animate
+  update() {
+    // Apply gravity
+    this.dy += this.gravity;
+    if (this.dy > this.maxFallSpeed) {
+      this.dy = this.maxFallSpeed; // Cap the fall speed
+    }
+    this.y += this.dy;
+
+    // Update position horizontally
+    this.x += this.dx;
+
+    // Check if enemy hits walls and change direction
+    this.checkWallCollision();
+
+    // Check for platform or floor collisions
+    this.checkPlatformCollision();
+    this.checkFloorCollision(); // Check for the floor
+
+    // Animate the enemy
+    this.animate();
+  }
+
+  // Check if the enemy hits the left or right boundary and change direction
+  checkWallCollision() {
+    if (this.x <= 0) {
+      this.x = 0;
+      this.dx = 2; // Change direction to right
+      this.facingLeft = false; // Now moving right, so not facing left
+    } else if (this.x + this.width >= gameWorldWidth) {
+      this.x = gameWorldWidth - this.width;
+      this.dx = -2; // Change direction to left
+      this.facingLeft = true; // Now facing left
+    }
+  }
+
+  // Check if the enemy is standing on a platform
+  checkPlatformCollision() {
+    let onPlatform = false;
+    platforms.forEach(platform => {
+      const detectionBuffer = 10;
+      if (
+        this.x < platform.x + platform.width &&
+        this.x + this.width > platform.x &&
+        this.y + this.height > platform.y - detectionBuffer &&
+        this.y + this.height < platform.y + platform.height
+      ) {
+        this.jumping = false;
+        this.dy = 0; // Stop falling
+        this.y = platform.y - this.height; // Place enemy on platform
+        onPlatform = true;
+      }
+    });
+
+    // If not on a platform, the enemy is falling
+    if (!onPlatform) {
+      this.jumping = true;
+    }
+  }
+
+  // Check if the enemy has hit the floor
+  checkFloorCollision() {
+    const floorY = canvas.height - 50; // Assuming this is the floor's y position
+    if (this.y + this.height > floorY) {
+      this.y = floorY - this.height; // Place enemy on the floor
+      this.dy = 0; // Stop vertical movement (falling)
+      this.jumping = false; // Enemy is on the ground
+    }
+  }
+
+  // Animate the enemy with two frames
+  animate() {
+    this.frameCount++;
+    if (this.frameCount >= this.frameDelay) {
+      this.currentFrame = (this.currentFrame + 1) % 2; // Toggle between frame 0 and frame 1
+      this.frameCount = 0;
+    }
+  }
+
+  // Draw the enemy, and flip it if moving right
+  draw() {
+    const scaledWidth = enemyWidth * enemyScaleFactor;
+    const scaledHeight = enemyHeight * enemyScaleFactor;
+
+    ctx.save(); // Save the current canvas state
+
+    if (!this.facingLeft) {
+      // Flip horizontally by scaling the context to -1 when moving right
+      ctx.scale(-1, 1);
+      // Draw the enemy flipped horizontally (adjust the x position accordingly)
+      ctx.drawImage(
+        enemySpriteSheet, 
+        this.currentFrame * enemyWidth, 0, 
+        enemyWidth, enemyHeight, 
+        -(this.x + scaledWidth - camera.x), this.y, // Negate x position for flip
+        scaledWidth, scaledHeight
+      );
+    } else {
+      // Draw normally if facing left
+      ctx.drawImage(
+        enemySpriteSheet, 
+        this.currentFrame * enemyWidth, 0, 
+        enemyWidth, enemyHeight, 
+        this.x - camera.x, this.y, 
+        scaledWidth, scaledHeight
+      );
+    }
+
+    ctx.restore(); // Restore the canvas state (undo the flip)
+  }
+}
+
+function spawnEnemy() {
+  const currentTime = Date.now();
+  
+  if (enemies.length < maxEnemies && currentTime - lastEnemySpawnTime > enemySpawnInterval) {
+    // Spawn an enemy closer to the visible canvas and lower on the map
+    enemies.push(new Enemy(player.x + 400, 350)); // Adjust y = 350 and x relative to player
+    lastEnemySpawnTime = currentTime;
+  }
+}
+
+
+function updateEnemies() {
+  enemies.forEach((enemy, index) => {
+    enemy.update();
+    enemy.draw();
+
+    // Remove enemies if they fall out of the world or move off the screen to the left
+    if (enemy.y > canvas.height || enemy.x + enemy.width < 0) {
+      enemies.splice(index, 1);
+    }
+  });
+}
+
 
 // Change the position of the King platform
 function updateKingHoPlatform() {
@@ -318,6 +484,9 @@ function update() {
   updateCamera();
   requestAnimationFrame(update);
   updateInfoBubbleVisibility();
+
+  spawnEnemy();
+  updateEnemies();
 }
 
 // Handle keyboard input
