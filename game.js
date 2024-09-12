@@ -1,8 +1,9 @@
 // Get doc elements
+const damageCounter = document.getElementById('damageCounter');
+const killCounter = document.getElementById('killCounter');
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const infoBubble = document.getElementById('infoBubble');
-
 // Import images
 const playerSpriteSheet = new Image();
 playerSpriteSheet.src = './player.png';
@@ -21,6 +22,10 @@ const spriteHeight = 22;
 const scaleFactor = 5.8;
 let facingLeft = false;
 const stars = [];
+let damageTaken = 0;
+let enemiesKilled = 0;
+let damageCooldown = false; // Indicates if the player is in a cooldown period
+let cooldownDuration = 1000; // 1 second cooldown
 
 // Player object
 let player = {
@@ -46,7 +51,7 @@ let enemies = [];
 const enemyWidth = 13;
 const enemyHeight = 24;
 const enemyScaleFactor = 5.5; // Adjust scale of the enemy
-const maxEnemies = 5;
+const maxEnemies = 3;
 let enemySpawnInterval = 10000; // Spawn an enemy every 10 seconds
 let lastEnemySpawnTime = 0;
 
@@ -69,6 +74,18 @@ let walkCycleTime = 0;
 let platforms = [];
 let kingHoPlatform = null;
 let time = 0;
+
+function drawCounters() {
+  ctx.save(); // Save the current canvas state
+
+  ctx.font = "20px 'Silkscreen', sans-serif";
+  ctx.fillStyle = 'white'; // Text color
+  
+  ctx.fillText(`Damage Taken: ${damageTaken}`, 60, 40); // Positioned at the top-left
+  ctx.fillText(`Enemies Killed: ${enemiesKilled}`, 60, 70); // Positioned below the damage counter
+
+  ctx.restore(); // Restore the canvas state
+}
 
 class Enemy {
   constructor(x, y) {
@@ -112,13 +129,20 @@ class Enemy {
 
   // Check if the enemy hits the left or right boundary and change direction
   checkWallCollision() {
-    if (this.x <= 0) {
-      this.x = 0;
-      this.dx = 2; // Change direction to right
-      this.facingLeft = false; // Now moving right, so not facing left
-    } else if (this.x + this.width >= gameWorldWidth) {
-      this.x = gameWorldWidth - this.width;
-      this.dx = -2; // Change direction to left
+    const leftWallBoundary = 46; // Example wall at 46px from the left
+    const rightWallBoundary = gameWorldWidth-46; // Game world's right boundary
+  
+    // Prevent enemy from going off the left side of the game world
+    if (this.x < leftWallBoundary) {
+      this.x = leftWallBoundary; // Enemy stops exactly at the left wall
+      this.dx = Math.abs(this.dx); // Change direction to the right
+      this.facingLeft = false; // Now facing right
+    }
+  
+    // Prevent enemy from going off the right side of the game world
+    if (this.x + this.width > rightWallBoundary) {
+      this.x = rightWallBoundary - this.width; // Stop at the right wall
+      this.dx = -Math.abs(this.dx); // Change direction to the left
       this.facingLeft = true; // Now facing left
     }
   }
@@ -199,6 +223,16 @@ class Enemy {
   }
 }
 
+// Axis-Aligned Bounding Box (AABB) Collision Detection
+function checkCollision(rect1, rect2) {
+  return (
+    rect1.x < rect2.x + rect2.width &&
+    rect1.x + rect1.width > rect2.x &&
+    rect1.y < rect2.y + rect2.height &&
+    rect1.y + rect1.height > rect2.y
+  );
+}
+
 function spawnEnemy() {
   const currentTime = Date.now();
   
@@ -209,11 +243,54 @@ function spawnEnemy() {
   }
 }
 
-
 function updateEnemies() {
   enemies.forEach((enemy, index) => {
     enemy.update();
     enemy.draw();
+
+    const playerRect = {
+      x: player.x,
+      y: player.y,
+      width: player.width,
+      height: player.height
+    };
+
+    const enemyRect = {
+      x: enemy.x,
+      y: enemy.y,
+      width: enemy.width,
+      height: enemy.height
+    };
+
+    // Check for collision between player and enemy
+    if (checkCollision(playerRect, enemyRect)) {
+      // Check if the player hits the enemy from above (kill the enemy)
+      if (player.y + player.height <= enemy.y + enemy.height / 2) {
+        // Kill the enemy and remove it from the game
+        enemies.splice(index, 1);
+        enemiesKilled++; // Increment the kill counter
+
+        player.dy = -10; // Bounce the player upwards after killing the enemy
+      } else if (!damageCooldown) {
+        // Take damage and push both player and enemy away from each other
+        damageTaken++;
+
+        activateCooldown();
+        player.dy = -10; 
+        // Apply push back effect to both player and enemy
+        if (player.x < enemy.x) {
+          // Player is to the left of the enemy
+          player.dx = -4; // Push player left
+          enemy.dx += 4;  // Push enemy slightly right
+          enemy.facingLeft = false; // Enemy is now moving right
+        } else {
+          // Player is to the right of the enemy
+          player.dx = 4;  // Push player right
+          enemy.dx -= 4;  // Push enemy slightly left
+          enemy.facingLeft = true; // Enemy is now moving left
+        }
+      }
+    }
 
     // Remove enemies if they fall out of the world or move off the screen to the left
     if (enemy.y > canvas.height || enemy.x + enemy.width < 0) {
@@ -222,6 +299,12 @@ function updateEnemies() {
   });
 }
 
+function activateCooldown() {
+  damageCooldown = true;
+  setTimeout(() => {
+    damageCooldown = false;
+  }, cooldownDuration); // Cooldown for 1 second
+}
 
 // Change the position of the King platform
 function updateKingHoPlatform() {
@@ -373,8 +456,8 @@ function checkBoundaries() {
     player.dy = 0;
     player.jumpCount = 0;
   }
-  if (player.x < 0) player.x = 0;
-  if (player.x + player.width > gameWorldWidth) player.x = gameWorldWidth - player.width;
+  if (player.x < 46) player.x = 46;
+  if (player.x + player.width > gameWorldWidth-66) player.x = gameWorldWidth - player.width-66;
   if (player.y < 0) {
     player.y = 0;
     player.dy = 0;
@@ -487,6 +570,7 @@ function update() {
 
   spawnEnemy();
   updateEnemies();
+  drawCounters();
 }
 
 // Handle keyboard input
