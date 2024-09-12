@@ -307,24 +307,28 @@ function updateEnemies() {
         player.dy = -10; // Bounce the player upwards after killing the enemy
       } else if (!damageCooldown && !enemy.isDying) {
         // Take damage and push both player and enemy away from each other
-        damageTaken++;
+        damageTaken--;
         activateCooldown();
-        player.dy = -10;
+        player.dy = -12;
         if (player.x < enemy.x) {
           player.dx = -4; // Push player left
-          enemy.dx += 4;  // Push enemy slightly right
-          enemy.facingLeft = false; // Enemy is now moving right
+          if(enemy.facingLeft){
+            enemy.dx += 4;  // Push enemy slightly right
+            enemy.facingLeft = false; // Enemy is now moving right
+          }
+          
         } else {
           player.dx = 4;  // Push player right
-          enemy.dx -= 4;  // Push enemy slightly left
-          enemy.facingLeft = true; // Enemy is now moving left
+          if (!enemy.facingLeft){
+            enemy.dx -= 4;  // Push enemy slightly left
+            enemy.facingLeft = true; // Enemy is now moving left
+          }
         }
       }
     }
 
     // Remove enemies if they fall off the screen
     if (enemy.isDying && enemy.y > canvas.height) {
-      console.log('enemy removed')
       enemies.splice(index, 1);
     }
 
