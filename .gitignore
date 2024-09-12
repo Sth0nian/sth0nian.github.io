@@ -2,3 +2,5 @@ package-lock.json
 package.json
 test.js
 node_modules
+versions
+*.afphoto

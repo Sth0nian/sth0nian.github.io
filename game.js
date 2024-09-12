@@ -1,9 +1,9 @@
-//get doc elements
+// Get doc elements
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const infoBubble = document.getElementById('infoBubble');
 
-//import images
+// Import images
 const playerSpriteSheet = new Image();
 playerSpriteSheet.src = './player.png';
 const grassTexture = new Image();
@@ -11,16 +11,16 @@ grassTexture.src = './floor.png';
 const stoneTexture = new Image();
 stoneTexture.src = './wall.png';
 
-// canvas / graphics vars
+// Canvas / graphics vars
 canvas.width = 1200;
-canvas.height = 600;
+canvas.height = 800;
 const spriteWidth = 13;
 const spriteHeight = 22;
-const scaleFactor = 5.8; 
+const scaleFactor = 5.8;
 let facingLeft = false;
 const stars = [];
 
-// player object!
+// Player object
 let player = {
   x: 100 + 50 - 25,
   y: 40 - 70,
@@ -37,7 +37,17 @@ let player = {
   maxJumps: 2
 };
 
-// inputs and animation vars
+// Camera object
+let camera = {
+  x: 0, // Start at the left of the world
+  width: canvas.width, // The width of the camera (same as the canvas)
+  height: canvas.height
+};
+
+// Expanded game world width (three times the canvas width)
+const gameWorldWidth = canvas.width * 3;
+
+// Inputs and animation vars
 let currentFrame = 0;
 let frameCount = 0;
 const frameDelay = 5;
@@ -49,19 +59,20 @@ let time = 0;
 
 // Change the position of the King platform
 function updateKingHoPlatform() {
-    const amplitude = 140;
-    const speed = 0.02;
-    if (kingHoPlatform) {
-      kingHoPlatform.y = 280 + Math.sin(time) * amplitude;
-    }
-    time += speed;
+  const amplitude = 140;
+  const speed = 0.02;
+  if (kingHoPlatform) {
+    kingHoPlatform.y = 280 + Math.sin(time) * amplitude;
   }
+  time += speed;
+}
+
 async function loadPlatforms() {
   const response = await fetch('platforms.json');
   platforms = await response.json();
 }
 
-// Draw our sprite!
+// Draw the player sprite
 function drawPlayer() {
   let frameX = 0;
   if (player.dx !== 0) {
@@ -80,22 +91,23 @@ function drawPlayer() {
   if (facingLeft) {
     ctx.scale(-1, 1);
     ctx.drawImage(
-      playerSpriteSheet, 
+      playerSpriteSheet,
       frameX, 0, spriteWidth, spriteHeight,
-      -player.x - scaledWidth, player.y,
+      -player.x - scaledWidth + camera.x, player.y,
       scaledWidth, scaledHeight
     );
   } else {
     ctx.drawImage(
-      playerSpriteSheet, 
+      playerSpriteSheet,
       frameX, 0, spriteWidth, spriteHeight,
-      player.x, player.y,
+      player.x - camera.x, player.y,
       scaledWidth, scaledHeight
     );
   }
   ctx.restore();
 }
-// OOf... capture and remove default functionality on inputs
+
+// Capture and remove default functionality on inputs
 function handleInteraction(event) {
   event.preventDefault();
   let mouseX, mouseY;
@@ -111,9 +123,9 @@ function handleInteraction(event) {
   }
   platforms.forEach(platform => {
     if (
-      mouseX >= platform.x && 
-      mouseX <= platform.x + platform.width && 
-      mouseY >= platform.y && 
+      mouseX >= platform.x - camera.x &&
+      mouseX <= platform.x + platform.width - camera.x &&
+      mouseY >= platform.y &&
       mouseY <= platform.y + platform.height
     ) {
       player.x = platform.x + platform.width / 2 - player.width / 2;
@@ -124,24 +136,24 @@ function handleInteraction(event) {
   });
 }
 
-// Platforms Baybeeeee
+// Platforms drawing
 function drawPlatforms() {
   ctx.font = "bold 22px 'Silkscreen', sans-serif";
   platforms.forEach(platform => {
     const tileWidth = 42;
-    for (let x = platform.x; x < platform.x + platform.width; x += tileWidth) {
+    for (let x = platform.x - camera.x; x < platform.x - camera.x + platform.width; x += tileWidth) {
       ctx.drawImage(grassTexture, x, platform.y, tileWidth, platform.height);
     }
     ctx.fillStyle = 'white';
-    const textX = platform.x + 5;
+    const textX = platform.x + 5 - camera.x;
     const textY = platform.y + 54;
     ctx.fillText(platform.label, textX, textY);
   });
 }
 
-// Let this sun set.
+// Background color transition
 function calculateBackgroundColor() {
-  const percentage = player.x / canvas.width;
+  const percentage = player.x / gameWorldWidth;
   const skyBlue = { r: 135, g: 206, b: 235 };
   const lighterDarkBlue = { r: 25, g: 25, b: 112 };
   const r = Math.round(skyBlue.r + (lighterDarkBlue.r - skyBlue.r) * percentage);
@@ -150,7 +162,7 @@ function calculateBackgroundColor() {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-// render BG
+// Render the background and stars
 function drawBackground() {
   const backgroundColor = calculateBackgroundColor();
   ctx.fillStyle = backgroundColor;
@@ -159,12 +171,12 @@ function drawBackground() {
   drawStars();
 }
 
-// Lets add some sparkles
+// Generate stars in the background
 function generateStars() {
   const numStars = 50;
   for (let i = 0; i < numStars; i++) {
     stars.push({
-      x: Math.random() * canvas.width,
+      x: Math.random() * gameWorldWidth,
       y: Math.random() * (canvas.height / 2),
       size: Math.random() * 2 + 1,
       speed: Math.random() * 0.04 + 0.01
@@ -172,20 +184,22 @@ function generateStars() {
   }
 }
 
-// Make it rain! Stars!
+// Draw stars that move slightly opposite the player's movement
 function drawStars() {
   ctx.fillStyle = 'rgb(135, 206, 235)';
   stars.forEach(star => {
     star.x -= player.dx * star.speed;
-    if (star.x > canvas.width) star.x = 0;
-    if (star.x < 0) star.x = canvas.width;
-    ctx.beginPath();
-    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-    ctx.fill();
+    if (star.x > gameWorldWidth) star.x = 0;
+    if (star.x < 0) star.x = gameWorldWidth;
+    if (star.x - camera.x >= 0 && star.x - camera.x <= canvas.width) {
+      ctx.beginPath();
+      ctx.arc(star.x - camera.x, star.y, star.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
   });
 }
 
-// Dont let player become a ghost.
+// Prevent the player from moving out of bounds
 function checkBoundaries() {
   if (player.y + player.height > canvas.height - 50) {
     player.y = canvas.height - player.height - 50;
@@ -193,36 +207,32 @@ function checkBoundaries() {
     player.dy = 0;
     player.jumpCount = 0;
   }
-  if (player.x < 50) {
-    player.x = 50;
-  }
-  if (player.x + player.width > canvas.width - 50) {
-    player.x = canvas.width - player.width - 50;
-  }
+  if (player.x < 0) player.x = 0;
+  if (player.x + player.width > gameWorldWidth) player.x = gameWorldWidth - player.width;
   if (player.y < 0) {
     player.y = 0;
     player.dy = 0;
   }
 }
 
-// Map boundary drawing
+// Draw the floor and walls
 function drawBoundaries() {
   const floorTileWidth = 42;
   const floorY = canvas.height - 50;
-  for (let x = 0; x < canvas.width; x += floorTileWidth) {
-    ctx.drawImage(grassTexture, x, floorY, floorTileWidth, 50);
+  for (let x = 0; x < gameWorldWidth; x += floorTileWidth) {
+    if (x - camera.x >= 0 && x - camera.x <= canvas.width) {
+      ctx.drawImage(grassTexture, x - camera.x, floorY, floorTileWidth, 50);
+    }
   }
   const wallTileWidth = 46;
   const wallTileHeight = 37;
   for (let y = 0; y < canvas.height; y += wallTileHeight) {
-    ctx.drawImage(stoneTexture, 0, y, wallTileWidth, wallTileHeight);
-  }
-  for (let y = 0; y < canvas.height; y += wallTileHeight) {
-    ctx.drawImage(stoneTexture, canvas.width - wallTileWidth, y, wallTileWidth, wallTileHeight);
+    ctx.drawImage(stoneTexture, 0 - camera.x, y, wallTileWidth, wallTileHeight);
+    ctx.drawImage(stoneTexture, gameWorldWidth - wallTileWidth - camera.x, y, wallTileWidth, wallTileHeight);
   }
 }
 
-// Platforms collision detection
+// Check for collisions with platforms
 function checkPlatformCollision() {
   let onPlatform = false;
   platforms.forEach(platform => {
@@ -245,8 +255,8 @@ function checkPlatformCollision() {
     clearInfoBubble();
   }
 }
-  
-// Change info bubble under canvas with text
+
+// Show the information bubble under the canvas
 function showInfoBubble(text) {
   const canvasRect = canvas.getBoundingClientRect();
   infoBubble.style.left = `${canvasRect.left}px`;
@@ -255,57 +265,12 @@ function showInfoBubble(text) {
   infoBubble.style.display = 'block';
 }
 
-// Empty info bubble and provide default message
+// Clear the information bubble
 function clearInfoBubble() {
   infoBubble.innerHTML = 'Use "A", "D" and "Spacebar" to move around the map. Double jump and explore!';
 }
 
-// Update all the things
-function update() {
-  updateKingHoPlatform();
-  drawBackground();
-  clearInfoBubble();
-  drawBoundaries();
-  drawPlayer();
-  drawPlatforms();
-  player.x += player.dx;
-  player.y += player.dy;
-  player.dy += player.gravity;
-  updatePlayerMovement();
-  checkPlatformCollision();
-  checkBoundaries();
-  requestAnimationFrame(update);
-  updateInfoBubbleVisibility();
-}
-
-function loadPlatformsAndStart() {
-  generateStars();
-  loadPlatforms().then(() => {
-    kingHoPlatform = platforms.find(platform => platform.label === 'King Ho');
-    update();
-  });
-}
-
-// Player input capture
-function keyDown(e) {
-  keys[e.key] = true;
-  if (keys['a']) {
-    facingLeft = true;
-  }
-  if (keys['d']) {
-    facingLeft = false;
-  }
-  if (keys[' '] && player.jumpCount < player.maxJumps) {
-    player.dy = -10;
-    player.jumping = true;
-    player.jumpCount++;
-  }
-}
-function keyUp(e) {
-  keys[e.key] = false;
-}
-
-// Make the player move more naturally
+// Update the player's movement and input
 function updatePlayerMovement() {
   if (keys['a']) {
     if (player.dx > -player.maxSpeed) {
@@ -325,26 +290,81 @@ function updatePlayerMovement() {
     }
   }
 }
-function updateInfoBubbleVisibility() {
-  const infoBubble = document.getElementById('infoBubble');
-  if (window.innerWidth < 1032) {
-    infoBubble.style.display = 'none'; // Hide the infoBubble
-  } else {
-    infoBubble.style.display = 'block'; // Show the infoBubble
+
+// Update the camera to follow the player
+function updateCamera() {
+  const centerScreen = canvas.width / 2;
+
+  if (player.x > centerScreen) {
+    camera.x = player.x - centerScreen;
+  }
+
+  camera.x = Math.max(0, Math.min(camera.x, gameWorldWidth - canvas.width));
+}
+
+// Main game update loop
+function update() {
+  updateKingHoPlatform();
+  drawBackground();
+  drawBoundaries();
+  drawPlayer();
+  drawPlatforms();
+  player.x += player.dx;
+  player.y += player.dy;
+  player.dy += player.gravity;
+  updatePlayerMovement();
+  checkPlatformCollision();
+  checkBoundaries();
+  updateCamera();
+  requestAnimationFrame(update);
+  updateInfoBubbleVisibility();
+}
+
+// Handle keyboard input
+function keyDown(e) {
+  keys[e.key] = true;
+  if (keys['a']) facingLeft = true;
+  if (keys['d']) facingLeft = false;
+  if (keys[' '] && player.jumpCount < player.maxJumps) {
+    player.dy = -15;
+    player.jumping = true;
+    player.jumpCount++;
   }
 }
-window.addEventListener('resize', updateInfoBubbleVisibility);
 
-// get all the canvas/dom/window listeners and redirect them. also prevent spacebar from scrolling down cause thats just weird.
+function keyUp(e) {
+  keys[e.key] = false;
+}
+
+// Update the visibility of the info bubble
+function updateInfoBubbleVisibility() {
+  if (window.innerWidth < 1032) {
+    infoBubble.style.display = 'none';
+  } else {
+    infoBubble.style.display = 'block';
+  }
+}
+
+// Load platforms and start the game loop
+function loadPlatformsAndStart() {
+  generateStars();
+  loadPlatforms().then(() => {
+    kingHoPlatform = platforms.find(platform => platform.label === 'King Ho');
+    update();
+  });
+}
+
+// Add event listeners
 canvas.addEventListener('click', handleInteraction);
 canvas.addEventListener('touchstart', handleInteraction);
 document.addEventListener('keydown', keyDown);
 document.addEventListener('keyup', keyUp);
 window.addEventListener('keydown', function(e) {
-    if(e.keyCode == 32 && e.target == document.body) {
-      e.preventDefault();
-    }
-  });
+  if (e.keyCode == 32 && e.target == document.body) {
+    e.preventDefault();
+  }
+});
+window.addEventListener('resize', updateInfoBubbleVisibility);
 
-// Start the game!
+// Start the game
 loadPlatformsAndStart();
