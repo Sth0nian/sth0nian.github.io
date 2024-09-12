@@ -445,14 +445,16 @@ function handleInteraction(event) {
 function drawPlatforms() {
   ctx.font = "bold 22px 'Silkscreen', sans-serif";
   platforms.forEach(platform => {
-    const tileWidth = 42;
-    for (let x = platform.x - camera.x; x < platform.x - camera.x + platform.width; x += tileWidth) {
-      ctx.drawImage(grassTexture, x, platform.y, tileWidth, platform.height);
+    if (platform.x - camera.x + platform.width > 0 && platform.x - camera.x < canvas.width) {
+      const tileWidth = 42;
+      for (let x = platform.x - camera.x; x < platform.x - camera.x + platform.width; x += tileWidth) {
+        ctx.drawImage(grassTexture, x, platform.y, tileWidth, platform.height);
+      }
+      ctx.fillStyle = 'white';
+      const textX = platform.x + 5 - camera.x;
+      const textY = platform.y + 54;
+      ctx.fillText(platform.label, textX, textY);
     }
-    ctx.fillStyle = 'white';
-    const textX = platform.x + 5 - camera.x;
-    const textY = platform.y + 54;
-    ctx.fillText(platform.label, textX, textY);
   });
 }
 
@@ -608,26 +610,40 @@ function updateCamera() {
 }
 
 // Main game update loop
-function update() {
-  updateKingHoPlatform();
-  drawBackground();
-  drawBoundaries();
-  drawPlayer();
-  drawPlatforms();
-  player.x += player.dx;
-  player.y += player.dy;
-  player.dy += player.gravity;
-  updatePlayerMovement();
-  checkPlatformCollision();
-  checkEnemyCollisions();
-  checkBoundaries();
-  updateCamera();
-  requestAnimationFrame(update);
-  updateInfoBubbleVisibility();
+let lastUpdateTime = 0;
+const timeStep = 1000 / 250;
 
-  spawnEnemy();
-  updateEnemies();
-  drawCounters();
+function update() {
+  timestamp = Date.now()
+
+  if (lastUpdateTime === 0) lastUpdateTime = timestamp;
+
+  const delta = timestamp - lastUpdateTime;
+
+  if (delta >= timeStep) {
+    updateKingHoPlatform();
+    drawBackground();
+    drawBoundaries();
+    drawPlayer();
+    drawPlatforms();
+    player.x += player.dx;
+    player.y += player.dy;
+    player.dy += player.gravity;
+    updatePlayerMovement();
+    checkPlatformCollision();
+    checkEnemyCollisions();
+    checkBoundaries();
+    updateCamera();
+    updateInfoBubbleVisibility();
+
+    spawnEnemy();
+    updateEnemies();
+    drawCounters();
+
+    lastUpdateTime = timestamp;
+  }
+
+  requestAnimationFrame(update);
 }
 
 // Handle keyboard input
