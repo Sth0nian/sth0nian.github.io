@@ -6,13 +6,13 @@ const ctx = canvas.getContext('2d');
 const infoBubble = document.getElementById('infoBubble');
 // Import images
 const playerSpriteSheet = new Image();
-playerSpriteSheet.src = './player.png';
+playerSpriteSheet.src = './img/player.png';
 const grassTexture = new Image();
-grassTexture.src = './floor.png';
+grassTexture.src = './img/floor.png';
 const stoneTexture = new Image();
-stoneTexture.src = './wall.png';
+stoneTexture.src = './img/wall.png';
 const enemySpriteSheet = new Image();
-enemySpriteSheet.src = './enemy.png';
+enemySpriteSheet.src = './img/enemy.png';
 
 // Canvas / graphics vars
 canvas.width = 1200;
