@@ -1,0 +1,8 @@
+articles = [
+    {
+        "date":"2024-10-20 - 17:26",
+        "title":"Theres an itch that needs scratching",
+        "body":"For the longest time, I have found myself wanting to write. What exactly it is that spurred this on I cannot say, but the truth of the matter is that it was always somewhat stuck in the back of my mind. A few people closer to me know that I started a novel during a period of time where I had to travel a lot for work and had extended amounts of time on airplanes and sat on the floor of airport lounges. While shuffling through those hubs of overpriced goods, gaggles of pilots and flight-attendents and the general bustle of people lining up for food they would never normally eat elsewhere, inspiration hit and I just started writing. There was no identifiable motivation, I had no guidance and only a vague idea of what I wanted to write. That was 6 years ago and the 5 chapters and 15,000 words later, the novel still remains unfinished and waiting for me to return. Today, of all days, two thirds of my way through a 3 month sabbatical, that same feeling hit. Opening my laptop for no real reason I opened up my editor and started writing this. Also, I wrote this. For no real reason. I am scared that this random bit of inspiration will leave me again so I am putting it online, setting a daily reminder for myself to write something (really anything) and just doing it.",
+        "tags":["writing", "nosubject"]
+    },
+]

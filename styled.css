@@ -1,0 +1,39 @@
+@font-face {
+    font-family: 'Kode';
+    src: url('./fonts/KodeMono-Medium.ttf') format('truetype');
+
+  }
+  
+  body, html {
+    height: 2000px;
+    margin: 20px;
+    text-align: left;
+    font-family: 'Kode', sans-serif; 
+    background-color: darkslategray;
+    color: antiquewhite;
+    font-size: 1.2em;
+  }
+  h1 {
+    font-size: 1.6em;
+  }
+  h2 {
+    font-size: 1.4em;
+  }
+  .selected::before{
+    content: ">";
+  }
+
+  .date .tags {
+    font-style: italic;
+  }
+  .title {
+    font-style: bold;
+    color: white;
+  }
+  .body {
+    color: grey'
+  }
+  a {
+    color: antiquewhite;
+    text-decoration: none;
+  }
