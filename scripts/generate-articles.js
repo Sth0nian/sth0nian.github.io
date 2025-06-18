@@ -48,10 +48,10 @@ function generateArticles() {
     const files = fs.readdirSync(articlesDir)
         .filter(file => file.endsWith('.md'))
         .sort((a, b) => {
-            // Sort by date (newest first)
-            const dateA = parseDateFromFilename(a);
-            const dateB = parseDateFromFilename(b);
-            return dateB.localeCompare(dateA);
+            // Sort by date (newest first) - convert to Date objects for proper comparison
+            const dateA = new Date(parseDateFromFilename(a));
+            const dateB = new Date(parseDateFromFilename(b));
+            return dateB - dateA;
         });
     
     const articles = [];

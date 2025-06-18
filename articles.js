@@ -1,6 +1,6 @@
 let articles = [
     {
-        "title": "<h1>Eiight Months Later - A fools errand.</h1>",
+        "title": "<h1>Eight Months Later - A fools errand.</h1>",
         "tags": [
             "running"
         ],
