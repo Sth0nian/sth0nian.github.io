@@ -25,6 +25,9 @@
   .date, .tags {
     font-style: italic;
   }
+  .tags {
+    color: #a0a0a0;
+  }
   .title {
     font-style: bold;
     color: white;

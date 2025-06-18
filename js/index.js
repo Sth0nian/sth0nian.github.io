@@ -18,6 +18,14 @@ function composeArticles(curatedarticles) {
   } else {
     renderarticles = articles
   }
+  
+  // Sort articles by date (newest first)
+  renderarticles.sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return dateB - dateA;
+  });
+  
   for (let i = 0; i < renderarticles.length; i++) {
       let bodystring = ""
       for (let j = 0 ; j < renderarticles[i].body.length ; j++){
@@ -43,21 +51,30 @@ function composeArticles(curatedarticles) {
 }
 
 function resetClickables() {
-  $(".selected").click(false);
+  // Hide all sections first
+  $(".section").hide();
+  
+  // Reset all menu items to unselected
+  $(".menubar").find("span, a").removeClass("selected");
+  $(".menubar").find("span, a").addClass("unselected");
+  
+  // Show blog section by default
+  $("#blog").show();
+  $(".menubar").find("[identifier='blog']").removeClass("unselected").addClass("selected");
+  
   $(".unselected").hover(function () {
     $(this).css("cursor", "pointer");
   });
+  
   $(".unselected").click(function () {
     $(".section").hide();
-    $(".menubar").find("span").removeClass("selected");
-    $(".menubar").find("span").addClass("unselected");
-    $(this).addClass("selected");
-    $(this).addClass("unselected");
+    $(".menubar").find("span, a").removeClass("selected");
+    $(".menubar").find("span, a").addClass("unselected");
+    $(this).removeClass("unselected").addClass("selected");
     $("#" + $(this).attr("identifier")).show();
-    console.log("#" + $(this).attr("identifier") + "shown");
+    console.log("#" + $(this).attr("identifier") + " shown");
     resetClickables();
   });
-  $("#" + $("#selected").attr("identifier")).show();
 }
 
 function searcharticles(str){
