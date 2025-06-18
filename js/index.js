@@ -1,33 +1,80 @@
-$( document ).ready(function() {
-    // format json to articles format
-    function composeArticles(){
-        let begin = "Ramblings of coder / writer / architect / amateur woodworker"
-        let aritclebody = ""
-        for(let i = 0 ; i < articles.length ; i++){
-            aritclebody+="<p class='date'>"+articles[i].date+"</p>"+"<p class='title'>"+articles[i].title+"</p>"+"<p class='body'>"+articles[i].body+"</p>"+"<p class='tags'>"+articles[i].tags+"</p>"
-        }
-        $("#blog").html(begin+aritclebody)
+$(document).ready(function () {
+  composeArticles();
+  resetClickables();
+  addAllFunctions();
 
-    }
-    function resetClickables(){
-        $(".selected").click(false);
-        $(".unselected").hover(function() {
-            $(this).css('cursor','pointer');
-        });
-        $(".unselected").click(function(){
-            $(".section").hide()
-            $(".menubar").find('span').removeClass("selected")
-            $(".menubar").find('span').addClass("unselected")
-            $(this).addClass("selected")
-            $(this).addClass("unselected")
-            $("#"+$(this).attr("identifier")).show()
-            console.log("#"+$(this).attr("identifier")+"shown")
-            resetClickables()
-        })
-        $("#"+$("#selected").attr("identifier")).show()
-    }
+  function addAllFunctions(){
+    $('.search').on('input',function(e){
+      searcharticles($('.search').val())
+  });
+  }
+});
 
-    // run functions to start site
+function composeArticles(curatedarticles) {
+  let aritclebody = "";
+  let renderarticles
+  if(curatedarticles != null){
+    renderarticles = curatedarticles
+  } else {
+    renderarticles = articles
+  }
+  for (let i = 0; i < renderarticles.length; i++) {
+      let bodystring = ""
+      for (let j = 0 ; j < renderarticles[i].body.length ; j++){
+        bodystring += renderarticles[i].body[j]+"<br><br>"
+      }
+    aritclebody =
+      "<p class='title'>" +
+      renderarticles[i].title +
+      "</p>" +
+      "<p class='date'>" +
+      renderarticles[i].date +
+      "</p>" +
+      "<p class='body'>" +
+      bodystring +
+      "</p>" +
+      "<p class='tags'>" +
+      renderarticles[i].tags +
+      "</p>" +
+      "<hr>" +
+      aritclebody;
+  }
+  $("#blogcontent").html(aritclebody);
+}
+
+function resetClickables() {
+  $(".selected").click(false);
+  $(".unselected").hover(function () {
+    $(this).css("cursor", "pointer");
+  });
+  $(".unselected").click(function () {
+    $(".section").hide();
+    $(".menubar").find("span").removeClass("selected");
+    $(".menubar").find("span").addClass("unselected");
+    $(this).addClass("selected");
+    $(this).addClass("unselected");
+    $("#" + $(this).attr("identifier")).show();
+    console.log("#" + $(this).attr("identifier") + "shown");
+    resetClickables();
+  });
+  $("#" + $("#selected").attr("identifier")).show();
+}
+
+function searcharticles(str){
+  arts = [];
+  console.log(str)
+  if(str != ''){
+    console.log('string not null')
+    for(let k = 0 ; k < articles.length ; k++){
+      if (articles[k].title.toLowerCase().indexOf(str.toLowerCase()) > -1 || articles[k].tags.filter(str => str.includes(str)).length != 0 ){
+        arts.push(articles[k])
+      }
+    }
+    console.log('matched articles: '+arts.length)
+    composeArticles(arts)
+  } else {
     composeArticles()
-    resetClickables()
-})
+  }
+  
+  
+}
