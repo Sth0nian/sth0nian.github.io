@@ -28,22 +28,23 @@ function composeArticles(curatedarticles) {
   for (let i = 0; i < renderarticles.length; i++) {
       let bodystring = ""
       for (let j = 0 ; j < renderarticles[i].body.length ; j++){
-        bodystring += renderarticles[i].body[j]+"<br><br>"
+        bodystring += "<p>" + renderarticles[i].body[j] + "</p>"
       }
     aritclebody =
+      "<div class='article-container'>" +
       "<p class='title'>" +
       renderarticles[i].title +
       "</p>" +
       "<p class='date'>" +
       renderarticles[i].date +
       "</p>" +
-      "<p class='body'>" +
+      "<div class='body'>" +
       bodystring +
-      "</p>" +
+      "</div>" +
       "<p class='tags'>" +
-      renderarticles[i].tags +
+      renderarticles[i].tags.join(", ") +
       "</p>" +
-      "<hr>" +
+      "</div>" +
       aritclebody;
   }
   $("#blogcontent").html(aritclebody);
