@@ -55,25 +55,31 @@ function resetClickables() {
   $(".section").hide();
   
   // Reset all menu items to unselected
-  $(".menubar").find("span, a").removeClass("selected");
-  $(".menubar").find("span, a").addClass("unselected");
+  $(".menubar").find("span").removeClass("selected");
+  $(".menubar").find("span").addClass("unselected");
   
   // Show blog section by default
   $("#blog").show();
   $(".menubar").find("[identifier='blog']").removeClass("unselected").addClass("selected");
   
-  $(".unselected").hover(function () {
+  // Handle internal navigation (spans)
+  $(".menubar span.unselected").hover(function () {
     $(this).css("cursor", "pointer");
   });
   
-  $(".unselected").click(function () {
+  $(".menubar span.unselected").click(function () {
     $(".section").hide();
-    $(".menubar").find("span, a").removeClass("selected");
-    $(".menubar").find("span, a").addClass("unselected");
+    $(".menubar").find("span").removeClass("selected");
+    $(".menubar").find("span").addClass("unselected");
     $(this).removeClass("unselected").addClass("selected");
     $("#" + $(this).attr("identifier")).show();
     console.log("#" + $(this).attr("identifier") + " shown");
     resetClickables();
+  });
+  
+  // Handle external links (anchors) - just add hover effect
+  $(".menubar a.unselected").hover(function () {
+    $(this).css("cursor", "pointer");
   });
 }
 
