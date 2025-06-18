@@ -43,20 +43,32 @@ async function loadAllComponents() {
 function updateMenuSelection() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     
-    // Remove selected class from all menu items
-    document.querySelectorAll('.menubar span, .menubar a').forEach(item => {
-        item.classList.remove('selected');
-        item.classList.add('unselected');
-    });
-    
-    // Add selected class based on current page
-    if (currentPage === 'index.html' || currentPage === '') {
-        document.querySelector('[identifier="blog"]').classList.remove('unselected').addClass('selected');
-    } else if (currentPage === 'me.html') {
-        document.querySelector('[identifier="me"]').classList.remove('unselected').addClass('selected');
-    } else if (currentPage === 'game.html') {
-        document.querySelector('[identifier="techjourney"]').classList.remove('unselected').addClass('selected');
-    }
+    // Wait a bit for DOM to be ready
+    setTimeout(() => {
+        // Remove selected class from all menu items
+        document.querySelectorAll('.menubar span, .menubar a').forEach(item => {
+            item.classList.remove('selected');
+            item.classList.add('unselected');
+        });
+        
+        // Add selected class based on current page
+        if (currentPage === 'index.html' || currentPage === '') {
+            const blogElement = document.querySelector('[identifier="blog"]');
+            if (blogElement) {
+                blogElement.classList.remove('unselected').addClass('selected');
+            }
+        } else if (currentPage === 'me.html') {
+            const meElement = document.querySelector('[identifier="me"]');
+            if (meElement) {
+                meElement.classList.remove('unselected').addClass('selected');
+            }
+        } else if (currentPage === 'game.html') {
+            const techElement = document.querySelector('[identifier="techjourney"]');
+            if (techElement) {
+                techElement.classList.remove('unselected').addClass('selected');
+            }
+        }
+    }, 100);
 }
 
 // Initialize components
