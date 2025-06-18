@@ -62,11 +62,23 @@ function resetClickables() {
 
 function searcharticles(str){
   arts = [];
-  console.log(str)
+  console.log('Searching for: ' + str)
   if(str != ''){
     console.log('string not null')
     for(let k = 0 ; k < articles.length ; k++){
-      if (articles[k].title.toLowerCase().indexOf(str.toLowerCase()) > -1 || articles[k].tags.filter(str => str.includes(str)).length != 0 ){
+      // Check if title contains the search string
+      let titleMatch = articles[k].title.toLowerCase().indexOf(str.toLowerCase()) > -1;
+      
+      // Check if any tag contains the search string
+      let tagMatch = false;
+      for(let tag of articles[k].tags) {
+        if(tag.toLowerCase().indexOf(str.toLowerCase()) > -1) {
+          tagMatch = true;
+          break;
+        }
+      }
+      
+      if (titleMatch || tagMatch){
         arts.push(articles[k])
       }
     }
@@ -75,6 +87,4 @@ function searcharticles(str){
   } else {
     composeArticles()
   }
-  
-  
 }
