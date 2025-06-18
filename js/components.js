@@ -9,6 +9,24 @@ async function loadComponent(elementId, componentPath) {
     }
 }
 
+// Load commit hash from a generated file or use a fallback
+async function loadCommitHash() {
+    try {
+        const response = await fetch('./commit-hash.txt');
+        const hash = await response.text();
+        const commitHashElement = document.getElementById('commit-hash');
+        if (commitHashElement) {
+            commitHashElement.textContent = hash.trim();
+        }
+    } catch (error) {
+        console.log('Could not load commit hash, using fallback');
+        const commitHashElement = document.getElementById('commit-hash');
+        if (commitHashElement) {
+            commitHashElement.textContent = 'dev';
+        }
+    }
+}
+
 // Load all components when the page loads
 async function loadAllComponents() {
     await Promise.all([
@@ -16,6 +34,9 @@ async function loadAllComponents() {
         loadComponent('menu-placeholder', './components/menu.html'),
         loadComponent('footer-placeholder', './components/footer.html')
     ]);
+    
+    // Load commit hash after footer is loaded
+    await loadCommitHash();
 }
 
 // Update menu selection based on current page

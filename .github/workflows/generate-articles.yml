@@ -13,6 +13,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
       
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -22,10 +24,13 @@ jobs:
     - name: Generate articles.js
       run: node scripts/generate-articles.js
       
+    - name: Generate commit hash
+      run: node scripts/generate-commit-hash.js
+      
     - name: Commit and push changes
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add articles.js
-        git diff --quiet && git diff --staged --quiet || git commit -m "Auto-generate articles.js from markdown files"
+        git add articles.js commit-hash.txt
+        git diff --quiet && git diff --staged --quiet || git commit -m "Auto-generate articles.js and commit hash from markdown files"
         git push 
