@@ -46,7 +46,7 @@ function updateMenuSelection() {
     // Wait a bit for DOM to be ready
     setTimeout(() => {
         // Remove selected class from all menu items
-        document.querySelectorAll('.menubar span, .menubar a').forEach(item => {
+        document.querySelectorAll('.menubar a').forEach(item => {
             item.classList.remove('selected');
             item.classList.add('unselected');
         });
