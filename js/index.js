@@ -1,6 +1,5 @@
 $(document).ready(function () {
   composeArticles();
-  resetClickables();
   addAllFunctions();
 
   function addAllFunctions(){
@@ -48,39 +47,6 @@ function composeArticles(curatedarticles) {
       aritclebody;
   }
   $("#blogcontent").html(aritclebody);
-}
-
-function resetClickables() {
-  // Hide all sections first
-  $(".section").hide();
-  
-  // Reset all menu items to unselected
-  $(".menubar").find("span").removeClass("selected");
-  $(".menubar").find("span").addClass("unselected");
-  
-  // Show blog section by default
-  $("#blog").show();
-  $(".menubar").find("[identifier='blog']").removeClass("unselected").addClass("selected");
-  
-  // Handle internal navigation (spans)
-  $(".menubar span.unselected").hover(function () {
-    $(this).css("cursor", "pointer");
-  });
-  
-  $(".menubar span.unselected").click(function () {
-    $(".section").hide();
-    $(".menubar").find("span").removeClass("selected");
-    $(".menubar").find("span").addClass("unselected");
-    $(this).removeClass("unselected").addClass("selected");
-    $("#" + $(this).attr("identifier")).show();
-    console.log("#" + $(this).attr("identifier") + " shown");
-    resetClickables();
-  });
-  
-  // Handle external links (anchors) - just add hover effect
-  $(".menubar a.unselected").hover(function () {
-    $(this).css("cursor", "pointer");
-  });
 }
 
 function searcharticles(str){
