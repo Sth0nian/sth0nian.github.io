@@ -73,6 +73,22 @@
             border-left: 3px solid #4682B4;
             font-size: 0.9rem;
         }
+        /* Style for inter-POI directions - slightly different for visual separation */
+        .inter-poi-directions {
+            margin: 15px 0;
+            padding: 10px 15px;
+            background: #D4EDDA; /* A slightly different background color for clear separation */
+            border: 2px dashed #28A745; /* Green dashed border */
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: #216F3E;
+            font-weight: bold;
+            text-align: center;
+        }
+        .inter-poi-directions strong {
+            color: #1E7E34;
+        }
+
 
         .treasure-list {
             display: flex;
@@ -427,19 +443,11 @@
         <p class="subtitle">Snap photos of these amazing landmarks in La Rambla and the Gothic Quarter!</p>
 
         <div class="directions-section">
-            <div class="directions-title">🗺️ Your Walking Route</div>
+            <div class="directions-title">🗺️ Your Walking Route Overview</div>
             <div class="route-step">🚇 <strong>Start:</strong> Metro to Plaça Catalunya (L1, L3)</div>
-            <div class="route-step">🚶 **From Plaça Catalunya to Font de Canaletes (Treasure 1):** Walk towards the top of La Rambla. (Approx. 1 minute, 50m)</div>
-            <div class="route-step">🚶 **From Font de Canaletes to Street Performers (Treasure 2):** Continue walking down La Rambla. Keep an eye out on both sides of the street! (Approx. 3-5 minutes, 200m)</div>
-            <div class="route-step">🚶 **From Street Performers to Boqueria Market (Treasure 3):** Keep walking down La Rambla on your right-hand side. The market entrance is hard to miss! (Approx. 2 minutes, 150m)</div>
-            <div class="route-step">🚶 **From Boqueria Market to Joan Miró Mosaic (Treasure 4):** Exit the market and continue south on La Rambla. Look down at the pavement in the center of the walkway. (Approx. 1 minute, 80m)</div>
-            <div class="route-step">🚶 **From Joan Miró Mosaic to Columbus Monument (Treasure 5):** Continue straight down La Rambla until you reach the very end, near the port. (Approx. 5 minutes, 400m)</div>
-            <div class="route-step">🚶 **From Columbus Monument to Barcelona Cathedral (Treasure 6):** From Columbus, head northeast along Passeig de Colom, then turn left onto La Rambla and quickly right onto Carrer de Ferran. Weave through the small streets towards the Gothic Quarter. (Approx. 10 minutes, 700m)</div>
-            <div class="route-step">🚶 **From Barcelona Cathedral to Plaça del Rei (Treasure 7):** From the Cathedral, walk around its left side (if facing the main entrance) or explore the narrow streets directly behind it. Plaça del Rei is very close. (Approx. 2 minutes, 150m)</div>
-            <div class="route-step">🚶 **From Plaça del Rei to Jewish Quarter (Treasure 8):** From Plaça del Rei, look for the even narrower streets nearby, particularly around Carrer del Call and Carrer de Sant Domènec del Call. (Approx. 3 minutes, 200m)</div>
-            <div class="route-step">🚶 **From Jewish Quarter to Plaça Sant Jaume (Treasure 9):** Navigate your way out of the Jewish Quarter's winding streets; Plaça Sant Jaume is a large, central square often bustling with activity. (Approx. 2 minutes, 150m)</div>
-            <div class="route-step">🚶 **From Plaça Sant Jaume to Ancient Roman Walls (Treasure 10):** From Plaça Sant Jaume, head towards the back of the square (opposite the city hall). The walls are often integrated into other buildings or visible from the street. You can find significant sections near the Cathedral. (Approx. 3 minutes, 200m)</div>
-            <div class="route-step">🎉 **End:** After the Roman Walls, you can leisurely make your way to **Plaça Reial** (approx. 5 minutes from La Rambla or near the end of the Gothic Quarter exploration) for a well-deserved celebration!</div>
+            <div class="route-step">🚶 <strong>La Rambla:</strong> Walk south down La Rambla</div>
+            <div class="route-step">🔄 <strong>Turn:</strong> Explore Gothic Quarter</div>
+            <div class="route-step">🎉 <strong>End:</strong> Plaça Reial for celebration!</div>
         </div>
 
         <div class="progress-bar">
@@ -485,6 +493,10 @@
                 </div>
             </div>
 
+            <div class="inter-poi-directions">
+                🚶‍♀️ **Next Stop: Street Performers!** Continue walking **south** down La Rambla. Keep an eye out on both sides of the street! (Approx. 3-5 minutes, 200m)
+            </div>
+
             <div class="treasure-item" data-treasure="2">
                 <div class="treasure-number">2</div>
                 <div class="status-badge">Not Found</div>
@@ -515,6 +527,10 @@
                         Some performers have been entertaining people here for over 20 years!
                     </div>
                 </div>
+            </div>
+
+            <div class="inter-poi-directions">
+                🚶‍♀️ **Next Stop: Boqueria Market!** Keep walking **south** down La Rambla. The market entrance will be on your **right-hand side** (west side). (Approx. 2 minutes, 150m)
             </div>
 
             <div class="treasure-item" data-treasure="3">
@@ -549,6 +565,10 @@
                 </div>
             </div>
 
+            <div class="inter-poi-directions">
+                🚶‍♀️ **Next Stop: Joan Miró Mosaic!** Exit the market and continue **south** on La Rambla. Look down at the pavement in the **center** of the walkway. (Approx. 1 minute, 80m)
+            </div>
+
             <div class="treasure-item" data-treasure="4">
                 <div class="treasure-number">4</div>
                 <div class="status-badge">Not Found</div>
@@ -579,6 +599,10 @@
                         This mosaic was created by famous artist Joan Miró in 1976 using broken tiles!
                     </div>
                 </div>
+            </div>
+
+            <div class="inter-poi-directions">
+                🚶‍♀️ **Next Stop: Columbus Monument!** Continue **straight south** down La Rambla until you reach the very end, near the port. You can't miss it! (Approx. 5 minutes, 400m)
             </div>
 
             <div class="treasure-item" data-treasure="5">
@@ -613,6 +637,10 @@
                 </div>
             </div>
 
+            <div class="inter-poi-directions">
+                🚶‍♀️ **Next Stop: Barcelona Cathedral!** From Columbus, head **northeast** along Passeig de Colom, then turn **left** onto La Rambla briefly and quickly **right** onto Carrer de Ferran. Weave through the small streets towards the Gothic Quarter. Follow signs for "Catedral". (Approx. 10 minutes, 700m)
+            </div>
+
             <div class="treasure-item" data-treasure="6">
                 <div class="treasure-number">6</div>
                 <div class="status-badge">Not Found</div>
@@ -643,6 +671,10 @@
                         The cathedral took 150 years to build and the geese honor Barcelona's young patron saint!
                     </div>
                 </div>
+            </div>
+
+            <div class="inter-poi-directions">
+                🚶‍♀️ **Next Stop: Plaça del Rei!** From the Cathedral, walk around its **left side** (if facing the main entrance) or explore the narrow streets directly behind it. Plaça del Rei is very close. (Approx. 2 minutes, 150m)
             </div>
 
             <div class="treasure-item" data-treasure="7">
@@ -677,6 +709,10 @@
                 </div>
             </div>
 
+            <div class="inter-poi-directions">
+                🚶‍♀️ **Next Stop: Jewish Quarter!** From Plaça del Rei, look for the even narrower streets nearby, particularly around **Carrer del Call** and **Carrer de Sant Domènec del Call**. It's a maze! (Approx. 3 minutes, 200m)
+            </div>
+
             <div class="treasure-item" data-treasure="8">
                 <div class="treasure-number">8</div>
                 <div class="status-badge">Not Found</div>
@@ -707,6 +743,10 @@
                         These streets are over 1,000 years old and were built narrow to provide shade!
                     </div>
                 </div>
+            </div>
+
+            <div class="inter-poi-directions">
+                🚶‍♀️ **Next Stop: Plaça Sant Jaume!** Navigate your way out of the Jewish Quarter's winding streets; Plaça Sant Jaume is a large, central square often bustling with activity, with two important government buildings. (Approx. 2 minutes, 150m)
             </div>
 
             <div class="treasure-item" data-treasure="9">
@@ -741,6 +781,10 @@
                 </div>
             </div>
 
+            <div class="inter-poi-directions">
+                🚶‍♀️ **Next Stop: Ancient Roman Walls!** From Plaça Sant Jaume, head towards the back of the square (opposite the city hall). The walls are often integrated into other buildings or visible from the street. You can find significant sections near the Cathedral. (Approx. 3 minutes, 200m)
+            </div>
+
             <div class="treasure-item" data-treasure="10">
                 <div class="treasure-number">10</div>
                 <div class="status-badge">Not Found</div>
@@ -772,6 +816,11 @@
                     </div>
                 </div>
             </div>
+
+            <div class="inter-poi-directions">
+                🎉 **HUNT COMPLETE!** From the Roman Walls, you can leisurely make your way to **Plaça Reial** (approx. 5 minutes from La Rambla or near the end of the Gothic Quarter exploration) for a well-deserved celebration! You're an expert Barcelona explorer!
+            </div>
+
         </div>
 
         <div class="button-container">
