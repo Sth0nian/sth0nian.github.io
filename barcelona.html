@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcelona Photo Treasure Hunt</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+```
+    body {
+        margin: 0;
+        padding: 10px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #87CEEB 0%, #E0F6FF 50%, #87CEEB 100%);
+        min-height: 100vh;
+        line-height: 1.5;
+        overflow-x: hidden;
+    }
+    
+    .hunt-container {
+        max-width: 600px;
+        width: 100%;
+        margin: 0 auto;
+        background: #F5DEB3;
+        border: 3px solid #8B4513;
+        border-radius: 15px;
+        padding: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        overflow: hidden;
+    }
+    
+    .hunt-title {
+        text-align: center;
+        color: #8B4513;
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        word-wrap: break-word;
+    }
+    
+    .subtitle {
+        text-align: center;
+        color: #CD853F;
+        font-size: 1rem;
+        margin-bottom: 20px;
+        font-weight: 500;
+        word-wrap: break-word;
+    }
+    
+    .directions-section {
+        background: #E6F3FF;
+        border: 2px solid #4682B4;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .directions-title {
+        color: #4682B4;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .route-step {
+        margin: 8px 0;
+        padding: 8px;
+        background: rgba(255,255,255,0.5);
+        border-radius: 6px;
+        border-left: 3px solid #4682B4;
+        font-size: 0.9rem;
+    }
+    
+    .treasure-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+    
+    .treasure-item {
+        background: white;
+        border: 3px solid #FFD700;
+        border-radius: 12px;
+        padding: 15px;
+        position: relative;
+        transition: all 0.3s ease;
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+    }
+    
+    .treasure-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+    }
+    
+    .treasure-item.found {
+        background: #E8F5E8;
+        border-color: #4CAF50;
+    }
+    
+    .treasure-item.found .status-badge {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .treasure-number {
+        position: absolute;
+        top: -8px;
+        left: 12px;
+        background: #FF6B6B;
+        color: white;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 13px;
+        z-index: 10;
+    }
+    
+    .treasure-title {
+        color: #8B4513;
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+        margin-top: 8px;
+        font-weight: bold;
+        word-wrap: break-word;
+    }
+    
+    .treasure-clue {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+    
+    .upload-area {
+        border: 2px dashed #4CAF50;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        background: #F0F8FF;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        min-height: 70px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+    
+    .upload-area:hover {
+        background: #E6F3FF;
+        border-color: #45A049;
+    }
+    
+    .upload-area:active {
+        transform: scale(0.98);
+    }
+    
+    .upload-btn {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: bold;
+        margin-top: 8px;
+        min-height: 40px;
+        touch-action: manipulation;
+    }
+    
+    .upload-btn:hover {
+        background: #45A049;
+    }
+    
+    .upload-btn:active {
+        transform: scale(0.96);
+    }
+    
+    .photo-preview {
+        max-width: 100%;
+        max-height: 180px;
+        border-radius: 8px;
+        margin: 8px 0;
+        display: none;
+        object-fit: cover;
+        width: auto;
+        height: auto;
+    }
+    
+    .status-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #FFA500;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+    
+    .feedback-panel {
+        display: none;
+        background: #E8F5E8;
+        border: 2px solid #4CAF50;
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 12px;
+        animation: slideIn 0.5s ease;
+        width: 100%;
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .feedback-title {
+        color: #4CAF50;
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin-bottom: 8px;
+        word-wrap: break-word;
+    }
+    
+    .activity-box {
+        background: #FFF8DC;
+        border: 2px solid #DAA520;
+        border-radius: 6px;
+        padding: 10px;
+        margin: 8px 0;
+        font-size: 0.85rem;
+        word-wrap: break-word;
+    }
+    
+    .fun-fact {
+        background: #F0F8FF;
+        border: 2px solid #4682B4;
+        border-radius: 6px;
+        padding: 10px;
+        margin: 8px 0;
+        font-size: 0.85rem;
+        word-wrap: break-word;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 32px;
+        background: #E0E0E0;
+        border-radius: 16px;
+        overflow: hidden;
+        margin: 15px 0;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+        width: 0%;
+        transition: width 0.5s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85rem;
+        min-width: 0;
+    }
+    
+    .completion-celebration {
+        display: none;
+        text-align: center;
+        background: linear-gradient(45deg, #FFD700 0%, #FFA500 100%);
+        padding: 20px;
+        border-radius: 12px;
+        margin: 15px 0;
+        color: #8B4513;
+        font-size: 1.2rem;
+        font-weight: bold;
+        animation: celebration 1s ease;
+        word-wrap: break-word;
+    }
+    
+    @keyframes celebration {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .hints-toggle {
+        background: #FF9500;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 16px;
+        cursor: pointer;
+        font-size: 11px;
+        margin-top: 8px;
+        min-height: 36px;
+        touch-action: manipulation;
+    }
+    
+    .hints-toggle:active {
+        transform: scale(0.96);
+    }
+    
+    .hints-content {
+        display: none;
+        background: #FFF3E0;
+        border: 2px solid #FF9500;
+        border-radius: 6px;
+        padding: 10px;
+        margin-top: 8px;
+        font-size: 0.8rem;
+        word-wrap: break-word;
+    }
+    
+    .file-input {
+        display: none;
+    }
+    
+    .reset-btn {
+        background: #FF6B6B;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: bold;
+        margin: 8px 4px;
+        min-height: 40px;
+        touch-action: manipulation;
+    }
+    
+    .reset-btn:hover {
+        background: #FF5252;
+    }
+    
+    .reset-btn:active {
+        transform: scale(0.96);
+    }
+    
+    .button-container {
+        text-align: center;
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+    }
+    
+    .show-all-btn {
+        background: #4CAF50;
+    }
+    
+    @media (min-width: 480px) {
+        body {
+            padding: 15px;
+        }
+        
+        .hunt-container {
+            padding: 20px;
+            max-width: 700px;
+        }
+        
+        .hunt-title {
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .treasure-title {
+            font-size: 1.3rem;
+        }
+        
+        .treasure-clue {
+            font-size: 0.95rem;
+        }
+        
+        .button-container {
+            flex-direction: row;
+            justify-content: center;
+        }
+        
+        .reset-btn {
+            width: auto;
+        }
+    }
+    
+    @media (max-width: 320px) {
+        body {
+            padding: 8px;
+        }
+        
+        .hunt-container {
+            padding: 12px;
+        }
+        
+        .hunt-title {
+            font-size: 1.5rem;
+        }
+        
+        .treasure-item {
+            padding: 12px;
+        }
+    }
+</style>
+```
+
+</head>
+<body>
+    <div class="hunt-container">
+        <h1 class="hunt-title">📸 Barcelona Photo Treasure Hunt 📸</h1>
+        <p class="subtitle">Snap photos of these amazing landmarks in La Rambla and the Gothic Quarter!</p>
+
+```
+    <div class="directions-section">
+        <div class="directions-title">🗺️ Your Walking Route</div>
+        <div class="route-step">🚇 <strong>Start:</strong> Metro to Plaça Catalunya (L1, L3) → Font de Canaletes (1 min)</div>
+        <div class="route-step">🚶 <strong>La Rambla:</strong> Walk south down La Rambla (15 min total)</div>
+        <div class="route-step">🔄 <strong>Turn:</strong> From Columbus Monument → Cathedral area (5 min)</div>
+        <div class="route-step">⛪ <strong>Gothic Quarter:</strong> Explore medieval streets (20 min)</div>
+        <div class="route-step">🎉 <strong>End:</strong> Plaça Reial for celebration!</div>
+    </div>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill">0 / 10 Found</div>
+    </div>
+    
+    <div class="completion-celebration" id="completionCelebration">
+        🎉 CONGRATULATIONS! 🎉<br>
+        You've found all the treasures!<br>
+        You're now a Barcelona Explorer Expert! 🏆
+    </div>
+    
+    <div class="treasure-list">
+        <div class="treasure-item" data-treasure="1">
+            <div class="treasure-number">1</div>
+            <div class="status-badge">Not Found</div>
+            <h3 class="treasure-title">🌟 Font de Canaletes</h3>
+            <p class="treasure-clue">Find the famous fountain at the top of La Rambla where locals drink for good luck!</p>
+            
+            <div class="upload-area" onclick="triggerUpload(1)">
+                📷 Click to upload your photo!<br>
+                <small>or tap here to take a picture</small>
+                <button class="upload-btn" type="button">Choose Photo</button>
+            </div>
+            <input type="file" class="file-input" id="file1" accept="image/*">
+            <img class="photo-preview" id="preview1" alt="Photo preview">
+            
+            <button class="hints-toggle" type="button" onclick="toggleHints(1)">💡 Need a hint?</button>
+            <div class="hints-content" id="hints1">
+                <strong>🔍 Look for:</strong> An ornate fountain with 4 water spouts near Plaça Catalunya Metro!
+            </div>
+            
+            <div class="feedback-panel" id="feedback1">
+                <div class="feedback-title">🎉 Treasure Found!</div>
+                <div class="activity-box">
+                    <strong>🎯 MISSION COMPLETE!</strong><br>
+                    Did you drink from the fountain? Legend says you'll return to Barcelona!
+                </div>
+                <div class="fun-fact">
+                    <strong>🤔 Did you know?</strong><br>
+                    This fountain is over 150 years old and FC Barcelona fans celebrate here!
+                </div>
+            </div>
+        </div>
+
+        <div class="treasure-item" data-treasure="2">
+            <div class="treasure-number">2</div>
+            <div class="status-badge">Not Found</div>
+            <h3 class="treasure-title">🎭 Street Performers</h3>
+            <p class="treasure-clue">Capture the amazing living statues and musicians who bring La Rambla to life!</p>
+            
+            <div class="upload-area" onclick="triggerUpload(2)">
+                📷 Click to upload your photo!<br>
+                <small>or tap here to take a picture</small>
+                <button class="upload-btn" type="button">Choose Photo</button>
+            </div>
+            <input type="file" class="file-input" id="file2" accept="image/*">
+            <img class="photo-preview" id="preview2" alt="Photo preview">
+            
+            <button class="hints-toggle" type="button" onclick="toggleHints(2)">💡 Need a hint?</button>
+            <div class="hints-content" id="hints2">
+                <strong>🔍 Look for:</strong> People dressed as statues, musicians, or artists performing along La Rambla!
+            </div>
+            
+            <div class="feedback-panel" id="feedback2">
+                <div class="feedback-title">🎉 Treasure Found!</div>
+                <div class="activity-box">
+                    <strong>🎯 MISSION COMPLETE!</strong><br>
+                    Did you see how still the living statues can be? Amazing!
+                </div>
+                <div class="fun-fact">
+                    <strong>🤔 Did you know?</strong><br>
+                    Some performers have been entertaining people here for over 20 years!
+                </div>
+            </div>
+        </div>
+
+        <div class="treasure-item" data-treasure="3">
+            <div class="treasure-number">3</div>
+            <div class="status-badge">Not Found</div>
+            <h3 class="treasure-title">🍎 Boqueria Market</h3>
+            <p class="treasure-clue">Enter the colorful world of fruits, sweets, and amazing smells!</p>
+            
+            <div class="upload-area" onclick="triggerUpload(3)">
+                📷 Click to upload your photo!<br>
+                <small>or tap here to take a picture</small>
+                <button class="upload-btn" type="button">Choose Photo</button>
+            </div>
+            <input type="file" class="file-input" id="file3" accept="image/*">
+            <img class="photo-preview" id="preview3" alt="Photo preview">
+            
+            <button class="hints-toggle" type="button" onclick="toggleHints(3)">💡 Need a hint?</button>
+            <div class="hints-content" id="hints3">
+                <strong>🔍 Look for:</strong> A big market entrance with colorful fruit displays. Look for "Mercat de la Boqueria"!
+            </div>
+            
+            <div class="feedback-panel" id="feedback3">
+                <div class="feedback-title">🎉 Treasure Found!</div>
+                <div class="activity-box">
+                    <strong>🎯 MISSION COMPLETE!</strong><br>
+                    How many different colored fruits did you count? The rainbow of colors is amazing!
+                </div>
+                <div class="fun-fact">
+                    <strong>🤔 Did you know?</strong><br>
+                    This market has been feeding Barcelona for over 800 years!
+                </div>
+            </div>
+        </div>
+
+        <div class="treasure-item" data-treasure="4">
+            <div class="treasure-number">4</div>
+            <div class="status-badge">Not Found</div>
+            <h3 class="treasure-title">🎨 Joan Miró Mosaic</h3>
+            <p class="treasure-clue">Look down at your feet to find the hidden circular artwork in the pavement!</p>
+            
+            <div class="upload-area" onclick="triggerUpload(4)">
+                📷 Click to upload your photo!<br>
+                <small>or tap here to take a picture</small>
+                <button class="upload-btn" type="button">Choose Photo</button>
+            </div>
+            <input type="file" class="file-input" id="file4" accept="image/*">
+            <img class="photo-preview" id="preview4" alt="Photo preview">
+            
+            <button class="hints-toggle" type="button" onclick="toggleHints(4)">💡 Need a hint?</button>
+            <div class="hints-content" id="hints4">
+                <strong>🔍 Look for:</strong> A colorful circular mosaic on the ground in the middle of La Rambla!
+            </div>
+            
+            <div class="feedback-panel" id="feedback4">
+                <div class="feedback-title">🎉 Treasure Found!</div>
+                <div class="activity-box">
+                    <strong>🎯 MISSION COMPLETE!</strong><br>
+                    Did you stand on the mosaic? What colors did you see in the artwork?
+                </div>
+                <div class="fun-fact">
+                    <strong>🤔 Did you know?</strong><br>
+                    This mosaic was created by famous artist Joan Miró in 1976 using broken tiles!
+                </div>
+            </div>
+        </div>
+
+        <div class="treasure-item" data-treasure="5">
+            <div class="treasure-number">5</div>
+            <div class="status-badge">Not Found</div>
+            <h3 class="treasure-title">⚓ Columbus Monument</h3>
+            <p class="treasure-clue">Find the tall tower where the famous explorer points toward the sea!</p>
+            
+            <div class="upload-area" onclick="triggerUpload(5)">
+                📷 Click to upload your photo!<br>
+                <small>or tap here to take a picture</small>
+                <button class="upload-btn" type="button">Choose Photo</button>
+            </div>
+            <input type="file" class="file-input" id="file5" accept="image/*">
+            <img class="photo-preview" id="preview5" alt="Photo preview">
+            
+            <button class="hints-toggle" type="button" onclick="toggleHints(5)">💡 Need a hint?</button>
+            <div class="hints-content" id="hints5">
+                <strong>🔍 Look for:</strong> A very tall column with a statue on top at the end of La Rambla near the sea!
+            </div>
+            
+            <div class="feedback-panel" id="feedback5">
+                <div class="feedback-title">🎉 Treasure Found!</div>
+                <div class="activity-box">
+                    <strong>🎯 MISSION COMPLETE!</strong><br>
+                    Can you see which direction Columbus is pointing? Hint: It's toward the Mediterranean Sea!
+                </div>
+                <div class="fun-fact">
+                    <strong>🤔 Did you know?</strong><br>
+                    This monument is 60 meters tall and Columbus is pointing toward the sea, not America!
+                </div>
+            </div>
+        </div>
+
+        <div class="treasure-item" data-treasure="6">
+            <div class="treasure-number">6</div>
+            <div class="status-badge">Not Found</div>
+            <h3 class="treasure-title">⛪ Barcelona Cathedral</h3>
+            <p class="treasure-clue">Discover the grand Gothic church with amazing spires and 13 white geese!</p>
+            
+            <div class="upload-area" onclick="triggerUpload(6)">
+                📷 Click to upload your photo!<br>
+                <small>or tap here to take a picture</small>
+                <button class="upload-btn" type="button">Choose Photo</button>
+            </div>
+            <input type="file" class="file-input" id="file6" accept="image/*">
+            <img class="photo-preview" id="preview6" alt="Photo preview">
+            
+            <button class="hints-toggle" type="button" onclick="toggleHints(6)">💡 Need a hint?</button>
+            <div class="hints-content" id="hints6">
+                <strong>🔍 Look for:</strong> A huge Gothic cathedral with pointed spires. Look for the geese in the courtyard!
+            </div>
+            
+            <div class="feedback-panel" id="feedback6">
+                <div class="feedback-title">🎉 Treasure Found!</div>
+                <div class="activity-box">
+                    <strong>🎯 MISSION COMPLETE!</strong><br>
+                    Did you count the geese? There should be exactly 13 - one for each year of Saint Eulalia!
+                </div>
+                <div class="fun-fact">
+                    <strong>🤔 Did you know?</strong><br>
+                    The cathedral took 150 years to build and the geese honor Barcelona's young patron saint!
+                </div>
+            </div>
+        </div>
+
+        <div class="treasure-item" data-treasure="7">
+            <div class="treasure-number">7</div>
+            <div class="status-badge">Not Found</div>
+            <h3 class="treasure-title">👑 Plaça del Rei</h3>
+            <p class="treasure-clue">Enter the royal square where kings and queens once lived!</p>
+            
+            <div class="upload-area" onclick="triggerUpload(7)">
+                📷 Click to upload your photo!<br>
+                <small>or tap here to take a picture</small>
+                <button class="upload-btn" type="button">Choose Photo</button>
+            </div>
+            <input type="file" class="file-input" id="file7" accept="image/*">
+            <img class="photo-preview" id="preview7" alt="Photo preview">
+            
+            <button class="hints-toggle" type="button" onclick="toggleHints(7)">💡 Need a hint?</button>
+            <div class="hints-content" id="hints7">
+                <strong>🔍 Look for:</strong> A medieval square with old stone buildings and big stone steps. It looks very royal!
+            </div>
+            
+            <div class="feedback-panel" id="feedback7">
+                <div class="feedback-title">🎉 Treasure Found!</div>
+                <div class="activity-box">
+                    <strong>🎯 MISSION COMPLETE!</strong><br>
+                    Did you sit on the royal steps? This is where Columbus met the Catholic Kings!
+                </div>
+                <div class="fun-fact">
+                    <strong>🤔 Did you know?</strong><br>
+                    This is where Columbus reported to the kings about discovering America!
+                </div>
+            </div>
+        </div>
+
+        <div class="treasure-item" data-treasure="8">
+            <div class="treasure-number">8</div>
+            <div class="status-badge">Not Found</div>
+            <h3 class="treasure-title">🕯️ Jewish Quarter</h3>
+            <p class="treasure-clue">Wander through the narrow medieval streets where an ancient community lived!</p>
+            
+            <div class="upload-area" onclick="triggerUpload(8)">
+                📷 Click to upload your photo!<br>
+                <small>or tap here to take a picture</small>
+                <button class="upload-btn" type="button">Choose Photo</button>
+            </div>
+            <input type="file" class="file-input" id="file8" accept="image/*">
+            <img class="photo-preview" id="preview8" alt="Photo preview">
+            
+            <button class="hints-toggle" type="button" onclick="toggleHints(8)">💡 Need a hint?</button>
+            <div class="hints-content" id="hints8">
+                <strong>🔍 Look for:</strong> Very narrow stone streets with old buildings. Some streets are so narrow you can touch both walls!
+            </div>
+            
+            <div class="feedback-panel" id="feedback8">
+                <div class="feedback-title">🎉 Treasure Found!</div>
+                <div class="activity-box">
+                    <strong>🎯 MISSION COMPLETE!</strong><br>
+                    Did you find the narrowest street? Can you stretch your arms and touch both walls?
+                </div>
+                <div class="fun-fact">
+                    <strong>🤔 Did you know?</strong><br>
+                    These streets are over 1,000 years old and were built narrow to provide shade!
+                </div>
+            </div>
+        </div>
+
+        <div class="treasure-item" data-treasure="9">
+            <div class="treasure-number">9</div>
+            <div class="status-badge">Not Found</div>
+            <h3 class="treasure-title">🏛️ Plaça Sant Jaume</h3>
+            <p class="treasure-clue">Find the government square where the city's important decisions are made!</p>
+            
+            <div class="upload-area" onclick="triggerUpload(9)">
+                📷 Click to upload your photo!<br>
+                <small>or tap here to take a picture</small>
+                <button class="upload-btn" type="button">Choose Photo</button>
+            </div>
+            <input type="file" class="file-input" id="file9" accept="image/*">
+            <img class="photo-preview" id="preview9" alt="Photo preview">
+            
+            <button class="hints-toggle" type="button" onclick="toggleHints(9)">💡 Need a hint?</button>
+            <div class="hints-content" id="hints9">
+                <strong>🔍 Look for:</strong> A square with two important government buildings facing each other. Look for official flags!
+            </div>
+            
+            <div class="feedback-panel" id="feedback9">
+                <div class="feedback-title">🎉 Treasure Found!</div>
+                <div class="activity-box">
+                    <strong>🎯 MISSION COMPLETE!</strong><br>
+                    Did you stand in the center? You can see both government buildings from there!
+                </div>
+                <div class="fun-fact">
+                    <strong>🤔 Did you know?</strong><br>
+                    This square has been the political heart of Barcelona for over 600 years!
+                </div>
+            </div>
+        </div>
+
+        <div class="treasure-item" data-treasure="10">
+            <div class="treasure-number">10</div>
+            <div class="status-badge">Not Found</div>
+            <h3 class="treasure-title">🏛️ Ancient Roman Walls</h3>
+            <p class="treasure-clue">Discover the 2,000-year-old stones that protected the ancient city!</p>
+            
+            <div class="upload-area" onclick="triggerUpload(10)">
+                📷 Click to upload your photo!<br>
+                <small>or tap here to take a picture</small>
+                <button class="upload-btn" type="button">Choose Photo</button>
+            </div>
+            <input type="file" class="file-input" id="file10" accept="image/*">
+            <img class="photo-preview" id="preview10" alt="Photo preview">
+            
+            <button class="hints-toggle" type="button" onclick="toggleHints(10)">💡 Need a hint?</button>
+            <div class="hints-content" id="hints10">
+                <strong>🔍 Look for:</strong> Very old, thick stone walls that look ancient. You can find them around the Gothic Quarter!
+            </div>
+            
+            <div class="feedback-panel" id="feedback10">
+                <div class="feedback-title">🎉 Treasure Found!</div>
+                <div class="activity-box">
+                    <strong>🎯 MISSION COMPLETE!</strong><br>
+                    Did you touch the ancient stones? Imagine Roman soldiers walking here 2,000 years ago!
+                </div>
+                <div class="fun-fact">
+                    <strong>🤔 Did you know?</strong><br>
+                    The Romans called Barcelona "Barcino" - can you see where the name comes from?
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="button-container">
+        <button class="reset-btn" type="button" onclick="resetHunt()">🔄 Reset Hunt</button>
+        <button class="reset-btn show-all-btn" type="button" onclick="showAllFeedback()">🎯 Show All Activities</button>
+    </div>
+</div>
+
+<script>
+    let foundTreasures = new Set();
+    
+    // Add event listeners when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add change event listeners to all file inputs
+        for (let i = 1; i <= 10; i++) {
+            const fileInput = document.getElementById(`file${i}`);
+            if (fileInput) {
+                fileInput.addEventListener('change', function() {
+                    handleFileUpload(i, this);
+                });
+            }
+        }
+    });
+    
+    function triggerUpload(treasureId) {
+        try {
+            const fileInput = document.getElementById(`file${treasureId}`);
+            if (fileInput) {
+                fileInput.click();
+            } else {
+                console.error(`File input not found for treasure ${treasureId}`);
+            }
+        } catch (error) {
+            console.error('Error triggering upload:', error);
+        }
+    }
+    
+    function handleFileUpload(treasureId, input) {
+        try {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const preview = document.getElementById(`preview${treasureId}`);
+                        if (preview) {
+                            preview.src = e.target.result;
+                            preview.style.display = 'block';
+                            
+                            // Mark as found
+                            markTreasureFound(treasureId);
+                        } else {
+                            console.error(`Preview element not found for treasure ${treasureId}`);
+                        }
+                    } catch (error) {
+                        console.error('Error setting preview image:', error);
+                    }
+                };
+                reader.onerror = function(error) {
+                    console.error('Error reading file:', error);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                console.log('No file selected');
+            }
+        } catch (error) {
+            console.error('Error handling file upload:', error);
+        }
+    }
+    
+    function markTreasureFound(treasureId) {
+        try {
+            if (!foundTreasures.has(treasureId)) {
+                foundTreasures.add(treasureId);
+                
+                const item = document.querySelector(`[data-treasure="${treasureId}"]`);
+                if (item) {
+                    item.classList.add('found');
+                    
+                    const badge = item.querySelector('.status-badge');
+                    if (badge) {
+                        badge.textContent = '✓ Found!';
+                        badge.style.background = '#4CAF50';
+                    }
+                    
+                    const feedback = document.getElementById(`feedback${treasureId}`);
+                    if (feedback) {
+                        feedback.style.display = 'block';
+                    }
+                    
+                    updateProgress();
+                    
+                    // Add celebration effect
+                    item.style.animation = 'celebration 0.5s ease';
+                    setTimeout(() => {
+                        item.style.animation = '';
+                    }, 500);
+                } else {
+                    console.error(`Treasure item not found for ${treasureId}`);
+                }
+            }
+        } catch (error) {
+            console.error('Error marking treasure found:', error);
+        }
+    }
+    
+    function updateProgress() {
+        try {
+            const progress = document.getElementById('progressFill');
+            if (progress) {
+                const percentage = (foundTreasures.size / 10) * 100;
+                progress.style.width = percentage + '%';
+                progress.textContent = `${foundTreasures.size} / 10 Found`;
+                
+                if (foundTreasures.size === 10) {
+                    setTimeout(() => {
+                        const celebration = document.getElementById('completionCelebration');
+                        if (celebration) {
+                            celebration.style.display = 'block';
+                        }
+                    }, 500);
+                }
+            } else {
+                console.error('Progress element not found');
+            }
+        } catch (error) {
+            console.error('Error updating progress:', error);
+        }
+    }
+    
+    function toggleHints(treasureId) {
+        try {
+            const hints = document.getElementById(`hints${treasureId}`);
+            const button = event.target;
+            
+            if (hints && button) {
+                if (hints.style.display === 'none' || hints.style.display === '') {
+                    hints.style.display = 'block';
+                    button.textContent = '🔒 Hide hint';
+                } else {
+                    hints.style.display = 'none';
+                    button.textContent = '💡 Need a hint?';
+                }
+            } else {
+                console.error(`Hints element not found for treasure ${treasureId}`);
+            }
+        } catch (error) {
+            console.error('Error toggling hints:', error);
+        }
+    }
+    
+    function resetHunt() {
+        try {
+            foundTreasures.clear();
+            
+            // Reset all items
+            document.querySelectorAll('.treasure-item').forEach(item => {
+                item.classList.remove('found');
+                
+                const badge = item.querySelector('.status-badge');
+                if (badge) {
+                    badge.textContent = 'Not Found';
+                    badge.style.background = '#FFA500';
+                }
+                
+                const feedback = item.querySelector('.feedback-panel');
+                if (feedback) {
+                    feedback.style.display = 'none';
+                }
+                
+                const preview = item.querySelector('.photo-preview');
+                if (preview) {
+                    preview.style.display = 'none';
+                    preview.src = '';
+                }
+                
+                const fileInput = item.querySelector('.file-input');
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+                
+                const hints = item.querySelector('.hints-content');
+                if (hints) {
+                    hints.style.display = 'none';
+                }
+                
+                const hintButton = item.querySelector('.hints-toggle');
+                if (hintButton) {
+                    hintButton.textContent = '💡 Need a hint?';
+                }
+            });
+            
+            // Reset progress
+            updateProgress();
+            
+            // Hide completion celebration
+            const celebration = document.getElementById('completionCelebration');
+            if (celebration) {
+                celebration.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error resetting hunt:', error);
+        }
+    }
+    
+    function showAllFeedback() {
+        try {
+            // Mark all treasures as found
+            for (let i = 1; i <= 10; i++) {
+                markTreasureFound(i);
+            }
+        } catch (error) {
+            console.error('Error showing all feedback:', error);
+        }
+    }
+    
+    // Prevent event bubbling on button clicks
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('upload-btn')) {
+            e.stopPropagation();
+        }
+    });
+</script>
+```
+
+</body>
+</html>
