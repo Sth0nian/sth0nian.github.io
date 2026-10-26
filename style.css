@@ -8,20 +8,305 @@
 
 /* Game Container */
 .game-container {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 20px;
 }
 
-/* Canvas styling */
-canvas {
+/* Dungeon layout: canvas + codex side panel */
+.dungeon {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.dungeon-stage {
+  min-width: 0;
+}
+
+#gameCanvas {
   display: block;
-  margin: 0 auto;
-  max-width: 100%;
-  height: auto;
+  width: 100%;
+  height: clamp(480px, 74vh, 800px);
+  background: #07060c;
   border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid #2c2838;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.03);
+  cursor: crosshair;
+  outline: none;
+  touch-action: none;
+}
+
+#gameCanvas:focus-visible {
+  border-color: #e8b04b;
+}
+
+.dungeon-help {
+  margin: 10px 0 0;
+  font-size: 0.8em;
+  color: #8f8aa3;
+  text-align: center;
+}
+
+kbd {
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.85em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #1d1b27;
+  border: 1px solid #3a3550;
+  border-bottom-width: 2px;
+  color: #d8cfb8;
+}
+
+/* Codex */
+.codex {
+  display: flex;
+  flex-direction: column;
+  height: clamp(480px, 74vh, 800px);
+  background: linear-gradient(180deg, #14121c 0%, #0e0d15 100%);
+  border: 1px solid #2c2838;
+  border-radius: 12px;
+  padding: 18px;
+  box-sizing: border-box;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+}
+
+.codex-title {
+  margin: 0 0 12px;
+  font-family: 'Silkscreen', monospace;
+  font-size: 1em;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #e8b04b;
+}
+
+.codex-list {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.codex-item {
+  --accent: #e8b04b;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 7px;
+  color: #b8b2c9;
+  font-family: 'Kode', monospace;
+  font-size: 0.78em;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.codex-item:hover,
+.codex-item:focus-visible {
+  border-color: var(--accent);
+  color: #ffffff;
+  outline: none;
+}
+
+.codex-item.current {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.codex-gem {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  transform: rotate(45deg);
+  border: 1px solid var(--accent);
+}
+
+.codex-item.read .codex-gem {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.codex-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.codex-state {
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.8em;
+  color: #6f6a82;
+  text-transform: uppercase;
+}
+
+.codex-item.read .codex-state {
+  color: var(--accent);
+}
+
+/* Lore entry */
+.lore {
+  --accent: #e8b04b;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-top: 2px solid var(--accent);
+  color: #d6d0e2;
+  font-size: 0.9em;
+  line-height: 1.7;
+  scrollbar-width: thin;
+  scrollbar-color: #3a3550 transparent;
+}
+
+.lore.lore-flash {
+  animation: loreIn 0.6s ease-out;
+}
+
+.lore-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.lore-head h3 {
+  margin: 0;
+  font-family: 'Silkscreen', monospace;
+  font-size: 1.15em;
+  color: var(--accent);
+  line-height: 1.2;
+}
+
+.lore-head small {
+  color: #8f8aa3;
+  font-size: 0.85em;
+}
+
+.lore-sigil {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  transform: rotate(45deg);
+  background: var(--accent);
+  box-shadow: 0 0 14px var(--accent);
+}
+
+.lore-body b {
+  color: var(--accent);
+}
+
+/* Lore overlay shown over the paused game */
+.dungeon-screen {
+  position: relative;
+}
+
+.lore-overlay {
+  --accent: #e8b04b;
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4vh 24px;
+  box-sizing: border-box;
+  background: rgba(5, 4, 10, 0.78);
+  backdrop-filter: blur(3px);
+  animation: overlayIn 0.25s ease-out;
+}
+
+.lore-overlay[hidden] {
+  display: none;
+}
+
+.lore-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1180px;
+  max-height: 100%;
+  box-sizing: border-box;
+  padding: 24px 32px 20px;
+  background: linear-gradient(180deg, #17151f 0%, #100f17 100%);
+  border: 1px solid #2c2838;
+  border-top: 3px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 24px 60px rgba(0,0,0,0.7), 0 0 80px color-mix(in srgb, var(--accent) 18%, transparent);
+  animation: cardIn 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.lore-card .lore-head h3 {
+  font-size: 1.6em;
+}
+
+.lore-card .lore-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  columns: 3 280px;
+  column-gap: 40px;
+  column-rule: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.95em;
+  line-height: 1.7;
+  color: #e4deee;
+  scrollbar-width: thin;
+  scrollbar-color: #3a3550 transparent;
+}
+
+.lore-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.lore-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.85em;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.lore-close:hover,
+.lore-close:focus-visible {
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+  outline: none;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: scale(0.94) translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes loreIn {
+  from { opacity: 0.2; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
 }
 
 /* Mobile Content */
@@ -100,25 +385,6 @@ canvas {
   font-weight: bold;
 }
 
-/* Info Bubble */
-#infoBubble {
-  position: absolute;
-  background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(26, 26, 26, 0.9) 100%);
-  border: 2px solid #4CAF50;
-  padding: 20px;
-  font-size: 16px;
-  display: none;
-  z-index: 1000;
-  max-width: 400px;
-  width: auto;
-  text-align: left;
-  font-family: 'Kode', sans-serif;
-  color: #e0e0e0;
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-  backdrop-filter: blur(10px);
-}
-
 /* Animations */
 @keyframes fadeIn {
   from {
@@ -133,11 +399,7 @@ canvas {
 
 /* Responsive Design */
 @media only screen and (max-width: 1032px) {
-  canvas {
-    display: none;
-  }
-  
-  #infoBubble {
+  .dungeon {
     display: none;
   }
   
@@ -183,5 +445,14 @@ canvas {
   
   .content-section {
     padding: 15px;
+  }
+}
+@media only screen and (min-width: 1033px) and (max-width: 1280px) {
+  .dungeon {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+
+  .codex-list {
+    grid-template-columns: 1fr;
   }
 }
