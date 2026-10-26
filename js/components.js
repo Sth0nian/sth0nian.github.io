@@ -55,17 +55,17 @@ function updateMenuSelection() {
         if (currentPage === 'index.html' || currentPage === '') {
             const blogElement = document.querySelector('[identifier="blog"]');
             if (blogElement) {
-                blogElement.classList.remove('unselected').addClass('selected');
+                blogElement.classList.replace('unselected', 'selected');
             }
         } else if (currentPage === 'me.html') {
             const meElement = document.querySelector('[identifier="me"]');
             if (meElement) {
-                meElement.classList.remove('unselected').addClass('selected');
+                meElement.classList.replace('unselected', 'selected');
             }
         } else if (currentPage === 'game.html') {
             const techElement = document.querySelector('[identifier="techjourney"]');
             if (techElement) {
-                techElement.classList.remove('unselected').addClass('selected');
+                techElement.classList.replace('unselected', 'selected');
             }
         }
     }, 100);

@@ -12,10 +12,22 @@
   <div id="menu-placeholder"></div>
   
   <div class="game-container">
-    <canvas id="gameCanvas" width="800" height="720"></canvas>
-    <div id="infoBubble" width="800" height="720"></div>
-    
-    <div id="mobileContent" width="800" height="720">
+    <div class="dungeon">
+      <div class="dungeon-stage">
+        <canvas id="gameCanvas" tabindex="0" aria-label="Isometric dungeon: explore the rooms to read about my tech journey"></canvas>
+        <p class="dungeon-help"><kbd>WASD</kbd>/<kbd>Arrows</kbd> move &middot; <kbd>Space</kbd> attack &middot; <kbd>Click</kbd> to walk or strike</p>
+      </div>
+      <aside class="codex">
+        <h2 class="codex-title">Codex</h2>
+        <ol id="codexList" class="codex-list"></ol>
+        <div id="infoBubble" class="lore">
+          <div class="lore-head"><span class="lore-sigil"></span><div><h3>Welcome, traveller</h3><small>The TechJourney Dungeon</small></div></div>
+          <div class="lore-body">These halls hold the story of my tech journey. Each chamber guards a glowing <b>shrine</b>, and each shrine holds one chapter.<br><br>Walk up to a shrine to read its lore, squash the bugs that stand in your way, and find the treasure at the end.<br><br>Short on time? Click a chapter in the codex above and your hero will walk there for you.</div>
+        </div>
+      </aside>
+    </div>
+
+    <div id="mobileContent">
       <div class="mobile-navigation">
         <div class="container">
           <span class="kinghob btn" t="kingho">King Ho</span>
