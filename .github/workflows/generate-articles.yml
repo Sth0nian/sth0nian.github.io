@@ -6,6 +6,10 @@ on:
       - 'articles/**'
   workflow_dispatch:
 
+# Needed so the job can push the regenerated articles.js back to the branch
+permissions:
+  contents: write
+
 jobs:
   generate-articles:
     runs-on: ubuntu-latest
