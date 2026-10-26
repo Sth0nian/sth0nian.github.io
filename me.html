@@ -1,39 +1,79 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <link rel="stylesheet" href="styled.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="About King Toi Ho: engineer, father, coffee snob." />
     <title>Me - Sth0nian</title>
+    <link rel="stylesheet" href="styled.css" />
   </head>
   <body>
-    <div id="header-placeholder"></div>
-    <div id="menu-placeholder"></div>
-    
-    <div class="section" id="me">
-      <p class="kingho">
-        <b>HI!</b><br /><br />My name is <b>King Toi Ho</b
-        ><br /><br />👨🏽‍💻👩🏼‍💼👶🏼👱🏻<br />I am 38 years old, live in Hilversum (NL), am
-        a father of two, partner of one and owner of two cats.<br /><br />🧑‍🍳☕⚽🪴<br />I
-        am an amateur cook, barista, footballer and gardener, though sometimes I
-        like to think of myself as a self-proclaimed coffee-snob when I pull the
-        perfect shot of espresso.<br /><br />🚌🇳🇱🏴󠁧󠁢󠁥󠁮󠁧󠁿🎓<br />I spent my formative
-        years living between The Netherlands and England, where my educational
-        journey took me from completing the International Baccalaureate in
-        Hilversum to studying Law in Westminster, London. I then decided to
-        shift my focus to Sociology at UCR in Middelburg, before pursuing a
-        degree in Computer Games Development in Southampton. Finally, I
-        completed my studies with a degree in Software Engineering at the VU in
-        Amsterdam.<br /><br />🌍☮️✌️💻<br />Followin my studies I went to work
-        on my own projects and was quickly recruited by Greenpeace International
-        where I worked in IT Support. Soon after I became team lead then moved
-        over to the SRE team where I was also the scrum master but my core
-        specialty was in GCP Cloud infrastructure and IaC DevOps. After this
-        challenge I moved to the Data Platform team as Lead Engineer and IaC
-        Specialist (on top of Scum Master duties).
-      </p>
-    </div>
-    
-    <div id="footer-placeholder"></div>
-    
+    <header class="site-header">
+      <div class="wrap">
+        <div id="header-placeholder"></div>
+        <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+      </div>
+    </header>
+
+    <main class="wrap" id="me">
+      <section class="profile fade-in">
+        <div class="avatar"><img src="img/me.png" alt="Pixel-art portrait of King" /></div>
+        <div>
+          <p class="eyebrow">Hi! 👋</p>
+          <h1 class="page-title">King Toi Ho</h1>
+          <p class="lede">Lead Engineer, IaC specialist and self-proclaimed coffee snob.</p>
+        </div>
+      </section>
+
+      <div class="facts fade-in">
+        <div class="fact"><span class="fact-label">Based in</span><span class="fact-value">Hilversum, NL</span></div>
+        <div class="fact"><span class="fact-label">Age</span><span class="fact-value">38</span></div>
+        <div class="fact"><span class="fact-label">Family</span><span class="fact-value">2 kids · 1 partner</span></div>
+        <div class="fact"><span class="fact-label">Cats</span><span class="fact-value">2</span></div>
+      </div>
+
+      <section class="card fade-in">
+        <h2 class="card-title"><span class="emoji">🧑‍🍳☕⚽🪴</span> Off the clock</h2>
+        <p>
+          I am an amateur cook, barista, footballer and gardener, though
+          sometimes I like to think of myself as a self-proclaimed
+          <span class="highlight">coffee snob</span> when I pull the perfect shot
+          of espresso.
+        </p>
+      </section>
+
+      <section class="card fade-in">
+        <h2 class="card-title"><span class="emoji">🚌🇳🇱🏴󠁧󠁢󠁥󠁮󠁧󠁿🎓</span> Education</h2>
+        <p>
+          I spent my formative years living between The Netherlands and England,
+          and my educational journey took a few turns along the way:
+        </p>
+        <ul class="timeline">
+          <li><span class="tl-title">International Baccalaureate</span><span class="tl-sub">Hilversum</span></li>
+          <li><span class="tl-title">Law</span><span class="tl-sub">Westminster, London</span></li>
+          <li><span class="tl-title">Sociology</span><span class="tl-sub">UCR, Middelburg</span></li>
+          <li><span class="tl-title">Computer Games Development</span><span class="tl-sub">Southampton</span></li>
+          <li><span class="tl-title">Software Engineering</span><span class="tl-sub">VU, Amsterdam</span></li>
+        </ul>
+      </section>
+
+      <section class="card fade-in">
+        <h2 class="card-title"><span class="emoji">🌍☮️✌️💻</span> Career</h2>
+        <p>
+          Following my studies I went to work on my own projects and was quickly
+          recruited by <span class="highlight">Greenpeace International</span>.
+        </p>
+        <ul class="timeline">
+          <li><span class="tl-title">IT Support</span><span class="tl-sub">Where it all started, soon becoming team lead.</span></li>
+          <li><span class="tl-title">SRE &amp; Scrum Master</span><span class="tl-sub">Core specialty in GCP cloud infrastructure and IaC DevOps.</span></li>
+          <li><span class="tl-title">Lead Engineer, Data Platform</span><span class="tl-sub">IaC specialist, on top of Scrum Master duties.</span></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer id="footer-placeholder" class="site-footer"></footer>
+
     <script src="js/jq.js"></script>
     <script src="js/components.js"></script>
   </body>
-</html> 
+</html>

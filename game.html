@@ -8,10 +8,14 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="header-placeholder"></div>
-  <div id="menu-placeholder"></div>
-  
-  <div class="game-container">
+  <header class="site-header">
+    <div class="wrap">
+      <div id="header-placeholder"></div>
+      <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+    </div>
+  </header>
+
+  <main class="game-container">
     <canvas id="gameCanvas" width="800" height="720"></canvas>
     <div id="infoBubble" width="800" height="720"></div>
     
@@ -53,9 +57,9 @@
         </div>
       </div>
     </div>
-  </div>
-  
-  <div id="footer-placeholder"></div>
+  </main>
+
+  <footer id="footer-placeholder" class="site-footer"></footer>
   
   <script src="js/jq.js"></script>
   <script src="js/components.js"></script>
