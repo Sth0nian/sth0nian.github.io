@@ -1,0 +1,119 @@
+/* Shared site header (brand + menu).
+   Loaded by every section, including the Running dashboard at /x-km-per-day/,
+   which has its own stylesheet: keep this file self-contained, with absolute
+   URLs and token fallbacks. */
+@font-face {
+    font-family: 'Kode';
+    src: url('/fonts/KodeMono-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Kode';
+    src: url('/fonts/KodeMono-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-display: swap;
+}
+
+/* Site header */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(14, 16, 19, 0.75);
+    backdrop-filter: saturate(160%) blur(14px);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+}
+
+.site-header .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 64px;
+    flex-wrap: wrap;
+}
+
+.brand {
+    font-family: var(--font-mono, 'Kode', ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: 0.02em;
+    color: var(--text, #e6e8eb);
+    text-decoration: none;
+    border: 0;
+}
+
+.brand:hover {
+    color: var(--text, #e6e8eb);
+    border: 0;
+}
+
+.brand .brand-mark {
+    color: var(--accent, #4ade80);
+}
+
+.menubar {
+    display: flex;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+}
+
+.menubar a {
+    font-family: var(--font-mono, 'Kode', ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted, #9aa1ab);
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.menubar a:hover {
+    color: var(--text, #e6e8eb);
+    background: var(--surface-hover, rgba(255, 255, 255, 0.055));
+    border-color: transparent;
+}
+
+.menubar a.selected {
+    color: var(--accent, #4ade80);
+    background: var(--accent-soft, rgba(74, 222, 128, 0.12));
+    border-color: rgba(74, 222, 128, 0.25);
+}
+
+.site-header,
+.site-header * {
+    box-sizing: border-box;
+}
+
+.site-header {
+    margin: 0;
+    text-align: left;
+    line-height: 1.7;
+}
+
+.site-header .wrap {
+    width: 100%;
+    max-width: var(--content-width, 760px);
+    margin: 0 auto;
+    padding-left: var(--gutter, 20px);
+    padding-right: var(--gutter, 20px);
+}
+
+@media (max-width: 640px) {
+    .site-header .wrap {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        min-height: 0;
+    }
+
+    .menubar a {
+        padding: 5px 10px;
+    }
+}

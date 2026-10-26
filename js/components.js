@@ -1,20 +1,14 @@
-// Component loader for the shared site header and footer.
+// Component loader for header, menu, and footer.
 // Also used by /x-km-per-day/ (the Running section), so paths are absolute.
-async function fetchComponent(componentPath) {
-    try {
-        const response = await fetch(componentPath);
-        return response.ok ? await response.text() : '';
-    } catch (error) {
-        console.error(`Error loading component ${componentPath}:`, error);
-        return '';
-    }
-}
-
-async function loadComponent(elementId, componentPaths) {
+async function loadComponent(elementId, componentPath) {
     const element = document.getElementById(elementId);
     if (!element) return;
-    const parts = await Promise.all(componentPaths.map(fetchComponent));
-    element.innerHTML = parts.join('');
+    try {
+        const response = await fetch(componentPath);
+        element.innerHTML = await response.text();
+    } catch (error) {
+        console.error(`Error loading component ${componentPath}:`, error);
+    }
 }
 
 // Load commit hash from a generated file or use a fallback
@@ -23,8 +17,8 @@ async function loadCommitHash() {
     if (!commitHashElement) return;
     try {
         const response = await fetch('/commit-hash.txt');
-        const hash = await response.text();
-        commitHashElement.textContent = hash.trim();
+        if (!response.ok) throw new Error(response.statusText);
+        commitHashElement.textContent = (await response.text()).trim();
     } catch (error) {
         console.log('Could not load commit hash, using fallback');
         commitHashElement.textContent = 'dev';
@@ -34,29 +28,33 @@ async function loadCommitHash() {
 // Load all components when the page loads
 async function loadAllComponents() {
     await Promise.all([
-        loadComponent('site-header', ['/components/header.html', '/components/menu.html']),
-        loadComponent('footer-placeholder', ['/components/footer.html'])
+        loadComponent('header-placeholder', '/components/header.html'),
+        loadComponent('menu-placeholder', '/components/menu.html'),
+        loadComponent('footer-placeholder', '/components/footer.html')
     ]);
+
+    const year = document.getElementById('footer-year');
+    if (year) year.textContent = new Date().getFullYear();
 
     // Load commit hash after footer is loaded
     await loadCommitHash();
 }
 
-// Work out which section the current page belongs to
-function currentSection() {
-    const path = window.location.pathname;
-    if (path.startsWith('/x-km-per-day')) return 'running';
-    const page = path.split('/').pop() || 'index.html';
-    if (page === 'me.html') return 'me';
-    if (page === 'game.html') return 'techjourney';
-    return 'blog';
-}
-
-// Highlight the current section in the menu
+// Highlight the menu item for the current page
 function updateMenuSelection() {
-    const section = currentSection();
-    document.querySelectorAll('.site-nav a').forEach(item => {
-        if (item.dataset.section === section) {
+    const pages = {
+        'index.html': 'blog',
+        'me.html': 'me',
+        'game.html': 'techjourney'
+    };
+    const path = window.location.pathname;
+    const currentPage = path.split('/').pop() || 'index.html';
+    const identifier = path.startsWith('/x-km-per-day') ? 'running' : pages[currentPage];
+
+    document.querySelectorAll('.menubar a').forEach(item => {
+        const isCurrent = item.getAttribute('identifier') === identifier;
+        item.classList.toggle('selected', isCurrent);
+        if (isCurrent) {
             item.setAttribute('aria-current', 'page');
         } else {
             item.removeAttribute('aria-current');

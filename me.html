@@ -1,83 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="styled.css" />
-    <link rel="stylesheet" href="site.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="About King Toi Ho: engineer, father, coffee snob." />
     <title>Me - Sth0nian</title>
+    <link rel="stylesheet" href="styled.css" />
+    <link rel="stylesheet" href="site-header.css" />
   </head>
   <body>
-    <header id="site-header" class="site-header"></header>
-    
-    <div class="section me-layout" id="me">
-      <aside class="char-card" aria-label="Character sheet">
-        <div class="char-stage">
-          <div class="char-bubble" id="heroBubble" aria-live="polite"></div>
-          <button type="button" class="char-hero" id="heroButton" aria-label="Say hi to King">
-            <canvas id="heroIdle" width="48" height="36"></canvas>
-          </button>
-        </div>
-        <div class="char-scenes" id="heroScenes" aria-label="Pick an activity"></div>
+    <header class="site-header">
+      <div class="wrap">
+        <div id="header-placeholder"></div>
+        <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+      </div>
+    </header>
 
-        <div class="char-name">King Toi Ho</div>
-        <div class="char-class">Lead Engineer &middot; Data Platform</div>
-
-        <div class="char-level">
-          <span class="char-lvl">LVL <b data-age>40</b></span>
-          <span class="char-xp-label" id="xpLabel"></span>
+    <main class="wrap" id="me">
+      <section class="profile fade-in">
+        <div class="avatar"><span class="avatar-sprite" role="img" aria-label="Pixel-art King, as seen in TechJourney"></span></div>
+        <div>
+          <p class="eyebrow">Hi! 👋</p>
+          <h1 class="page-title">King Toi Ho</h1>
+          <p class="lede">Lead Engineer, IaC specialist and self-proclaimed coffee snob.</p>
         </div>
-        <div class="char-xp" role="progressbar" aria-label="Progress to next level" aria-valuemin="0" aria-valuemax="100" id="xpBar">
-          <span class="char-xp-fill" id="xpFill"></span>
-        </div>
+      </section>
 
-        <dl class="char-stats">
-          <dt>Guild</dt><dd>Greenpeace International</dd>
-          <dt>Home base</dt><dd>Hilversum (NL)</dd>
-          <dt>Party</dt><dd>Partner &times;1 &middot; Kids &times;2 &middot; Cats &times;2</dd>
-          <dt>Status</dt><dd class="char-status">Caffeinated</dd>
-        </dl>
-
-        <div class="char-group">
-          <h3>Skills</h3>
-          <ul class="char-tags">
-            <li>GCP</li><li>Terraform</li><li>GitLab CI</li><li>BigQuery</li><li>dbt</li><li>Airbyte</li>
-          </ul>
+      <div class="facts fade-in">
+        <div class="fact"><span class="fact-label">Based in</span><span class="fact-value">Hilversum, NL</span></div>
+        <div class="fact fact-age">
+          <span class="fact-label">Age</span><span class="fact-value">LVL <span data-age>40</span></span>
+          <span class="xp" id="xpBar" role="progressbar" aria-label="Progress to next birthday" aria-valuemin="0" aria-valuemax="100"><span class="xp-fill" id="xpFill"></span></span>
+          <span class="xp-label" id="xpLabel"></span>
         </div>
-        <div class="char-group">
-          <h3>Side quests</h3>
-          <ul class="char-tags side">
-            <li>Cooking</li><li>Espresso</li><li>Football</li><li>Gardening</li>
-          </ul>
-        </div>
-      </aside>
+        <div class="fact"><span class="fact-label">Family</span><span class="fact-value">2 kids · 1 partner</span></div>
+        <div class="fact"><span class="fact-label">Cats</span><span class="fact-value">2</span></div>
+      </div>
 
-      <p class="kingho">
-        <b>HI!</b><br /><br />My name is <b>King Toi Ho</b
-        ><br /><br />👨🏽‍💻👩🏼‍💼👶🏼👱🏻<br />I am <span data-age>40</span> years old, live in Hilversum (NL), am
-        a father of two, partner of one and owner of two cats.<br /><br />🧑‍🍳☕⚽🪴<br />I
-        am an amateur cook, barista, footballer and gardener, though sometimes I
-        like to think of myself as a self-proclaimed coffee-snob when I pull the
-        perfect shot of espresso.<br /><br />🚌🇳🇱🏴󠁧󠁢󠁥󠁮󠁧󠁿🎓<br />I spent my formative
-        years living between The Netherlands and England, where my educational
-        journey took me from completing the International Baccalaureate in
-        Hilversum to studying Law in Westminster, London. I then decided to
-        shift my focus to Sociology at UCR in Middelburg, before pursuing a
-        degree in Computer Games Development in Southampton. Finally, I
-        completed my studies with a degree in Software Engineering at the VU in
-        Amsterdam.<br /><br />🌍☮️✌️💻<br />Following my studies I went to work
-        on my own projects and was quickly recruited by Greenpeace International
-        where I worked in IT Support. Soon after I became team lead then moved
-        over to the SRE team where I was also the scrum master but my core
-        specialty was in GCP Cloud infrastructure and IaC DevOps. After this
-        challenge I moved to the Data Platform team as Lead Engineer and IaC
-        Specialist (on top of Scrum Master duties).
-      </p>
-    </div>
-    
-    <div id="footer-placeholder"></div>
-    
+      <section class="card fade-in">
+        <h2 class="card-title"><span class="emoji">🧑‍🍳☕⚽🪴</span> Off the clock</h2>
+        <div class="off-clock">
+          <div class="char">
+            <div class="char-stage">
+              <div class="char-bubble" id="heroBubble" aria-live="polite"></div>
+              <button type="button" class="char-hero" id="heroButton" aria-label="Say hi to King">
+                <canvas id="heroIdle" width="48" height="36"></canvas>
+              </button>
+            </div>
+            <div class="char-scenes" id="heroScenes" aria-label="Pick an activity"></div>
+          </div>
+          <p>
+            I am an amateur cook, barista, footballer and gardener, though
+            sometimes I like to think of myself as a self-proclaimed
+            <span class="highlight">coffee snob</span> when I pull the perfect shot
+            of espresso.
+          </p>
+        </div>
+      </section>
+
+      <section class="card fade-in">
+        <h2 class="card-title"><span class="emoji">🚌🇳🇱🏴󠁧󠁢󠁥󠁮󠁧󠁿🎓</span> Education</h2>
+        <p>
+          I spent my formative years living between The Netherlands and England,
+          and my educational journey took a few turns along the way:
+        </p>
+        <ul class="timeline">
+          <li><span class="tl-title">International Baccalaureate</span><span class="tl-sub">Hilversum</span></li>
+          <li><span class="tl-title">Law</span><span class="tl-sub">Westminster, London</span></li>
+          <li><span class="tl-title">Sociology</span><span class="tl-sub">UCR, Middelburg</span></li>
+          <li><span class="tl-title">Computer Games Development</span><span class="tl-sub">Southampton</span></li>
+          <li><span class="tl-title">Software Engineering</span><span class="tl-sub">VU, Amsterdam</span></li>
+        </ul>
+      </section>
+
+      <section class="card fade-in">
+        <h2 class="card-title"><span class="emoji">🌍☮️✌️💻</span> Career</h2>
+        <p>
+          Following my studies I went to work on my own projects and was quickly
+          recruited by <span class="highlight">Greenpeace International</span>.
+        </p>
+        <ul class="timeline">
+          <li><span class="tl-title">IT Support</span><span class="tl-sub">Where it all started, soon becoming team lead.</span></li>
+          <li><span class="tl-title">SRE &amp; Scrum Master</span><span class="tl-sub">Core specialty in GCP cloud infrastructure and IaC DevOps.</span></li>
+          <li><span class="tl-title">Lead Engineer, Data Platform</span><span class="tl-sub">IaC specialist, on top of Scrum Master duties.</span></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer id="footer-placeholder" class="site-footer"></footer>
+
     <script src="js/components.js"></script>
     <script src="js/me.js"></script>
   </body>
-</html> 
+</html>

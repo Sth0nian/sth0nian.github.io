@@ -1,21 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="styled.css" />
-    <link rel="stylesheet" href="site.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Ramblings of a coder, writer, architect and amateur woodworker." />
     <title>Blog - Sth0nian</title>
+    <link rel="stylesheet" href="styled.css" />
+    <link rel="stylesheet" href="site-header.css" />
   </head>
   <body>
-    <header id="site-header" class="site-header"></header>
-    
-    <div class="section" id="blog">Ramblings of coder / writer / architect / amateur woodworker<br><input type='text' class='search' placeholder='search the things...' name='search'><hr><div id="blogcontent"></div></div>
-    <div class="section" hidden id="techjourney"></div>
-    
-    <div id="footer-placeholder"></div>
-    
-    <script type="text/javascript" src="articles.js"></script>
+    <header class="site-header">
+      <div class="wrap">
+        <div id="header-placeholder"></div>
+        <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+      </div>
+    </header>
+
+    <main class="wrap" id="blog">
+      <section class="page-intro fade-in">
+        <p class="eyebrow">Blog</p>
+        <h1 class="page-title">Clueless wanderings</h1>
+        <p class="lede">Ramblings of a coder / writer / architect / amateur woodworker.</p>
+      </section>
+
+      <div class="toolbar">
+        <label class="search-field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <input type="search" class="search" name="search" placeholder="Search posts, tags…" aria-label="Search posts" />
+        </label>
+        <span class="result-count" id="result-count"></span>
+      </div>
+
+      <div id="blogcontent" class="article-list"></div>
+    </main>
+
+    <footer id="footer-placeholder" class="site-footer"></footer>
+
+    <script src="articles.js"></script>
     <script src="js/jq.js"></script>
     <script src="js/components.js"></script>
     <script src="js/index.js"></script>

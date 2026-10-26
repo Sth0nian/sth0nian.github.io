@@ -5,13 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TechJourney - Sth0nian</title>
   <link rel="stylesheet" href="styled.css">
+  <link rel="stylesheet" href="site-header.css">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="site.css">
 </head>
 <body>
-    <header id="site-header" class="site-header"></header>
-  
-  <div class="game-container">
+  <header class="site-header">
+    <div class="wrap">
+      <div id="header-placeholder"></div>
+      <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+    </div>
+  </header>
+
+  <main class="game-container">
     <div class="dungeon">
       <div class="dungeon-stage">
         <div class="dungeon-screen">
@@ -73,9 +78,9 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
   
-  <div id="footer-placeholder"></div>
+  <footer id="footer-placeholder" class="site-footer"></footer>
   
   <script src="js/components.js"></script>
   <script src="js/game.js"></script>
