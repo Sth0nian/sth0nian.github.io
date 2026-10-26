@@ -101,6 +101,11 @@
   let depth = 0;
   let runSeed = 1;
   let runKills = 0;
+  // Floors already generated this run, kept as they were left (depth -> snapshot)
+  const floors = new Map();
+  let runActive = false;
+  let exitCooldown = 0;
+  const HEAP_LIMIT = 768 * 1024;
   let rooms = [];
   let props = [];
   let torches = [];
@@ -145,7 +150,7 @@
     roomAt.fill(-1);
     tintAt.fill(-1);
     explored.fill(0);
-    rooms = []; props = []; torches = []; enemies = []; projectiles = []; pickups = [];
+    rooms = []; props = []; torches = []; enemies = []; projectiles = []; pickups = []; shots = [];
     particles = []; floaters = [];
     chest = null; portal = null; stairsDown = null; stairsUp = null; bossAlive = false;
     path = null; repath = 0; strikeOnArrive = null; currentRoom = -1;
@@ -353,34 +358,117 @@
     currentRoom = -1;
   }
 
-  function enterEndless(d) {
-    if (d === 1) {
+  // ---------- Floor cache & memory pressure ----------
+
+  function snapshotLevel() {
+    return {
+      tiles: tiles.slice(), roomAt: roomAt.slice(), tintAt: tintAt.slice(), explored: explored.slice(),
+      noise: noise.slice(), floorColor: floorColor.slice(),
+      rooms, props, torches, enemies, pickups, stairsDown, stairsUp, bossAlive
+    };
+  }
+
+  function restoreLevel(snap, d) {
+    resetLevel();
+    mode = 'endless';
+    depth = d;
+    tiles.set(snap.tiles); roomAt.set(snap.roomAt); tintAt.set(snap.tintAt);
+    explored.set(snap.explored); noise.set(snap.noise);
+    floorColor.length = 0;
+    floorColor.push(...snap.floorColor);
+    ({ rooms, props, torches, enemies, pickups, stairsDown, stairsUp, bossAlive } = snap);
+  }
+
+  // Rough size of a stored floor: typed arrays plus the JSON size of its objects (UTF-16)
+  function floorBytes(snap) {
+    if (!snap.bytes) {
+      const arrays = snap.tiles.byteLength + snap.roomAt.byteLength + snap.tintAt.byteLength +
+        snap.explored.byteLength + snap.noise.byteLength;
+      const colours = snap.floorColor.reduce((n, c) => n + (c ? c.length * 2 : 0), 0);
+      const objects = JSON.stringify([snap.rooms, snap.props, snap.torches, snap.pickups,
+        snap.enemies.map(e => ({ ...e, def: e.type }))]).length * 2;
+      snap.bytes = arrays + colours + objects;
+    }
+    return snap.bytes;
+  }
+
+  function heapUsed() {
+    let total = 0;
+    floors.forEach(snap => { total += floorBytes(snap); });
+    return total;
+  }
+
+  // The garbage collector evicts the floors furthest from the player when memory runs out.
+  // An evicted floor regenerates with the same layout (same seed) but fresh foes.
+  function collectGarbage() {
+    while (heapUsed() > HEAP_LIMIT && floors.size > 1) {
+      let victim = null;
+      floors.forEach((snap, d) => {
+        if (d !== depth && (victim === null || Math.abs(d - depth) > Math.abs(victim - depth))) victim = d;
+      });
+      if (victim === null) break;
+      floors.delete(victim);
+      floaters.push({ x: player.x, y: player.y, z: 110, text: `GC: depth ${victim} evicted`, color: '#ff9f43', life: 2.2, max: 2.2 });
+      wingsSay(fill(pick(LINES.gc), victim), 2);
+    }
+  }
+
+  // Step off the stairs we arrived by, onto the first free neighbouring tile
+  function arriveAt(s) {
+    const sx = Math.floor(s.x), sy = Math.floor(s.y);
+    const spots = [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]];
+    const free = spots.find(([dx, dy]) => tileAt(sx + dx, sy + dy) === FLOOR) || [0, 0];
+    placePlayer(sx + free[0] + 0.5, sy + free[1] + 0.5);
+    exitCooldown = 0.8;
+  }
+
+  // from: 'above' when descending (arrive at the stairs up), 'below' when climbing
+  function enterEndless(d, from = 'above') {
+    const newRun = mode === 'story' && !runActive;
+    if (newRun) {
       runSeed = Math.floor(Math.random() * 1e9);
       runKills = 0;
+      floors.clear();
       save.runs++;
       player.hp = MAX_HP;
     }
-    buildEndless(d);
+    if (mode === 'endless') floors.set(depth, snapshotLevel());
+    const cached = floors.get(d);
+    if (cached) restoreLevel(cached, d); else buildEndless(d);
+    floors.set(d, cached || snapshotLevel());
+    runActive = true;
+    arriveAt(from === 'below' ? stairsDown : stairsUp);
+    currentRoom = -1;
+    collectGarbage();
+
     if (d > save.best) save.best = d;
     persist();
     fade = 1;
     banner = { title: rooms[0].subtitle, sub: `Depth ${d}`, color: rooms[0].color, life: 3 };
     renderCodex();
-    if (d === 1) wingsSay(pick(LINES.enter), 2);
+    if (newRun) wingsSay(pick(LINES.enter), 2);
+    else if (cached) wingsSay(fill(pick(from === 'below' ? LINES.up : LINES.back)), 1);
     else if (d % 5 === 0) wingsSay(pick(LINES.boss), 3);
     else wingsSay(fill(pick(LINES.depth)), 1);
   }
 
   function leaveEndless(died) {
     const reached = depth;
+    if (died) {
+      floors.clear();
+      runActive = false;
+    } else {
+      floors.set(depth, snapshotLevel());
+    }
     buildStory();
     fade = 1;
     placePlayer(portal.x + 1, portal.y);
-    player.hp = MAX_HP;
+    exitCooldown = 0.8;
+    player.hp = died ? MAX_HP : player.hp;
     player.inv = 1.5;
     renderCodex();
     if (died) wingsSay(fill(pick(LINES.death), reached), 3);
-    else wingsSay(pick(LINES.surface), 2);
+    else wingsSay(pick(runActive ? LINES.paused : LINES.surface), 2);
   }
 
   function randomRoomSpot(r) {
@@ -471,31 +559,77 @@
 
   const hittable = e => !e.down;
 
-  function attack() {
+  // Melee arc: a foe is hit if it is within reach and its direction has at least
+  // this dot product with the facing direction (0.2 ~ 156 degrees, -0.55 ~ 247)
+  const WEAPONS = [
+    { id: 'sword', name: 'Sword', cd: 0.36, swing: 0.2, reach: 1.1, arc: 0.2, push: 6, radius: 52, sweep: [-1.1, 0.2] },
+    { id: 'cleaver', name: 'Cleaver', cd: 0.62, swing: 0.3, reach: 1.45, arc: -0.55, push: 9, radius: 66, sweep: [-2.2, 1.0] },
+    { id: 'blaster', name: 'Packet Blaster', cd: 0.3, ranged: true, speed: 9, range: 7.5 }
+  ];
+  let weapon = WEAPONS.find(w => w.id === save.weapon) || WEAPONS[0];
+  let shots = [];
+
+  function setWeapon(i) {
+    const w = WEAPONS[(i + WEAPONS.length) % WEAPONS.length];
+    if (w === weapon) return;
+    weapon = w;
+    save.weapon = w.id;
+    persist();
+    floaters.push({ x: player.x, y: player.y, z: 90, text: w.name.toUpperCase(), color: '#ffd166', life: 1, max: 1 });
+    wingsSay(pick(LINES.weapon[w.id]), 0);
+  }
+
+  function face(x, y) {
+    const d = Math.hypot(x - player.x, y - player.y) || 1;
+    player.fx = (x - player.x) / d;
+    player.fy = (y - player.y) / d;
+    player.faceRight = player.fx - player.fy >= 0;
+  }
+
+  // target: optional foe to aim at (clicked); otherwise the nearest sensible one
+  function attack(target = null) {
     if (player.atkCd > 0 || player.dead) return;
     lastInput = time;
-    // Snap to the closest foe in reach so clicking / mashing feels good
-    let best = null, bestD = 1.7;
-    enemies.forEach(e => {
-      if (!hittable(e)) return;
-      const d = Math.hypot(e.x - player.x, e.y - player.y) - e.r + 0.26;
-      if (d < bestD) { best = e; bestD = d; }
-    });
-    if (best) {
-      const d = Math.hypot(best.x - player.x, best.y - player.y) || 1;
-      player.fx = (best.x - player.x) / d;
-      player.fy = (best.y - player.y) / d;
-      player.faceRight = player.fx - player.fy >= 0;
+    player.atkCd = weapon.cd;
+
+    if (weapon.ranged) {
+      // Aim at the clicked foe, else the nearest one roughly in front, else straight ahead
+      let aim = target;
+      if (!aim) {
+        let bestD = weapon.range;
+        enemies.forEach(e => {
+          if (!hittable(e)) return;
+          const dx = e.x - player.x, dy = e.y - player.y, d = Math.hypot(dx, dy) || 0.001;
+          if (d < bestD && (dx * player.fx + dy * player.fy) / d > 0.35) { aim = e; bestD = d; }
+        });
+      }
+      if (aim) face(aim.x, aim.y);
+      shots.push({
+        x: player.x + player.fx * 0.4, y: player.y + player.fy * 0.4,
+        vx: player.fx * weapon.speed, vy: player.fy * weapon.speed, life: weapon.range / weapon.speed
+      });
+      burst(player.x + player.fx * 0.5, player.y + player.fy * 0.5, 30, '#7fe3ff', 5, 1.5);
+    } else {
+      // Snap to the closest foe in reach so clicking / mashing feels good
+      let best = target, bestD = weapon.reach + 0.6;
+      if (!best) {
+        enemies.forEach(e => {
+          if (!hittable(e)) return;
+          const d = Math.hypot(e.x - player.x, e.y - player.y) - e.r + 0.26;
+          if (d < bestD) { best = e; bestD = d; }
+        });
+      }
+      if (best) face(best.x, best.y);
+      player.swing = weapon.swing;
+      enemies.slice().forEach(e => {
+        if (!hittable(e)) return;
+        const dx = e.x - player.x, dy = e.y - player.y;
+        const d = Math.hypot(dx, dy) || 0.001;
+        if (d < weapon.reach + e.r && (d < 0.6 + e.r || (dx * player.fx + dy * player.fy) / d > weapon.arc)) {
+          hitFoe(e, dx / d, dy / d, weapon.push);
+        }
+      });
     }
-    player.atkCd = 0.36;
-    player.swing = 0.2;
-    enemies.slice().forEach(e => {
-      if (!hittable(e)) return;
-      const dx = e.x - player.x, dy = e.y - player.y;
-      const d = Math.hypot(dx, dy) || 0.001;
-      const reach = 1.1 + e.r;
-      if (d < reach && (d < 0.6 + e.r || (dx * player.fx + dy * player.fy) / d > 0.2)) hitFoe(e, dx / d, dy / d);
-    });
 
     // Striking an intact shrine (or the closed chest) reveals its chapter
     const shrine = shrineInReach();
@@ -519,10 +653,10 @@
     return rooms.find(r => isIntact(r) && Math.hypot(player.x - (r.cx + 0.5), player.y - (r.cy + 0.5)) < 1.75);
   }
 
-  function hitFoe(e, nx, ny) {
+  function hitFoe(e, nx, ny, force = 6) {
     e.hp--;
     e.flash = 0.14;
-    const push = e.def.boss ? 2 : 6;
+    const push = e.def.boss ? force / 3 : force;
     e.kx = nx * push; e.ky = ny * push;
     shake = Math.max(shake, 0.08);
     burst(e.x, e.y, 26, '#ffffff', 6, 2.5);
@@ -817,6 +951,15 @@
     ],
     bossDown: ['Loop terminated. Somebody add that to the release notes.', 'You broke the Infinite Loop. Finally, a base case.'],
     surface: ['Back on the surface. Fresh air. Well, dungeon air.', 'Climbing out already? Fair. The depths will still be broken tomorrow.'],
+    paused: ['Surface break. Your floors are cached, the portal will drop you back in.', 'Popping up for air? The depths are still in memory. For now.'],
+    up: ['Back up to depth {d}. Exactly as you left it. Cached, not fresh.', 'Depth {d} again. Nostalgic already?'],
+    back: ['Depth {d}, straight from the cache.', 'Oh, depth {d}. We have been here. I remember the smell.'],
+    gc: ['Memory pressure! The garbage collector just evicted depth {d}. Hope you did not leave anything there.', 'GC pause. Depth {d} is gone. It will come back, but it will not remember you.'],
+    weapon: {
+      sword: ['The Sword. Classic. Reliable. A bit 2019.'],
+      cleaver: ['The Cleaver. Wide arc, slow swing. Refactoring by force.'],
+      blaster: ['The Packet Blaster. Fire and forget. Like most deploys.']
+    },
     death: [
       'And that is why we have backups.',
       'Rolled back to the surface. Classic.',
@@ -1078,8 +1221,9 @@
 
     updateEnemies(dt);
     updateProjectiles(dt);
+    updateShots(dt);
     updatePickups();
-    checkExits();
+    checkExits(dt);
 
     // Restock story rooms the player isn't standing in
     if (mode === 'story') {
@@ -1119,21 +1263,23 @@
     cam.y += (ty - cam.y) * k;
   }
 
-  function checkExits() {
-    if (player.dead || fade > 0.5) return;
+  function checkExits(dt) {
+    exitCooldown -= dt;
+    if (player.dead || fade > 0.5 || exitCooldown > 0) return;
     const on = p => p && Math.hypot(player.x - p.x, player.y - p.y) < 0.45;
     if (portalOpen() && on(portal)) {
+      // Resumes the current run at depth 1 if there is one
       enterEndless(1);
     } else if (mode === 'endless' && on(stairsDown)) {
       if (bossAlive) {
         if (!stairsDown.warned) { stairsDown.warned = true; wingsSay(pick(LINES.locked), 2); }
       } else {
-        enterEndless(depth + 1);
+        enterEndless(depth + 1, 'above');
       }
-    } else if (mode === 'endless' && on(stairsUp) && time - stairsUp.arrived > 1) {
-      leaveEndless(false);
+    } else if (mode === 'endless' && on(stairsUp)) {
+      if (depth > 1) enterEndless(depth - 1, 'below');
+      else leaveEndless(false);
     }
-    if (stairsUp && stairsUp.arrived === undefined) stairsUp.arrived = time;
   }
 
   function updatePlayer(dt) {
@@ -1278,6 +1424,26 @@
         e.charge = 0;
       }
     });
+  }
+
+  // The hero's own projectiles
+  function updateShots(dt) {
+    shots.forEach(s => {
+      s.x += s.vx * dt; s.y += s.vy * dt;
+      s.life -= dt;
+      if (tileAt(Math.floor(s.x), Math.floor(s.y)) !== FLOOR) {
+        s.life = 0;
+        burst(s.x - s.vx * 0.02, s.y - s.vy * 0.02, 24, '#7fe3ff', 6, 1.5);
+        return;
+      }
+      const hit = s.life > 0 && enemies.find(e => hittable(e) && Math.hypot(e.x - s.x, e.y - s.y) < e.r + 0.2);
+      if (hit) {
+        s.life = 0;
+        const d = Math.hypot(s.vx, s.vy) || 1;
+        hitFoe(hit, s.vx / d, s.vy / d, 3);
+      }
+    });
+    shots = shots.filter(s => s.life > 0);
   }
 
   function updateProjectiles(dt) {
@@ -1500,15 +1666,16 @@
     if (player.swing > 0) {
       const [sx, sy] = iso(player.x, player.y, 26);
       const ang = Math.atan2((player.fx + player.fy) * TH / 2, (player.fx - player.fy) * TW / 2);
-      const p = 1 - player.swing / 0.2;
+      const w = weapon.ranged ? WEAPONS[0] : weapon;
+      const p = 1 - player.swing / w.swing;
       ctx.save();
       ctx.translate(sx, sy);
       ctx.scale(1, 0.6);
-      ctx.strokeStyle = `rgba(255,248,220,${0.9 * (1 - p)})`;
-      ctx.lineWidth = 7;
+      ctx.strokeStyle = w.id === 'cleaver' ? `rgba(255,190,120,${0.9 * (1 - p)})` : `rgba(255,248,220,${0.9 * (1 - p)})`;
+      ctx.lineWidth = w.id === 'cleaver' ? 11 : 7;
       ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.arc(0, 0, 52, ang - 1.1 + p * 0.6, ang + 0.2 + p * 0.9);
+      ctx.arc(0, 0, w.radius, ang + w.sweep[0] + p * 0.6, ang + w.sweep[1] + p * 0.9);
       ctx.stroke();
       ctx.strokeStyle = `rgba(255,255,255,${1 - p})`;
       ctx.lineWidth = 2;
@@ -1693,6 +1860,18 @@
     ctx.fillRect(sx - 9, sy - 9, 18, 18);
   }
 
+  function drawShot(s) {
+    const [sx, sy] = iso(s.x, s.y, 26);
+    const [tx, ty] = iso(s.x - s.vx * 0.04, s.y - s.vy * 0.04, 26);
+    ctx.strokeStyle = 'rgba(127,227,255,0.6)';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(sx, sy); ctx.stroke();
+    ctx.fillStyle = '#e6fbff';
+    ctx.fillRect(Math.round(sx) - 3, Math.round(sy) - 3, 6, 6);
+    ctx.fillStyle = '#7fe3ff';
+    ctx.fillRect(Math.round(sx) - 2, Math.round(sy) - 2, 4, 4);
+  }
+
   function drawWorld() {
     const pDepth = player.x + player.y;
     const pDiag = player.x - player.y;
@@ -1726,6 +1905,7 @@
     pickups.forEach(p => { if (seen(p.x, p.y)) list.push({ d: p.x + p.y, draw: () => drawPickup(p) }); });
     enemies.forEach(e => { if (seen(e.x, e.y)) list.push({ d: e.x + e.y, draw: () => drawFoe(e) }); });
     projectiles.forEach(p => list.push({ d: p.x + p.y, draw: () => drawProjectile(p) }));
+    shots.forEach(s => list.push({ d: s.x + s.y, draw: () => drawShot(s) }));
     list.push({ d: pDepth, draw: drawPlayer });
 
     list.sort((a, b) => a.d - b.d).forEach(o => o.draw());
@@ -1776,7 +1956,7 @@
       light(fctx, sx, sy, 140, 0.7);
       glows.push([sx, sy, 110, s === stairsUp ? 'rgba(120,230,160,0.12)' : s === stairsDown ? 'rgba(255,209,102,0.12)' : 'rgba(160,110,255,0.2)']);
     });
-    projectiles.forEach(p => {
+    projectiles.concat(shots).forEach(p => {
       const [sx, sy] = iso(p.x, p.y, 24);
       light(fctx, sx, sy, 50, 0.6);
     });
@@ -1838,9 +2018,9 @@
       ctx.globalAlpha = 1;
     }
     const close = s => s && explored[idx(Math.floor(s.x), Math.floor(s.y))] && Math.hypot(s.x - player.x, s.y - player.y) < 3;
-    if (portalOpen() && close(portal)) prompt(portal, 'THE ENDLESS DEPTHS');
+    if (portalOpen() && close(portal)) prompt(portal, runActive ? 'RESUME THE DEPTHS' : 'THE ENDLESS DEPTHS');
     if (close(stairsDown)) prompt(stairsDown, bossAlive ? 'LOCKED - DEFEAT THE LOOP' : 'STAIRS DOWN');
-    if (close(stairsUp)) prompt(stairsUp, 'BACK TO THE SURFACE');
+    if (close(stairsUp)) prompt(stairsUp, depth > 1 ? `UP TO DEPTH ${depth - 1}` : 'BACK TO THE SURFACE');
 
     enemies.forEach(e => {
       const d = Math.hypot(e.x - player.x, e.y - player.y);
@@ -2004,7 +2184,64 @@
     }
   }
 
+  // How much of the (pretend) heap the cached floors are using
+  function drawMemoryGauge(x, y) {
+    const used = heapUsed();
+    const frac = Math.min(1, used / HEAP_LIMIT);
+    const w = 150;
+    text('HEAP', x, y + 9, 11, '#b8b2c9', 'left');
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(x + 40, y, w, 11);
+    ctx.fillStyle = frac > 0.85 ? '#ff4d6d' : frac > 0.6 ? '#ffb347' : '#7ee6a0';
+    ctx.fillRect(x + 42, y + 2, (w - 4) * frac, 7);
+    // One tick per cached floor
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    let acc = 0;
+    floors.forEach(snap => {
+      acc += floorBytes(snap);
+      const tx = x + 42 + (w - 4) * Math.min(1, acc / HEAP_LIMIT);
+      ctx.fillRect(Math.round(tx), y + 2, 1, 7);
+    });
+    text(`${Math.round(used / 1024)} / ${HEAP_LIMIT / 1024} KB  -  ${floors.size} FLOOR${floors.size === 1 ? '' : 'S'} CACHED`, x, y + 26, 10, '#8f8aa3', 'left');
+  }
+
+  function drawWeaponBar() {
+    const size = 34, gap = 6;
+    const x0 = 18, y0 = H - size - 18;
+    WEAPONS.forEach((w, i) => {
+      const x = x0 + i * (size + gap);
+      const on = w === weapon;
+      ctx.fillStyle = on ? 'rgba(255,209,102,0.18)' : 'rgba(8,7,14,0.7)';
+      ctx.fillRect(x, y0, size, size);
+      ctx.strokeStyle = on ? '#ffd166' : 'rgba(255,255,255,0.18)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x + 1, y0 + 1, size - 2, size - 2);
+      const cx = x + size / 2, cy = y0 + size / 2;
+      ctx.strokeStyle = on ? '#fff3cf' : '#b8b2c9';
+      ctx.fillStyle = on ? '#fff3cf' : '#b8b2c9';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      if (w.id === 'sword') {
+        ctx.moveTo(cx - 8, cy + 8); ctx.lineTo(cx + 8, cy - 8);
+        ctx.moveTo(cx - 9, cy + 3); ctx.lineTo(cx - 3, cy + 9);
+        ctx.stroke();
+      } else if (w.id === 'cleaver') {
+        ctx.arc(cx, cy + 6, 11, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.stroke();
+        ctx.fillRect(cx - 1, cy - 2, 3, 11);
+      } else {
+        ctx.fillRect(cx - 9, cy - 4, 14, 6);
+        ctx.fillRect(cx - 7, cy + 2, 4, 6);
+        ctx.fillStyle = '#7fe3ff';
+        ctx.fillRect(cx + 6, cy - 3, 4, 4);
+      }
+      text(String(i + 1), x + 6, y0 + 12, 10, on ? '#ffd166' : '#8f8aa3', 'left');
+    });
+    text(weapon.name.toUpperCase(), x0 + WEAPONS.length * (size + gap) + 4, y0 + size / 2 + 5, 12, '#ffd166', 'left');
+  }
+
   function drawHud() {
+    drawWeaponBar();
     for (let i = 0; i < MAX_HP; i++) drawHeart(18 + i * 26, 18, i < player.hp);
     if (mode === 'story') {
       const read = rooms.filter(r => r.read && r.kind === 'shrine').length;
@@ -2014,6 +2251,7 @@
       text(`DEPTH ${depth}`, 18, 60, 18, '#c4a7ff', 'left');
       text(`BEST ${save.best}`, 18, 80, 13, '#f2e6d0', 'left');
       text(`BUGS THIS RUN ${runKills}`, 18, 99, 13, '#9be35a', 'left');
+      drawMemoryGauge(18, 112);
       const boss = enemies.find(e => e.def.boss);
       if (boss) {
         const bw = Math.min(360, W * 0.4);
@@ -2036,7 +2274,7 @@
 
     if (time < 9 && !player.dead) {
       ctx.globalAlpha = Math.min(1, 9 - time);
-      text('WASD / ARROWS TO MOVE  -  SPACE TO ATTACK  -  CLICK TO WALK', W / 2, H - 24, 13, '#d8cfb8');
+      text('WASD / ARROWS TO MOVE  -  SPACE TO ATTACK  -  1-3 / Q TO SWITCH WEAPON  -  CLICK TO WALK', W / 2, H - 70, 13, '#d8cfb8');
       ctx.globalAlpha = 1;
     }
 
@@ -2093,7 +2331,7 @@
     requestAnimationFrame(frame);
   }
 
-  const GAME_KEYS = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'j'];
+  const GAME_KEYS = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'j', '1', '2', '3', 'q'];
   const typing = e => /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
 
   document.addEventListener('keydown', e => {
@@ -2110,6 +2348,8 @@
     e.preventDefault();
     keys[k] = true;
     if ((k === ' ' || k === 'j') && !e.repeat) attack();
+    if (['1', '2', '3'].includes(k)) setWeapon(Number(k) - 1);
+    if (k === 'q' && !e.repeat) setWeapon(WEAPONS.indexOf(weapon) + 1);
   });
   document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
   window.addEventListener('blur', () => { Object.keys(keys).forEach(k => { keys[k] = false; }); });
@@ -2138,9 +2378,10 @@
     const a = mx / (TW / 2), b = my / (TH / 2);
     const wx = (a + b) / 2, wy = (b - a) / 2;
 
-    // Clicking a nearby foe swings at it
+    // Clicking a foe swings at it when it is in reach, or shoots it with the blaster
     const foe = enemies.find(o => hittable(o) && Math.hypot(o.x - wx, o.y - wy) < 0.9 + o.r);
-    if (foe && Math.hypot(foe.x - player.x, foe.y - player.y) < 1.4 + foe.r) { attack(); return; }
+    const foeDist = foe ? Math.hypot(foe.x - player.x, foe.y - player.y) : Infinity;
+    if (foe && (weapon.ranged ? foeDist < weapon.range : foeDist < weapon.reach + 0.3 + foe.r)) { attack(foe); return; }
 
     const tx = Math.floor(wx), ty = Math.floor(wy);
     if (!inBounds(tx, ty) || !explored[idx(tx, ty)]) return;
