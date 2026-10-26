@@ -6,8 +6,12 @@
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const infoBubble = document.getElementById('infoBubble');
   const codexList = document.getElementById('codexList');
+  const overlay = document.getElementById('loreOverlay');
+  const overlayTitle = document.getElementById('loreTitle');
+  const overlaySub = document.getElementById('loreSub');
+  const overlayBody = document.getElementById('loreBody');
+  const overlayClose = document.getElementById('loreClose');
   const fog = document.createElement('canvas');
   const fctx = fog.getContext('2d');
 
@@ -78,7 +82,8 @@
   let pathGoal = null;
   let repath = 0;
   let kills = 0;
-  let activeLore = null;
+  let paused = null;
+  let strikeOnArrive = null;
   let currentRoom = -1;
   let banner = null;
   let shake = 0;
@@ -249,7 +254,7 @@
 
   function walkTo(x, y, exact) {
     const p = findPath(Math.floor(x), Math.floor(y), exact);
-    if (p) { path = p; pathGoal = { x, y, exact }; }
+    if (p) { path = p.length ? p : null; pathGoal = { x, y, exact }; }
   }
 
   // ---------- Combat ----------
@@ -274,6 +279,26 @@
       const d = Math.hypot(dx, dy) || 0.001;
       if (d < 1.35 && (d < 0.6 || (dx * player.fx + dy * player.fy) / d > 0.2)) hitFoe(e, dx / d, dy / d);
     });
+
+    // Striking an intact shrine (or the closed chest) reveals its chapter
+    const shrine = shrineInReach();
+    if (shrine) {
+      const dx = shrine.cx + 0.5 - player.x, dy = shrine.cy + 0.5 - player.y;
+      const d = Math.hypot(dx, dy) || 1;
+      player.fx = dx / d; player.fy = dy / d;
+      player.faceRight = player.fx - player.fy >= 0;
+      shake = Math.max(shake, 0.15);
+      burst(shrine.cx + 0.5, shrine.cy + 0.5, 50, '#ffffff', 10, 3);
+      burst(shrine.cx + 0.5, shrine.cy + 0.5, 60, shrine.color, 14, 3);
+      if (shrine.id === 'thanks') chest.open = Math.max(chest.open, 0.001);
+      openLore(shrine);
+    }
+  }
+
+  const isIntact = r => r.id === 'thanks' ? chest.open === 0 : !r.broken;
+
+  function shrineInReach() {
+    return rooms.find(r => isIntact(r) && Math.hypot(player.x - (r.cx + 0.5), player.y - (r.cy + 0.5)) < 1.75);
   }
 
   function hitFoe(e, nx, ny) {
@@ -313,6 +338,7 @@
     player.hp = MAX_HP; player.inv = 1.5; player.kx = player.ky = 0;
     path = null;
     repath = 0;
+    strikeOnArrive = null;
     enemies.forEach(e => { e.hp = e.maxHp; });
   }
 
@@ -354,26 +380,47 @@
 
   // ---------- Lore panel & codex ----------
 
-  function showLore(r) {
-    if (activeLore === r) return;
-    activeLore = r;
-    const first = !r.read;
+  function openLore(r) {
     r.read = true;
     let body = r.info;
     if (r.id === 'thanks') {
       const read = rooms.filter(o => o.read && o.id !== 'thanks').length;
       body += `<br><br><b>Your run:</b> ${read}/${rooms.length - 1} shrines read · ${kills} bug${kills === 1 ? '' : 's'} squashed.`;
     }
-    infoBubble.style.setProperty('--accent', r.color);
-    infoBubble.innerHTML =
-      `<div class="lore-head"><span class="lore-sigil"></span><div><h3>${r.label}</h3><small>${r.subtitle}</small></div></div>` +
-      `<div class="lore-body">${body}</div>`;
-    infoBubble.scrollTop = 0;
-    infoBubble.classList.remove('lore-flash');
-    void infoBubble.offsetWidth;
-    infoBubble.classList.add('lore-flash');
-    if (first) burst(r.cx + 0.5, r.cy + 0.5, 60, r.color, 24, 3);
+    overlay.style.setProperty('--accent', r.color);
+    overlayTitle.textContent = r.label;
+    overlaySub.textContent = r.subtitle;
+    overlayBody.innerHTML = body;
+    overlayBody.scrollTop = 0;
+    overlay.hidden = false;
+    paused = r;
+    Object.keys(keys).forEach(k => { keys[k] = false; });
     renderCodex();
+    overlayClose.focus({ preventScroll: true });
+  }
+
+  function closeLore() {
+    const r = paused;
+    if (!r) return;
+    overlay.hidden = true;
+    paused = null;
+    if (r.id !== 'thanks' && !r.broken) breakShrine(r);
+    canvas.focus({ preventScroll: true });
+  }
+
+  function breakShrine(r) {
+    r.broken = true;
+    tiles[idx(r.cx, r.cy)] = FLOOR;
+    r.rubble = Array.from({ length: 6 }, () => ({
+      x: r.cx + 0.5 + (Math.random() - 0.5) * 0.9,
+      y: r.cy + 0.5 + (Math.random() - 0.5) * 0.9,
+      s: 0.06 + Math.random() * 0.08,
+      h: 6 + Math.random() * 10
+    }));
+    shake = 0.4;
+    burst(r.cx + 0.5, r.cy + 0.5, 30, '#6b6682', 30, 4);
+    burst(r.cx + 0.5, r.cy + 0.5, 66, r.color, 40, 4.5);
+    floaters.push({ x: r.cx + 0.5, y: r.cy + 0.5, z: 90, text: 'Chapter unlocked!', color: r.color, life: 1.8, max: 1.8 });
   }
 
   function renderCodex() {
@@ -382,14 +429,17 @@
       const li = document.createElement('li');
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'codex-item' + (r.read ? ' read' : '') + (activeLore === r ? ' current' : '');
+      btn.className = 'codex-item' + (r.read ? ' read' : '');
       btn.style.setProperty('--accent', r.color);
       btn.innerHTML = `<span class="codex-gem"></span><span class="codex-name">${r.label}</span>` +
         `<span class="codex-state">${r.read ? 'read' : r.visited ? 'found' : '???'}</span>`;
-      btn.title = `Walk to ${r.subtitle}`;
+      btn.title = r.read ? `Read ${r.label} again` : `Walk to ${r.subtitle}`;
       btn.addEventListener('click', () => {
+        if (paused || player.dead) return;
+        if (!isIntact(r)) { openLore(r); return; }
         walkTo(r.cx, r.cy, false);
-        canvas.focus();
+        strikeOnArrive = r;
+        canvas.focus({ preventScroll: true });
       });
       li.appendChild(btn);
       codexList.appendChild(li);
@@ -436,13 +486,11 @@
       }
     }
 
-    // Shrines & chest
-    rooms.forEach(r => {
-      if (Math.hypot(player.x - (r.cx + 0.5), player.y - (r.cy + 0.5)) < 1.75 && !player.dead) {
-        if (r.id === 'thanks') chest.open = Math.max(chest.open, 0.001);
-        showLore(r);
-      }
-    });
+    // Auto-walks from the codex finish with a strike
+    if (strikeOnArrive && !path && repath <= 0 && !player.dead) {
+      if (shrineInReach() === strikeOnArrive) attack();
+      strikeOnArrive = null;
+    }
     if (chest && chest.open > 0 && chest.open < 1) {
       chest.open = Math.min(1, chest.open + dt * 2.5);
       if (Math.random() < 0.6) burst(chest.x, chest.y, 30, '#ffd166', 1, 2);
@@ -495,6 +543,7 @@
     if (ix || iy) {
       path = null;
       repath = 0;
+      strikeOnArrive = null;
     } else if (path) {
       const t = path[0];
       const dx = t.x - player.x, dy = t.y - player.y;
@@ -634,7 +683,7 @@
 
     // Glowing rune circles beneath each shrine
     rooms.forEach(r => {
-      if (!explored[idx(r.cx, r.cy)]) return;
+      if (!explored[idx(r.cx, r.cy)] || r.broken) return;
       const [sx, sy] = iso(r.cx + 0.5, r.cy + 0.5);
       ctx.save();
       ctx.translate(sx, sy);
@@ -741,6 +790,10 @@
 
   function drawShrine(r) {
     const x = r.cx + 0.5, y = r.cy + 0.5;
+    if (r.broken) {
+      r.rubble.forEach(p => drawBlock(p.x, p.y, p.s, p.h, { top: '#5b5670', left: '#3d394d', right: '#2d2a3a' }));
+      return;
+    }
     drawShadow(x, y, 22);
     drawBlock(x, y, 0.3, 14, { top: '#5b5670', left: '#3d394d', right: '#2d2a3a' });
     drawBlock(x, y, 0.2, 34, { top: '#6b6682', left: '#48435b', right: '#363245' });
@@ -836,6 +889,7 @@
     rooms.forEach(r => {
       if (!explored[idx(r.cx, r.cy)]) return;
       if (r.id === 'thanks') list.push({ d: chest.x + chest.y, draw: drawChest });
+      else if (r.broken) list.push({ d: r.cx + r.cy, draw: () => drawShrine(r) });
       else list.push({ d: r.cx + r.cy + 1, draw: () => drawShrine(r) });
     });
     enemies.forEach(e => {
@@ -881,7 +935,7 @@
     rooms.forEach(r => {
       if (!explored[idx(r.cx, r.cy)]) return;
       const [sx, sy] = iso(r.cx + 0.5, r.cy + 0.5, 40);
-      light(fctx, sx, sy, 150, 0.75);
+      light(fctx, sx, sy, r.broken ? 90 : 150, r.broken ? 0.4 : 0.75);
     });
     ctx.drawImage(fog, 0, 0, W, H);
 
@@ -930,6 +984,13 @@
       const [sx, sy] = iso(r.cx + 0.5, r.cy + 0.5, 110 + Math.sin(time * 2 + r.n) * 3);
       text(r.label.toUpperCase(), sx, sy, 15, r.color);
     });
+    const near = !player.dead && !paused && shrineInReach();
+    if (near) {
+      const [sx, sy] = iso(near.cx + 0.5, near.cy + 0.5, 135);
+      ctx.globalAlpha = 0.65 + 0.35 * Math.sin(time * 6);
+      text(near.id === 'thanks' ? 'SPACE - OPEN THE CHEST' : 'SPACE - STRIKE THE SHRINE', sx, sy, 12, '#ffffff');
+      ctx.globalAlpha = 1;
+    }
     enemies.forEach(e => {
       const d = Math.hypot(e.x - player.x, e.y - player.y);
       if (d > 4.5 || !explored[idx(Math.floor(e.x), Math.floor(e.y))]) return;
@@ -1054,7 +1115,7 @@
     last = now;
     if (canvas.clientWidth !== W || canvas.clientHeight !== H) resize();
     if (W > 0) {
-      update(dt);
+      if (!paused) update(dt);
       render();
     }
     requestAnimationFrame(frame);
@@ -1066,6 +1127,13 @@
   document.addEventListener('keydown', e => {
     if (typing(e) || !canvas.clientWidth) return;
     const k = e.key.toLowerCase();
+    if (paused) {
+      if (['escape', 'enter', ' ', 'e'].includes(k)) {
+        e.preventDefault();
+        if (!e.repeat) closeLore();
+      }
+      return;
+    }
     if (!GAME_KEYS.includes(k)) return;
     e.preventDefault();
     keys[k] = true;
@@ -1076,8 +1144,8 @@
 
   canvas.addEventListener('pointerdown', e => {
     e.preventDefault();
-    canvas.focus();
-    if (player.dead) return;
+    canvas.focus({ preventScroll: true });
+    if (player.dead || paused) return;
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left + cam.x - W / 2;
     const my = e.clientY - rect.top + cam.y - H / 2;
@@ -1091,9 +1159,16 @@
     const tx = Math.floor(wx), ty = Math.floor(wy);
     if (!inBounds(tx, ty) || !explored[idx(tx, ty)]) return;
     const t = tiles[idx(tx, ty)];
-    if (t === FLOOR) walkTo(tx, ty, true);
+    const shrine = rooms.find(r => r.cx === tx && r.cy === ty && isIntact(r));
+    if (shrine) {
+      if (shrineInReach() === shrine) attack();
+      else { walkTo(tx, ty, false); strikeOnArrive = shrine; }
+    } else if (t === FLOOR) walkTo(tx, ty, true);
     else if (t === PROP) walkTo(tx, ty, false);
   });
+
+  overlayClose.addEventListener('click', closeLore);
+  overlay.addEventListener('pointerdown', e => { if (e.target === overlay) closeLore(); });
 
   fetch('rooms.json')
     .then(r => r.json())

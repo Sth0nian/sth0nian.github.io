@@ -208,6 +208,102 @@ kbd {
   color: var(--accent);
 }
 
+/* Lore overlay shown over the paused game */
+.dungeon-screen {
+  position: relative;
+}
+
+.lore-overlay {
+  --accent: #e8b04b;
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4vh 24px;
+  box-sizing: border-box;
+  background: rgba(5, 4, 10, 0.78);
+  backdrop-filter: blur(3px);
+  animation: overlayIn 0.25s ease-out;
+}
+
+.lore-overlay[hidden] {
+  display: none;
+}
+
+.lore-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1180px;
+  max-height: 100%;
+  box-sizing: border-box;
+  padding: 24px 32px 20px;
+  background: linear-gradient(180deg, #17151f 0%, #100f17 100%);
+  border: 1px solid #2c2838;
+  border-top: 3px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 24px 60px rgba(0,0,0,0.7), 0 0 80px color-mix(in srgb, var(--accent) 18%, transparent);
+  animation: cardIn 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.lore-card .lore-head h3 {
+  font-size: 1.6em;
+}
+
+.lore-card .lore-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  columns: 3 280px;
+  column-gap: 40px;
+  column-rule: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.95em;
+  line-height: 1.7;
+  color: #e4deee;
+  scrollbar-width: thin;
+  scrollbar-color: #3a3550 transparent;
+}
+
+.lore-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.lore-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.85em;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.lore-close:hover,
+.lore-close:focus-visible {
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+  outline: none;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: scale(0.94) translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
 @keyframes loreIn {
   from { opacity: 0.2; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
