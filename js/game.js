@@ -1,5 +1,8 @@
 // TechJourney: an isometric dungeon crawl through my career.
-// Each room holds a shrine with one chapter of the story; bugs roam the halls.
+// Each room of the story map holds a shrine with one chapter; bugs roam the halls.
+// The chest at the end holds a key to the Endless Depths: procedurally generated
+// floors with nastier bugs, and Wings, a bat with opinions.
+// Progress is kept in localStorage so it survives a page reload.
 (() => {
   'use strict';
 
@@ -12,6 +15,10 @@
   const overlaySub = document.getElementById('loreSub');
   const overlayBody = document.getElementById('loreBody');
   const overlayClose = document.getElementById('loreClose');
+  const settings = document.getElementById('codexSettings');
+  const wingsToggle = document.getElementById('wingsToggle');
+  const resetButton = document.getElementById('resetSave');
+  const wingsLog = document.getElementById('wingsLog');
   const fog = document.createElement('canvas');
   const fctx = fog.getContext('2d');
 
@@ -37,7 +44,8 @@
     { x: 8, y: 29, w: 9, h: 6 }
   ];
 
-  // Deterministic RNG so the dungeon looks the same on every visit
+  // Seeded RNG: the story map looks the same on every visit, endless floors
+  // are reproducible per run and depth
   function mulberry32(a) {
     return () => {
       a |= 0; a = a + 0x6D2B79F5 | 0;
@@ -46,7 +54,8 @@
       return ((t ^ t >>> 14) >>> 0) / 4294967296;
     };
   }
-  const rand = mulberry32(1337);
+  let rand = mulberry32(1337);
+  const pick = (list, r = Math.random) => list[Math.floor(r() * list.length)];
 
   // Colour helpers
   const hexToRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
@@ -54,10 +63,29 @@
   const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
   const shadeOf = (c, f) => c.map(v => Math.max(0, Math.min(255, Math.round(v * f))));
 
-  // World state
+  // ---------- Save data (localStorage) ----------
+
+  const SAVE_KEY = 'sth0nian.techjourney.v1';
+  const NEWS_KEY = 'sth0nian.wings.news';
+
+  function loadJSON(key) {
+    try { return JSON.parse(localStorage.getItem(key)) || null; } catch (e) { return null; }
+  }
+  function storeJSON(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* private mode etc. */ }
+  }
+
+  const save = Object.assign({
+    read: [], broken: [], chest: false, key: false, kills: 0, explored: '',
+    best: 0, runs: 0, deepKills: 0, wingsMuted: false
+  }, loadJSON(SAVE_KEY));
+  const persist = () => storeJSON(SAVE_KEY, save);
+
+  // ---------- World state ----------
+
   const tiles = new Uint8Array(MAP_W * MAP_H);
-  const roomAt = new Int8Array(MAP_W * MAP_H).fill(-1);
-  const tintAt = new Int8Array(MAP_W * MAP_H).fill(-1);
+  const roomAt = new Int8Array(MAP_W * MAP_H);
+  const tintAt = new Int8Array(MAP_W * MAP_H);
   const explored = new Uint8Array(MAP_W * MAP_H);
   const floorColor = [];
   const noise = new Float32Array(MAP_W * MAP_H);
@@ -65,13 +93,24 @@
   const inBounds = (x, y) => x >= 0 && y >= 0 && x < MAP_W && y < MAP_H;
   const tileAt = (x, y) => inBounds(x, y) ? tiles[idx(x, y)] : VOID;
 
+  let storyData = [];
+  let mode = 'story';
+  let depth = 0;
+  let runSeed = 1;
+  let runKills = 0;
   let rooms = [];
   let props = [];
   let torches = [];
   let enemies = [];
+  let projectiles = [];
+  let pickups = [];
   let particles = [];
   let floaters = [];
   let chest = null;
+  let portal = null;
+  let stairsDown = null;
+  let stairsUp = null;
+  let bossAlive = false;
 
   const player = {
     x: 0, y: 0, r: 0.28, fx: 1, fy: 0, faceRight: true,
@@ -81,33 +120,47 @@
   let path = null;
   let pathGoal = null;
   let repath = 0;
-  let kills = 0;
+  let kills = save.kills;
   let paused = null;
   let strikeOnArrive = null;
   let currentRoom = -1;
   let banner = null;
   let shake = 0;
+  let fade = 0;
   let time = 0;
+  let lastInput = 0;
+  let saveTimer = 0;
+  let recentKills = [];
   const cam = { x: 0, y: 0 };
   const keys = {};
   let W = 0, H = 0, dpr = 1;
 
-  // ---------- Dungeon generation ----------
+  // ---------- Map building blocks ----------
 
-  function buildDungeon(data) {
-    rooms = LAYOUT.map((r, n) => {
-      const d = data[n];
-      return {
-        ...r, ...d, n,
-        rgb: hexToRgb(d.color),
-        cx: r.x + Math.floor(r.w / 2),
-        cy: r.y + Math.floor(r.h / 2),
-        read: false, visited: false, respawn: 0
-      };
-    });
+  function resetLevel() {
+    tiles.fill(VOID);
+    roomAt.fill(-1);
+    tintAt.fill(-1);
+    explored.fill(0);
+    rooms = []; props = []; torches = []; enemies = []; projectiles = []; pickups = [];
+    particles = []; floaters = [];
+    chest = null; portal = null; stairsDown = null; stairsUp = null; bossAlive = false;
+    path = null; repath = 0; strikeOnArrive = null; currentRoom = -1;
+  }
 
-    const carve = (x, y) => { if (inBounds(x, y)) tiles[idx(x, y)] = FLOOR; };
+  function finishRoom(r, n) {
+    return {
+      ...r, n,
+      rgb: hexToRgb(r.color),
+      cx: r.x + Math.floor(r.w / 2),
+      cy: r.y + Math.floor(r.h / 2),
+      visited: false, respawn: 0
+    };
+  }
 
+  const carve = (x, y) => { if (inBounds(x, y)) tiles[idx(x, y)] = FLOOR; };
+
+  function carveRooms() {
     rooms.forEach(r => {
       for (let y = r.y; y < r.y + r.h; y++) {
         for (let x = r.x; x < r.x + r.w; x++) {
@@ -116,19 +169,20 @@
         }
       }
     });
+  }
 
-    // Two-wide L-shaped corridors joining each room to the next
-    for (let n = 0; n < rooms.length - 1; n++) {
-      const a = rooms[n], b = rooms[n + 1];
-      for (let x = Math.min(a.cx, b.cx); x <= Math.max(a.cx, b.cx) + 1; x++) {
-        carve(x, a.cy); carve(x, a.cy + 1);
-      }
-      for (let y = Math.min(a.cy, b.cy); y <= Math.max(a.cy, b.cy) + 1; y++) {
-        carve(b.cx, y); carve(b.cx + 1, y);
-      }
+  // Two-wide L-shaped corridor between two room centres
+  function corridor(a, b) {
+    for (let x = Math.min(a.cx, b.cx); x <= Math.max(a.cx, b.cx) + 1; x++) {
+      carve(x, a.cy); carve(x, a.cy + 1);
     }
+    for (let y = Math.min(a.cy, b.cy); y <= Math.max(a.cy, b.cy) + 1; y++) {
+      carve(b.cx, y); carve(b.cx + 1, y);
+    }
+  }
 
-    // Any void touching a floor becomes wall
+  // Walls around every floor, then per-tile floor shading tinted by room colour
+  function finishMap(stone) {
     for (let y = 0; y < MAP_H; y++) {
       for (let x = 0; x < MAP_W; x++) {
         if (tiles[idx(x, y)] !== VOID) continue;
@@ -146,43 +200,184 @@
         }
       }
     }
-
-    // Floor shading: stone, warmed by the room's colour
-    const stone = [44, 42, 56];
     for (let i = 0; i < tiles.length; i++) {
       noise[i] = rand();
       const r = rooms[roomAt[i]];
       const base = r ? mix(stone, r.rgb, 0.13) : shadeOf(stone, 0.85);
       floorColor[i] = rgb(shadeOf(base, 0.86 + noise[i] * 0.22));
     }
+  }
 
-    // Shrines, the chest, props and torches
-    rooms.forEach(r => {
-      tiles[idx(r.cx, r.cy)] = PROP;
-      if (r.id === 'thanks') chest = { x: r.cx + 0.5, y: r.cy + 0.5, open: 0, room: r };
-
-      const corners = [[r.x, r.y], [r.x + r.w - 1, r.y], [r.x, r.y + r.h - 1], [r.x + r.w - 1, r.y + r.h - 1]];
-      corners.forEach(([x, y], k) => {
-        if (k === 3 || rand() < 0.35) return;
-        if (Math.abs(x - r.cx) <= 1 || Math.abs(y - r.cy) <= 1) return;
-        tiles[idx(x, y)] = PROP;
-        props.push({ x: x + 0.5, y: y + 0.5, kind: rand() < 0.5 ? 'barrel' : 'crate' });
-      });
-
-      [r.x + 1, r.x + r.w - 2].forEach(x => {
-        if (tileAt(x, r.y - 1) === WALL) torches.push({ wx: x, wy: r.y - 1, face: 'y', x: x + 0.5, y: r.y, seed: rand() * 10 });
-      });
-      const ty = r.y + Math.floor(r.h / 2) - 2;
-      if (tileAt(r.x - 1, ty) === WALL) torches.push({ wx: r.x - 1, wy: ty, face: 'x', x: r.x, y: ty + 0.5, seed: rand() * 10 });
+  // Barrels and crates in some corners, torches on north and west walls
+  function decorate(r) {
+    const corners = [[r.x, r.y], [r.x + r.w - 1, r.y], [r.x, r.y + r.h - 1], [r.x + r.w - 1, r.y + r.h - 1]];
+    corners.forEach(([x, y], k) => {
+      if (k === 3 || rand() < 0.35) return;
+      if (Math.abs(x - r.cx) <= 1 || Math.abs(y - r.cy) <= 1) return;
+      if (tileAt(x, y) !== FLOOR) return;
+      // Never block a doorway
+      const open = [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([dx, dy]) => tileAt(x + dx, y + dy) === FLOOR && roomAt[idx(x + dx, y + dy)] !== r.n).length;
+      if (open) return;
+      tiles[idx(x, y)] = PROP;
+      props.push({ x: x + 0.5, y: y + 0.5, kind: rand() < 0.5 ? 'barrel' : 'crate' });
     });
 
-    rooms.forEach(spawnRoomFoes);
+    [r.x + 1, r.x + r.w - 2].forEach(x => {
+      if (tileAt(x, r.y - 1) === WALL) torches.push({ wx: x, wy: r.y - 1, face: 'y', x: x + 0.5, y: r.y, seed: rand() * 10 });
+    });
+    const ty = r.y + Math.floor(r.h / 2) - 2;
+    if (tileAt(r.x - 1, ty) === WALL) torches.push({ wx: r.x - 1, wy: ty, face: 'x', x: r.x, y: ty + 0.5, seed: rand() * 10 });
+  }
 
-    const start = rooms[0];
-    player.x = start.x + 1.5;
-    player.y = start.y + start.h - 1.5;
+  function placePlayer(x, y) {
+    player.x = x; player.y = y;
+    player.kx = player.ky = 0;
     cam.x = (player.x - player.y) * TW / 2;
     cam.y = (player.x + player.y) * TH / 2;
+  }
+
+  // ---------- The story map ----------
+
+  function buildStory() {
+    resetLevel();
+    mode = 'story';
+    depth = 0;
+    rand = mulberry32(1337);
+    rooms = LAYOUT.map((r, n) => finishRoom({ ...r, ...storyData[n], kind: storyData[n].id === 'thanks' ? 'chest' : 'shrine' }, n));
+    carveRooms();
+    for (let n = 0; n < rooms.length - 1; n++) corridor(rooms[n], rooms[n + 1]);
+    finishMap([44, 42, 56]);
+
+    rooms.forEach(r => {
+      tiles[idx(r.cx, r.cy)] = PROP;
+      r.read = save.read.includes(r.id);
+      if (r.kind === 'chest') {
+        chest = { x: r.cx + 0.5, y: r.cy + 0.5, open: save.chest ? 1 : 0, room: r };
+        portal = { x: r.x + 1.5, y: r.cy + 0.5 };
+      } else if (save.broken.includes(r.id)) {
+        breakShrine(r, true);
+      }
+      decorate(r);
+    });
+
+    rooms.forEach(r => r.foes.forEach(name => enemies.push(makeFoe('bug', r, { name }))));
+    unpackExplored(save.explored);
+    const start = rooms[0];
+    placePlayer(start.x + 1.5, start.y + start.h - 1.5);
+  }
+
+  const portalOpen = () => mode === 'story' && save.key && portal;
+
+  // ---------- The Endless Depths ----------
+
+  const DEPTH_NAMES = [
+    'The Deprecated Catacombs', 'The Legacy Archives', 'The Unmerged Branches', 'The Cold Storage',
+    'The Callback Pit', 'The Technical Debt Vault', 'The Undocumented Wing', 'The Dependency Hell',
+    'The Abandoned Microservices', 'The Monolith Cellar', 'The YAML Mines', 'The Null Abyss',
+    'The Cache Miss Caverns', 'The Spaghetti Sewers', 'The Feature Flag Graveyard', 'The 3AM Pager Halls'
+  ];
+  const DEPTH_COLORS = ['#7b8cff', '#3ccf6e', '#ff9f43', '#a77bff', '#4aa3ff', '#ff4d6d', '#e8b04b', '#2dd4bf'];
+
+  function buildEndless(d) {
+    resetLevel();
+    mode = 'endless';
+    depth = d;
+    rand = mulberry32(runSeed * 7919 + d * 104729);
+    const theme = DEPTH_COLORS[(d - 1) % DEPTH_COLORS.length];
+
+    // Scatter non-overlapping rooms
+    const target = Math.min(10, 5 + Math.floor(d / 2));
+    const placed = [];
+    for (let tries = 0; tries < 400 && placed.length < target; tries++) {
+      const w = 5 + Math.floor(rand() * 5), h = 5 + Math.floor(rand() * 4);
+      const x = 2 + Math.floor(rand() * (MAP_W - w - 4)), y = 2 + Math.floor(rand() * (MAP_H - h - 4));
+      if (placed.some(o => x < o.x + o.w + 3 && x + w + 3 > o.x && y < o.y + o.h + 3 && y + h + 3 > o.y)) continue;
+      placed.push({ x, y, w, h });
+    }
+
+    // Order them as a greedy nearest-neighbour chain so the stairs end up far away
+    const order = [placed.shift()];
+    while (placed.length) {
+      const last = order[order.length - 1];
+      let best = 0, bestD = Infinity;
+      placed.forEach((o, k) => {
+        const dd = Math.hypot(o.x - last.x, o.y - last.y);
+        if (dd < bestD) { best = k; bestD = dd; }
+      });
+      order.push(placed.splice(best, 1)[0]);
+    }
+
+    rooms = order.map((r, n) => finishRoom({
+      ...r, kind: 'plain', id: `depth-${d}-${n}`,
+      label: `Depth ${d}`, subtitle: n === 0 ? pick(DEPTH_NAMES, rand) : '',
+      color: n === order.length - 1 ? '#ffd166' : theme
+    }, n));
+    carveRooms();
+    for (let n = 0; n < rooms.length - 1; n++) corridor(rooms[n], rooms[n + 1]);
+    // An extra loop or two keeps it from being a straight line
+    for (let k = 0; k < Math.min(2, rooms.length - 2); k++) {
+      const a = rooms[Math.floor(rand() * rooms.length)], b = rooms[Math.floor(rand() * rooms.length)];
+      if (a !== b) corridor(a, b);
+    }
+    finishMap([34, 34, 46]);
+    rooms.forEach(decorate);
+
+    const first = rooms[0], last = rooms[rooms.length - 1];
+    stairsUp = { x: first.cx + 0.5, y: first.cy + 0.5 };
+    stairsDown = { x: last.cx + 0.5, y: last.cy + 0.5 };
+
+    // Foes get nastier the deeper you go
+    const pool = ['bug'];
+    if (d >= 2) pool.push('leak');
+    if (d >= 3) pool.push('race');
+    if (d >= 4) pool.push('zombie');
+    if (d >= 5) pool.push('panic');
+    rooms.forEach((r, n) => {
+      if (n === 0) return;
+      const count = 1 + Math.floor(rand() * (1 + Math.min(2, d / 3)));
+      for (let k = 0; k < count; k++) enemies.push(makeFoe(pick(pool, rand), r));
+      if (rand() < 0.3) {
+        const p = randomRoomSpot(r);
+        pickups.push({ x: p.x, y: p.y, kind: 'heart', seed: rand() * 6 });
+      }
+    });
+    if (d % 5 === 0) {
+      enemies.push(makeFoe('loop', last));
+      bossAlive = true;
+    }
+
+    placePlayer(first.cx + 1.5, first.cy + 0.5);
+    currentRoom = -1;
+  }
+
+  function enterEndless(d) {
+    if (d === 1) {
+      runSeed = Math.floor(Math.random() * 1e9);
+      runKills = 0;
+      save.runs++;
+      player.hp = MAX_HP;
+    }
+    buildEndless(d);
+    if (d > save.best) save.best = d;
+    persist();
+    fade = 1;
+    banner = { title: rooms[0].subtitle, sub: `Depth ${d}`, color: rooms[0].color, life: 3 };
+    renderCodex();
+    if (d === 1) wingsSay(pick(LINES.enter), 2);
+    else if (d % 5 === 0) wingsSay(pick(LINES.boss), 3);
+    else wingsSay(fill(pick(LINES.depth)), 1);
+  }
+
+  function leaveEndless(died) {
+    const reached = depth;
+    buildStory();
+    fade = 1;
+    placePlayer(portal.x + 1, portal.y);
+    player.hp = MAX_HP;
+    player.inv = 1.5;
+    renderCodex();
+    if (died) wingsSay(fill(pick(LINES.death), reached), 3);
+    else wingsSay(pick(LINES.surface), 2);
   }
 
   function randomRoomSpot(r) {
@@ -194,17 +389,29 @@
     return { x: r.x + 0.5, y: r.y + 0.5 };
   }
 
-  function makeFoe(r, name) {
-    const p = randomRoomSpot(r);
-    return {
-      x: p.x, y: p.y, r: 0.26, name, home: r.n, hp: 3, maxHp: 3,
-      kx: 0, ky: 0, flash: 0, frame: 0, anim: rand(), faceRight: false,
-      goal: null, wait: rand() * 2, rest: 0, speed: 0.8 + rand() * 0.3
-    };
-  }
+  // ---------- Foes ----------
 
-  function spawnRoomFoes(r) {
-    r.foes.forEach(name => enemies.push(makeFoe(r, name)));
+  const FOE_TYPES = {
+    bug: { names: ['Heisenbug', 'Off-by-one', 'Null Pointer', 'Typo', 'Flaky Test', 'Merge Conflict'], hp: 3, speed: 1.6, wander: 0.9, look: 'sprite', r: 0.26 },
+    leak: { names: ['Memory Leak'], hp: 5, speed: 1.0, wander: 0.5, look: 'slime', color: '#5fd068', r: 0.32 },
+    leaklet: { names: ['Leaked Byte'], hp: 1, speed: 1.9, wander: 1.2, look: 'slime', color: '#9be8a0', r: 0.2, small: true },
+    race: { names: ['Race Condition'], hp: 2, speed: 4.6, wander: 1.4, look: 'dart', color: '#ff4d6d', r: 0.22 },
+    zombie: { names: ['Zombie Process'], hp: 3, speed: 1.3, wander: 0.7, look: 'sprite', grey: true, r: 0.26 },
+    panic: { names: ['Kernel Panic', 'Segfault', 'Stack Overflow'], hp: 3, speed: 1.1, wander: 0.7, look: 'orb', color: '#ff9f43', r: 0.26, ranged: true },
+    loop: { names: ['The Infinite Loop'], hp: 18, speed: 2.2, wander: 0, look: 'ring', color: '#a77bff', r: 0.45, boss: true }
+  };
+
+  function makeFoe(type, r, opts = {}) {
+    const def = FOE_TYPES[type];
+    const p = opts.at || randomRoomSpot(r);
+    const extra = mode === 'endless' ? (def.boss ? depth * 2 : Math.floor(depth / 4)) : 0;
+    const hp = def.hp + extra;
+    return {
+      type, def, x: p.x, y: p.y, r: def.r, name: opts.name || pick(def.names, rand), home: r.n,
+      hp, maxHp: hp, kx: 0, ky: 0, flash: 0, anim: rand(), faceRight: false,
+      goal: null, wait: rand() * 2, rest: 0, speed: def.wander + rand() * 0.3,
+      cd: 1 + rand() * 2, dash: 0, dashing: false, down: 0, revived: false, ang: 0, charge: 0, vx: 0, vy: 0
+    };
   }
 
   // ---------- Movement & collision ----------
@@ -259,25 +466,32 @@
 
   // ---------- Combat ----------
 
+  const hittable = e => !e.down;
+
   function attack() {
     if (player.atkCd > 0 || player.dead) return;
+    lastInput = time;
     // Snap to the closest foe in reach so clicking / mashing feels good
     let best = null, bestD = 1.7;
     enemies.forEach(e => {
-      const d = Math.hypot(e.x - player.x, e.y - player.y);
+      if (!hittable(e)) return;
+      const d = Math.hypot(e.x - player.x, e.y - player.y) - e.r + 0.26;
       if (d < bestD) { best = e; bestD = d; }
     });
-    if (best && bestD > 0.01) {
-      player.fx = (best.x - player.x) / bestD;
-      player.fy = (best.y - player.y) / bestD;
+    if (best) {
+      const d = Math.hypot(best.x - player.x, best.y - player.y) || 1;
+      player.fx = (best.x - player.x) / d;
+      player.fy = (best.y - player.y) / d;
       player.faceRight = player.fx - player.fy >= 0;
     }
     player.atkCd = 0.36;
     player.swing = 0.2;
-    enemies.forEach(e => {
+    enemies.slice().forEach(e => {
+      if (!hittable(e)) return;
       const dx = e.x - player.x, dy = e.y - player.y;
       const d = Math.hypot(dx, dy) || 0.001;
-      if (d < 1.35 && (d < 0.6 || (dx * player.fx + dy * player.fy) / d > 0.2)) hitFoe(e, dx / d, dy / d);
+      const reach = 1.1 + e.r;
+      if (d < reach && (d < 0.6 + e.r || (dx * player.fx + dy * player.fy) / d > 0.2)) hitFoe(e, dx / d, dy / d);
     });
 
     // Striking an intact shrine (or the closed chest) reveals its chapter
@@ -290,30 +504,73 @@
       shake = Math.max(shake, 0.15);
       burst(shrine.cx + 0.5, shrine.cy + 0.5, 50, '#ffffff', 10, 3);
       burst(shrine.cx + 0.5, shrine.cy + 0.5, 60, shrine.color, 14, 3);
-      if (shrine.id === 'thanks') chest.open = Math.max(chest.open, 0.001);
+      if (shrine.kind === 'chest') chest.open = Math.max(chest.open, 0.001);
       openLore(shrine);
     }
   }
 
-  const isIntact = r => r.id === 'thanks' ? chest.open === 0 : !r.broken;
+  const isIntact = r => r.kind === 'chest' ? chest.open === 0 : r.kind === 'shrine' && !r.broken;
 
   function shrineInReach() {
+    if (mode !== 'story') return null;
     return rooms.find(r => isIntact(r) && Math.hypot(player.x - (r.cx + 0.5), player.y - (r.cy + 0.5)) < 1.75);
   }
 
   function hitFoe(e, nx, ny) {
     e.hp--;
     e.flash = 0.14;
-    e.kx = nx * 6; e.ky = ny * 6;
+    const push = e.def.boss ? 2 : 6;
+    e.kx = nx * push; e.ky = ny * push;
     shake = Math.max(shake, 0.08);
     burst(e.x, e.y, 26, '#ffffff', 6, 2.5);
-    if (e.hp <= 0) {
+    if (e.hp > 0) return;
+
+    // Zombie processes need killing twice
+    if (e.type === 'zombie' && !e.revived) {
+      e.down = 2.5;
+      e.revived = true;
+      floaters.push({ x: e.x, y: e.y, z: 70, text: 'kill -9 required...', color: '#b8b2c9', life: 1.6, max: 1.6 });
+      return;
+    }
+
+    const color = e.def.color || rgb(rooms[e.home] ? rooms[e.home].rgb : [155, 227, 90]);
+    burst(e.x, e.y, 20, color, 18, 3.5);
+    burst(e.x, e.y, 20, '#9be35a', 8, 2.5);
+    floaters.push({ x: e.x, y: e.y, z: 70, text: `${e.name} squashed!`, color: '#9be35a', life: 1.4, max: 1.4 });
+    enemies = enemies.filter(o => o !== e);
+
+    if (e.type === 'leak') {
+      for (let k = 0; k < 2; k++) {
+        const a = Math.random() * Math.PI * 2;
+        const spot = { x: e.x + Math.cos(a) * 0.3, y: e.y + Math.sin(a) * 0.3 };
+        if (!blocked(spot.x, spot.y, 0.2)) enemies.push(makeFoe('leaklet', rooms[e.home], { at: spot }));
+      }
+    }
+    if (e.def.boss) {
+      bossAlive = false;
+      shake = 0.6;
+      burst(e.x, e.y, 30, '#a77bff', 60, 5);
+      pickups.push({ x: e.x, y: e.y, kind: 'heart', seed: 1 }, { x: e.x + 0.4, y: e.y + 0.3, kind: 'heart', seed: 2 });
+      wingsSay(pick(LINES.bossDown), 3);
+    } else if (mode === 'endless' && Math.random() < 0.12) {
+      pickups.push({ x: e.x, y: e.y, kind: 'heart', seed: Math.random() * 6 });
+    }
+
+    if (mode === 'story') {
       kills++;
-      burst(e.x, e.y, 20, rgb(rooms[e.home].rgb), 18, 3.5);
-      burst(e.x, e.y, 20, '#9be35a', 8, 2.5);
-      floaters.push({ x: e.x, y: e.y, z: 70, text: `${e.name} squashed!`, color: '#9be35a', life: 1.4, max: 1.4 });
-      enemies = enemies.filter(o => o !== e);
-      rooms[e.home].respawn = 35;
+      save.kills = kills;
+      if (rooms[e.home]) rooms[e.home].respawn = 35;
+    } else {
+      runKills++;
+      save.deepKills++;
+    }
+    persist();
+
+    recentKills = recentKills.filter(t => time - t < 6);
+    recentKills.push(time);
+    if (recentKills.length >= 3) {
+      recentKills = [];
+      wingsSay(pick(LINES.streak), 1);
     }
   }
 
@@ -329,13 +586,20 @@
     if (path) { path = null; repath = 0.35; }
     burst(player.x, player.y, 30, '#ff4d6d', 10, 2.5);
     floaters.push({ x: player.x, y: player.y, z: 80, text: '-1', color: '#ff4d6d', life: 0.9, max: 0.9 });
-    if (player.hp <= 0) player.dead = 2.6;
+    if (player.hp <= 0) {
+      player.dead = 2.6;
+    } else if (player.hp === 1) {
+      wingsSay(pick(LINES.lowHp), 2);
+    } else if (Math.random() < 0.35) {
+      wingsSay(pick(LINES.hurt), 1);
+    }
   }
 
   function respawn() {
+    if (mode === 'endless') { leaveEndless(true); return; }
     const r = rooms[0];
-    player.x = r.x + 1.5; player.y = r.y + r.h - 1.5;
-    player.hp = MAX_HP; player.inv = 1.5; player.kx = player.ky = 0;
+    placePlayer(r.x + 1.5, r.y + r.h - 1.5);
+    player.hp = MAX_HP; player.inv = 1.5;
     path = null;
     repath = 0;
     strikeOnArrive = null;
@@ -376,17 +640,30 @@
         });
       }
     });
+    if (portalOpen() && Math.random() < dt * 8) {
+      particles.push({
+        x: portal.x + (Math.random() - 0.5) * 0.8, y: portal.y + (Math.random() - 0.5) * 0.8, z: 2,
+        vx: 0, vy: 0, vz: 40 + Math.random() * 40, g: -20, life: 1, max: 1, color: '#c4a7ff', size: 2
+      });
+    }
   }
 
   // ---------- Lore panel & codex ----------
 
   function openLore(r) {
     r.read = true;
+    if (!save.read.includes(r.id)) save.read.push(r.id);
     let body = r.info.replace('{{age}}', typeof currentAge === 'function' ? currentAge() : '');
     if (r.id === 'thanks') {
-      const read = rooms.filter(o => o.read && o.id !== 'thanks').length;
-      body += `<br><br><b>Your run:</b> ${read}/${rooms.length - 1} shrines read · ${kills} bug${kills === 1 ? '' : 's'} squashed.`;
+      const shrines = storyData.filter(o => o.id !== 'thanks');
+      const read = shrines.filter(o => save.read.includes(o.id)).length;
+      body += `<br><br><b>Your run:</b> ${read}/${shrines.length} shrines read · ${kills} bug${kills === 1 ? '' : 's'} squashed.`;
+      body += save.key
+        ? '<br><br>The <b>Key of Infinite Recursion</b> 🗝️ is still in your pocket. The portal to the Endless Depths is in this room.'
+        : '<br><br><b>Inside the chest:</b> the <b>Key of Infinite Recursion</b> 🗝️. Something has just opened in this room...';
+      if (!save.chest) { save.chest = true; }
     }
+    persist();
     overlay.style.setProperty('--accent', r.color);
     overlayTitle.textContent = r.label;
     overlaySub.textContent = r.subtitle;
@@ -404,11 +681,12 @@
     if (!r) return;
     overlay.hidden = true;
     paused = null;
-    if (r.id !== 'thanks' && !r.broken) breakShrine(r);
+    if (mode === 'story' && r.kind === 'shrine' && !r.broken && rooms.includes(r)) breakShrine(r);
+    if (r.id === 'thanks' && !save.key) grantKey();
     canvas.focus({ preventScroll: true });
   }
 
-  function breakShrine(r) {
+  function breakShrine(r, quiet) {
     r.broken = true;
     tiles[idx(r.cx, r.cy)] = FLOOR;
     r.rubble = Array.from({ length: 6 }, () => ({
@@ -417,33 +695,267 @@
       s: 0.06 + Math.random() * 0.08,
       h: 6 + Math.random() * 10
     }));
+    if (quiet) return;
+    if (!save.broken.includes(r.id)) save.broken.push(r.id);
+    persist();
     shake = 0.4;
     burst(r.cx + 0.5, r.cy + 0.5, 30, '#6b6682', 30, 4);
     burst(r.cx + 0.5, r.cy + 0.5, 66, r.color, 40, 4.5);
     floaters.push({ x: r.cx + 0.5, y: r.cy + 0.5, z: 90, text: 'Chapter unlocked!', color: r.color, life: 1.8, max: 1.8 });
   }
 
+  function grantKey() {
+    save.key = true;
+    persist();
+    shake = 0.5;
+    burst(portal.x, portal.y, 10, '#a77bff', 60, 4);
+    burst(chest.x, chest.y, 40, '#ffd166', 30, 3);
+    floaters.push({ x: chest.x, y: chest.y, z: 100, text: 'KEY OF INFINITE RECURSION OBTAINED', color: '#ffd166', life: 2.6, max: 2.6 });
+    banner = { title: 'A portal opens', sub: 'The Endless Depths await', color: '#c4a7ff', life: 3 };
+    renderCodex();
+    ensureNews();
+    wingsSay(LINES.intro, 3);
+  }
+
   function renderCodex() {
     codexList.innerHTML = '';
-    rooms.forEach(r => {
+    const items = storyData.map(d => ({ d, room: mode === 'story' ? rooms.find(r => r.id === d.id) : null }));
+    items.forEach(({ d, room }) => {
+      const read = save.read.includes(d.id);
+      const visited = room ? room.visited : read;
       const li = document.createElement('li');
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'codex-item' + (r.read ? ' read' : '');
-      btn.style.setProperty('--accent', r.color);
-      btn.innerHTML = `<span class="codex-gem"></span><span class="codex-name">${r.label}</span>` +
-        `<span class="codex-state">${r.read ? 'read' : r.visited ? 'found' : '???'}</span>`;
-      btn.title = r.read ? `Read ${r.label} again` : `Walk to ${r.subtitle}`;
+      btn.className = 'codex-item' + (read ? ' read' : '');
+      btn.style.setProperty('--accent', d.color);
+      btn.innerHTML = `<span class="codex-gem"></span><span class="codex-name">${d.label}</span>` +
+        `<span class="codex-state">${read ? 'read' : visited ? 'found' : '???'}</span>`;
+      btn.title = read ? `Read ${d.label} again` : `Walk to ${d.subtitle}`;
       btn.addEventListener('click', () => {
         if (paused || player.dead) return;
-        if (!isIntact(r)) { openLore(r); return; }
-        walkTo(r.cx, r.cy, false);
-        strikeOnArrive = r;
+        if (!room) {
+          if (read) openLore(storyData.find(o => o.id === d.id));
+          else wingsSay('Nice try. Chapters are read on the surface, shrine by shrine.', 2);
+          return;
+        }
+        if (!isIntact(room)) { openLore(room); return; }
+        walkTo(room.cx, room.cy, false);
+        strikeOnArrive = room;
         canvas.focus({ preventScroll: true });
       });
       li.appendChild(btn);
       codexList.appendChild(li);
     });
+
+    if (save.key) {
+      const li = document.createElement('li');
+      li.className = 'codex-wide';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'codex-item read endless';
+      btn.style.setProperty('--accent', '#c4a7ff');
+      btn.innerHTML = `<span class="codex-gem"></span><span class="codex-name">Endless Depths</span>` +
+        `<span class="codex-state">${mode === 'endless' ? `depth ${depth}` : `best ${save.best}`}</span>`;
+      btn.title = mode === 'endless' ? 'You are here' : 'Walk to the portal';
+      btn.addEventListener('click', () => {
+        if (paused || player.dead || mode !== 'story') return;
+        walkTo(portal.x, portal.y, true);
+        canvas.focus({ preventScroll: true });
+      });
+      li.appendChild(btn);
+      codexList.appendChild(li);
+    }
+
+    settings.hidden = !save.key && !save.read.length;
+    wingsToggle.closest('label').hidden = !save.key;
+    wingsToggle.checked = !save.wingsMuted;
+  }
+
+  // Explored tiles of the story map, run-length encoded for storage
+  function packExplored() {
+    const out = [];
+    let cur = 0, run = 0;
+    explored.forEach(v => {
+      if (v === cur) run++;
+      else { out.push(run); cur = v; run = 1; }
+    });
+    out.push(run);
+    return out.join('.');
+  }
+
+  function unpackExplored(s) {
+    if (!s) return;
+    const runs = s.split('.').map(Number);
+    if (runs.reduce((a, b) => a + b, 0) !== explored.length) return;
+    let i = 0, cur = 0;
+    runs.forEach(n => { explored.fill(cur, i, i + n); i += n; cur ^= 1; });
+  }
+
+  // ---------- Wings, the bat ----------
+
+  const LINES = {
+    intro: "Oh. You opened the chest. Great. I'm Wings, I live here. That key opens the Endless Depths. I'll be... supervising.",
+    enter: [
+      'Welcome to the Endless Depths. Population: bugs. And now you.',
+      "Down we go. Don't worry, I've read the docs. Nobody else has.",
+      'Infinite floors, finite hearts. Pace yourself.'
+    ],
+    depth: [
+      'Depth {d}. Smells like legacy code.',
+      'Depth {d}. The documentation stopped a few floors ago.',
+      'Depth {d}: here be dragons. Well, bugs. Mostly bugs.',
+      'Depth {d}. Your best is {best}. No pressure. Some pressure.',
+      'Further down. I hope you committed your changes.'
+    ],
+    boss: [
+      "That's an Infinite Loop. Whatever you do, don't— oh, you're already in it.",
+      'Boss floor. The stairs stay locked until that thing stops iterating.'
+    ],
+    bossDown: ['Loop terminated. Somebody add that to the release notes.', 'You broke the Infinite Loop. Finally, a base case.'],
+    surface: ['Back on the surface. Fresh air. Well, dungeon air.', 'Climbing out already? Fair. The depths will still be broken tomorrow.'],
+    death: [
+      'And that is why we have backups.',
+      'Rolled back to the surface. Classic.',
+      'Your run ended at depth {d}. I will write you a lovely incident report.',
+      "Depth {d}. Not bad. Not good either. It's a number."
+    ],
+    hurt: ['Ouch. Logging that as a P1.', 'Have you tried not getting hit?', 'That looked expensive.', "I'll put that in the post-mortem."],
+    lowHp: ['One heart left. Maybe a good time to read the docs.', "You're running on one heart and pure stubbornness."],
+    streak: ['Three in a row! Look at you, closing tickets.', "Don't let it go to your head. They'll be back after the next deploy."],
+    heart: ['A heart! Finally some good news.', 'Patched. For now.'],
+    stairs: ['Stairs! Down is the only direction that counts down here.'],
+    locked: ['Locked. Deal with the Infinite Loop first. Yes, the big angry one.'],
+    idle: ['Are you AFK or just admiring the brickwork?', "I'll wait. I'm a bat. Hanging around is literally my thing."],
+    sass: [
+      'Swinging a sword at bugs. Very "move fast and break things" of you.',
+      "You know you can just walk around them, right? No? Okay, carry on.",
+      'Another room, another bug. Like being on call, but with more stone.',
+      'Fun fact: bats are the only flying mammals. You are the only... whatever this is.',
+      "I'd help, but I'm more of a consultant."
+    ],
+    jokes: [
+      'Why do programmers prefer dark mode? Because light attracts bugs. So do you, apparently.',
+      'A SQL query walks into a bar, sees two tables and asks: "Can I join you?"',
+      "I'd tell you a UDP joke, but you might not get it.",
+      "I'd tell you a TCP joke, but I'd have to keep repeating it until you acknowledged it.",
+      "How many programmers does it take to change a light bulb? None. That's a hardware problem.",
+      'Knock knock. Race condition. Who\'s there?',
+      'To understand recursion, see: this dungeon.',
+      'It works on my machine. Ship the machine.',
+      'terraform plan: 2 to add, 0 to change, 1 bat to destroy. Rude.',
+      'Why did the developer go broke? Used up all their cache.',
+      'There are only two hard things in computer science: cache invalidation, naming things, and off-by-one errors.',
+      'I put a bat in the CI pipeline. Now it is echolocation-driven development.'
+    ],
+    news: [
+      'Top of Hacker News right now: "{t}". Bold of them.',
+      '"{t}" is trending on Hacker News. {s} points. I have seen better ideas in a cave.',
+      'Breaking, via Hacker News: "{t}". Wake me when it is on its third rewrite.',
+      'Hacker News is talking about "{t}". Have they tried turning it off and on again?',
+      'Saw "{t}" on Hacker News. In my day we just had bats and caves.'
+    ],
+    offline: ["I'd tell you the tech news, but the Wi-Fi down here is terrible."]
+  };
+
+  const fill = (s, d = depth) => s.replace('{d}', d).replace('{best}', save.best);
+
+  const wings = {
+    state: 'away', x: 0, y: 0, z: 200, t: 0, stay: 0, flap: 0, faceRight: true,
+    msg: null, msgLife: 0, msgMax: 0, priority: 0, cooldown: 0, next: 20
+  };
+  const wingsOn = () => save.key && !save.wingsMuted;
+
+  function wingsSay(text, priority = 1) {
+    if (!wingsOn() || !text) return;
+    if (wings.msg && wings.priority > priority) return;
+    if (priority < 2 && wings.cooldown > 0) return;
+    wings.msg = text;
+    wings.msgLife = wings.msgMax = 2.8 + text.length * 0.05;
+    wings.priority = priority;
+    wings.cooldown = 6;
+    wings.stay = Math.max(wings.stay, wings.msgLife + 3);
+    if (wings.state === 'away' || wings.state === 'out') {
+      if (wings.state === 'away') {
+        wings.x = player.x - 7; wings.y = player.y - 7; wings.z = 220;
+      }
+      wings.state = 'in';
+    }
+    if (wingsLog) wingsLog.textContent = `Wings: ${text}`;
+  }
+
+  // Latest Hacker News headlines, cached for a couple of hours
+  let news = loadJSON(NEWS_KEY);
+  let newsLoading = false;
+  let newsSeen = 0;
+
+  function ensureNews() {
+    if (newsLoading || (news && Date.now() - news.at < 2 * 3600e3 && news.items.length)) return;
+    newsLoading = true;
+    const api = 'https://hacker-news.firebaseio.com/v0';
+    fetch(`${api}/topstories.json`)
+      .then(r => r.json())
+      .then(ids => Promise.all(ids.slice(0, 15).map(id => fetch(`${api}/item/${id}.json`).then(r => r.json()).catch(() => null))))
+      .then(items => {
+        const list = items.filter(i => i && i.title && i.type === 'story')
+          .map(i => ({ title: i.title.length > 80 ? `${i.title.slice(0, 77)}...` : i.title, score: i.score || 0 }));
+        if (list.length) {
+          news = { at: Date.now(), items: list };
+          storeJSON(NEWS_KEY, news);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { newsLoading = false; });
+  }
+
+  function newsLine() {
+    if (!news || !news.items.length) return pick(LINES.offline);
+    const item = news.items[newsSeen++ % news.items.length];
+    return pick(LINES.news).replace('{t}', item.title).replace('{s}', item.score);
+  }
+
+  function ambientLine() {
+    const r = Math.random();
+    if (r < 0.38) return pick(LINES.jokes);
+    if (r < 0.7) return newsLine();
+    return mode === 'endless' && Math.random() < 0.5 ? fill(pick(LINES.depth)) : pick(LINES.sass);
+  }
+
+  function updateWings(dt) {
+    wings.flap += dt * 16;
+    wings.cooldown -= dt;
+    if (!wingsOn()) { wings.state = 'away'; wings.msg = null; return; }
+
+    wings.next -= dt;
+    if (wings.next <= 0 && !player.dead) {
+      wingsSay(ambientLine(), 0);
+      wings.next = mode === 'endless' ? 30 + Math.random() * 25 : 55 + Math.random() * 35;
+    }
+    if (time - lastInput > 25 && !player.dead) {
+      lastInput = time;
+      wingsSay(pick(LINES.idle), 1);
+    }
+
+    if (wings.msg && (wings.msgLife -= dt) <= 0) wings.msg = null;
+
+    let tx, ty, tz;
+    if (wings.state === 'out') {
+      tx = player.x + 6; ty = player.y - 6; tz = 240;
+    } else {
+      // Hover just behind the hero's shoulder
+      tx = player.x - 0.7 + Math.sin(time * 0.7) * 0.4;
+      ty = player.y - 1.0;
+      tz = 78 + Math.sin(time * 2.6) * 6;
+    }
+    const k = 1 - Math.exp(-dt * (wings.state === 'in' ? 2.6 : 3.5));
+    const ox = wings.x;
+    wings.x += (tx - wings.x) * k;
+    wings.y += (ty - wings.y) * k;
+    wings.z += (tz - wings.z) * k;
+    if (Math.abs(wings.x - ox) > 0.002) wings.faceRight = wings.x - ox > 0;
+
+    if (wings.state === 'in' && Math.hypot(tx - wings.x, ty - wings.y) < 0.4) wings.state = 'hover';
+    if (wings.state === 'hover' && !wings.msg && (wings.stay -= dt) <= 0) { wings.state = 'out'; wings.t = 0; }
+    if (wings.state === 'out' && (wings.t += dt) > 1.8) wings.state = 'away';
   }
 
   // ---------- Update ----------
@@ -454,6 +966,7 @@
     time += dt;
     player.atkCd -= dt; player.swing -= dt; player.inv -= dt;
     shake = Math.max(0, shake - dt);
+    fade = Math.max(0, fade - dt * 1.8);
 
     if (player.dead > 0) {
       player.dead -= dt;
@@ -480,10 +993,19 @@
         }
         if (!r.visited) {
           r.visited = true;
-          banner = { title: r.subtitle, sub: r.label, color: r.color, life: 3 };
-          renderCodex();
+          if (mode === 'story') {
+            banner = { title: r.subtitle, sub: r.label, color: r.color, life: 3 };
+            renderCodex();
+          } else if (here === rooms.length - 1) {
+            wingsSay(pick(bossAlive ? LINES.locked : LINES.stairs), 1);
+          }
         }
       }
+    }
+    if (mode === 'story' && (saveTimer -= dt) <= 0) {
+      saveTimer = 4;
+      save.explored = packExplored();
+      persist();
     }
 
     // Auto-walks from the codex finish with a strike
@@ -497,24 +1019,30 @@
     }
 
     updateEnemies(dt);
+    updateProjectiles(dt);
+    updatePickups();
+    checkExits();
 
-    // Restock rooms the player isn't standing in
-    rooms.forEach(r => {
-      if (r.respawn > 0) {
-        r.respawn -= dt;
-        if (r.respawn <= 0 && currentRoom !== r.n) {
-          const alive = enemies.filter(e => e.home === r.n).map(e => e.name);
-          const missing = r.foes.find(n => !alive.includes(n));
-          if (missing) {
-            enemies.push(makeFoe(r, missing));
-            if (alive.length + 1 < r.foes.length) r.respawn = 20;
+    // Restock story rooms the player isn't standing in
+    if (mode === 'story') {
+      rooms.forEach(r => {
+        if (r.respawn > 0) {
+          r.respawn -= dt;
+          if (r.respawn <= 0 && currentRoom !== r.n) {
+            const alive = enemies.filter(e => e.home === r.n).map(e => e.name);
+            const missing = r.foes.find(n => !alive.includes(n));
+            if (missing) {
+              enemies.push(makeFoe('bug', r, { name: missing }));
+              if (alive.length + 1 < r.foes.length) r.respawn = 20;
+            }
+          } else if (r.respawn <= 0) {
+            r.respawn = 5;
           }
-        } else if (r.respawn <= 0) {
-          r.respawn = 5;
         }
-      }
-    });
+      });
+    }
 
+    updateWings(dt);
     ambient(dt);
     particles.forEach(p => {
       p.x += p.vx * dt; p.y += p.vy * dt;
@@ -533,6 +1061,23 @@
     cam.y += (ty - cam.y) * k;
   }
 
+  function checkExits() {
+    if (player.dead || fade > 0.5) return;
+    const on = p => p && Math.hypot(player.x - p.x, player.y - p.y) < 0.45;
+    if (portalOpen() && on(portal)) {
+      enterEndless(1);
+    } else if (mode === 'endless' && on(stairsDown)) {
+      if (bossAlive) {
+        if (!stairsDown.warned) { stairsDown.warned = true; wingsSay(pick(LINES.locked), 2); }
+      } else {
+        enterEndless(depth + 1);
+      }
+    } else if (mode === 'endless' && on(stairsUp) && time - stairsUp.arrived > 1) {
+      leaveEndless(false);
+    }
+    if (stairsUp && stairsUp.arrived === undefined) stairsUp.arrived = time;
+  }
+
   function updatePlayer(dt) {
     let ix = 0, iy = 0;
     if (held('w', 'arrowup')) { ix -= 1; iy -= 1; }
@@ -544,7 +1089,9 @@
       path = null;
       repath = 0;
       strikeOnArrive = null;
+      lastInput = time;
     } else if (path) {
+      lastInput = time;
       const t = path[0];
       const dx = t.x - player.x, dy = t.y - player.y;
       const d = Math.hypot(dx, dy);
@@ -570,27 +1117,83 @@
     move(player, (ix * PLAYER_SPEED + player.kx) * dt, (iy * PLAYER_SPEED + player.ky) * dt);
   }
 
+  function shoot(e, ang, speed) {
+    projectiles.push({ x: e.x, y: e.y, vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed, life: 3, color: e.def.color });
+  }
+
   function updateEnemies(dt) {
     enemies.forEach(e => {
+      const def = e.def;
       e.flash -= dt;
       e.rest -= dt;
       e.anim += dt * 4;
+
+      if (e.down > 0) {
+        e.down -= dt;
+        if (e.down <= 0) {
+          e.hp = Math.ceil(e.maxHp / 2);
+          burst(e.x, e.y, 20, '#b8b2c9', 14, 2.5);
+          floaters.push({ x: e.x, y: e.y, z: 70, text: 'respawned', color: '#b8b2c9', life: 1.2, max: 1.2 });
+        }
+        return;
+      }
+
       const dx = player.x - e.x, dy = player.y - e.y;
       const d = Math.hypot(dx, dy) || 0.001;
-      const aggro = !player.dead && (d < 2.5 || (d < 7 && currentRoom === e.home));
+      const aggro = !player.dead && (def.boss || d < 2.5 || (d < 7 && currentRoom === e.home));
       let mx = 0, my = 0, speed = e.speed;
 
-      if (aggro && e.rest > 0) {
+      if (def.boss && aggro) {
+        // Circles the player, then either charges or sprays a ring of bolts
+        e.ang += dt * 1.1;
+        e.cd -= dt;
+        if (e.charge > 0) {
+          e.charge -= dt;
+          mx = e.vx; my = e.vy; speed = 5.5;
+        } else {
+          const tx = player.x + Math.cos(e.ang) * 2.6 - e.x, ty = player.y + Math.sin(e.ang) * 2.6 - e.y;
+          const td = Math.hypot(tx, ty) || 1;
+          if (td > 0.1) { mx = tx / td; my = ty / td; }
+          speed = def.speed;
+          if (e.cd <= 0) {
+            e.cd = 3;
+            if (Math.random() < 0.5) {
+              e.charge = 0.55; e.vx = dx / d; e.vy = dy / d;
+            } else {
+              for (let k = 0; k < 10; k++) shoot(e, k / 10 * Math.PI * 2 + e.ang, 3.2);
+            }
+          }
+        }
+      } else if (aggro && e.rest > 0) {
         // Back off for a moment after landing a hit
         mx = -dx / d; my = -dy / d;
         speed = 1.2;
+      } else if (aggro && e.type === 'race') {
+        // Darts in short, fast bursts
+        e.dash -= dt;
+        if (e.dash <= 0) {
+          e.dashing = !e.dashing;
+          e.dash = e.dashing ? 0.35 : 0.5 + Math.random() * 0.6;
+          const a = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.9;
+          e.vx = Math.cos(a); e.vy = Math.sin(a);
+        }
+        if (e.dashing) { mx = e.vx; my = e.vy; speed = def.speed; }
+      } else if (aggro && def.ranged) {
+        // Keeps its distance and lobs bolts
+        if (d < 3) { mx = -dx / d; my = -dy / d; } else if (d > 4.5) { mx = dx / d; my = dy / d; }
+        speed = def.speed;
+        e.cd -= dt;
+        if (e.cd <= 0 && d < 7) {
+          e.cd = 2.2;
+          shoot(e, Math.atan2(dy, dx), 4);
+        }
       } else if (aggro) {
         if (d > 0.45) { mx = dx / d; my = dy / d; }
-        speed = 1.6;
+        speed = def.speed;
       } else {
         e.wait -= dt;
         if (!e.goal || e.wait <= 0 || Math.hypot(e.goal.x - e.x, e.goal.y - e.y) < 0.15) {
-          if (e.wait <= 0) { e.goal = randomRoomSpot(rooms[e.home]); e.wait = 2 + rand() * 3; }
+          if (e.wait <= 0 && rooms[e.home]) { e.goal = randomRoomSpot(rooms[e.home]); e.wait = 2 + rand() * 3; }
         }
         if (e.goal) {
           const gx = e.goal.x - e.x, gy = e.goal.y - e.y, gd = Math.hypot(gx, gy);
@@ -600,9 +1203,9 @@
 
       // Keep foes from stacking on top of each other
       enemies.forEach(o => {
-        if (o === e) return;
+        if (o === e || o.down > 0) return;
         const ox = e.x - o.x, oy = e.y - o.y, od = Math.hypot(ox, oy);
-        if (od < 0.55 && od > 0.001) { mx += ox / od * 0.8; my += oy / od * 0.8; }
+        if (od < e.r + o.r && od > 0.001) { mx += ox / od * 0.8; my += oy / od * 0.8; }
       });
 
       const decay = Math.exp(-dt * 8);
@@ -611,10 +1214,36 @@
       move(e, (mx * speed + e.kx) * dt, (my * speed + e.ky) * dt);
       if (Math.abs(mx - my) > 0.05) e.faceRight = mx - my > 0;
 
-      if (d < 0.6 && e.flash <= 0 && e.rest <= 0 && player.inv <= 0 && !player.dead) {
+      if (d < e.r + 0.35 && e.flash <= 0 && e.rest <= 0 && player.inv <= 0 && !player.dead) {
         hurtPlayer(e.x, e.y);
-        e.rest = 1.4;
+        e.rest = def.boss ? 0.8 : 1.4;
+        e.charge = 0;
       }
+    });
+  }
+
+  function updateProjectiles(dt) {
+    projectiles.forEach(p => {
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.life -= dt;
+      if (tileAt(Math.floor(p.x), Math.floor(p.y)) !== FLOOR) p.life = 0;
+      if (p.life > 0 && !player.dead && Math.hypot(p.x - player.x, p.y - player.y) < 0.35) {
+        p.life = 0;
+        hurtPlayer(p.x - p.vx, p.y - p.vy);
+      }
+    });
+    projectiles = projectiles.filter(p => p.life > 0);
+  }
+
+  function updatePickups() {
+    pickups = pickups.filter(p => {
+      if (player.dead || Math.hypot(p.x - player.x, p.y - player.y) > 0.6) return true;
+      if (player.hp >= MAX_HP) return true;
+      player.hp++;
+      burst(p.x, p.y, 20, '#ff4d6d', 12, 2);
+      floaters.push({ x: p.x, y: p.y, z: 60, text: '+1 heart', color: '#ff9aa8', life: 1.2, max: 1.2 });
+      if (Math.random() < 0.5) wingsSay(pick(LINES.heart), 0);
+      return false;
     });
   }
 
@@ -641,6 +1270,16 @@
     if (!opts.skipRight) poly([so, e, up(e), up(so)], colors.right);
     poly([up(n), up(e), up(so), up(w)], colors.top);
     return { n, e, so, w, up };
+  }
+
+  function diamond(x, y, s, fill, stroke) {
+    const pts = [iso(x, y - s), iso(x + s, y), iso(x, y + s), iso(x - s, y)];
+    poly(pts, fill);
+    if (stroke) {
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
   }
 
   function drawFloors() {
@@ -683,7 +1322,7 @@
 
     // Glowing rune circles beneath each shrine
     rooms.forEach(r => {
-      if (!explored[idx(r.cx, r.cy)] || r.broken) return;
+      if (r.kind === 'plain' || !explored[idx(r.cx, r.cy)] || r.broken) return;
       const [sx, sy] = iso(r.cx + 0.5, r.cy + 0.5);
       ctx.save();
       ctx.translate(sx, sy);
@@ -696,6 +1335,48 @@
       ctx.beginPath(); ctx.arc(0, 0, 60, 0, Math.PI * 2); ctx.stroke();
       ctx.restore();
     });
+
+    if (portalOpen() && explored[idx(Math.floor(portal.x), Math.floor(portal.y))]) drawPortal();
+    if (stairsDown && explored[idx(Math.floor(stairsDown.x), Math.floor(stairsDown.y))]) drawStairs(stairsDown, true);
+    if (stairsUp && explored[idx(Math.floor(stairsUp.x), Math.floor(stairsUp.y))]) drawStairs(stairsUp, false);
+  }
+
+  function drawPortal() {
+    const [sx, sy] = iso(portal.x, portal.y);
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.scale(1, 0.5);
+    const g = ctx.createRadialGradient(0, 0, 4, 0, 0, 46);
+    g.addColorStop(0, 'rgba(20,10,40,1)');
+    g.addColorStop(0.7, 'rgba(120,80,220,0.7)');
+    g.addColorStop(1, 'rgba(120,80,220,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(0, 0, 46, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#c4a7ff';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([14, 10]);
+    ctx.lineDashOffset = time * 40;
+    ctx.beginPath(); ctx.arc(0, 0, 38, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineDashOffset = -time * 60;
+    ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawStairs(s, down) {
+    const x = s.x, y = s.y;
+    if (down) {
+      diamond(x, y, 0.48, '#05040a', 'rgba(255,209,102,0.6)');
+      for (let k = 1; k <= 3; k++) diamond(x, y + k * 0.06, 0.48 - k * 0.11, `rgba(60,55,80,${0.9 - k * 0.2})`);
+      if (bossAlive) {
+        ctx.strokeStyle = '#ff4d6d';
+        ctx.lineWidth = 3;
+        const a = iso(x - 0.35, y), b = iso(x + 0.35, y), c = iso(x, y - 0.35), d = iso(x, y + 0.35);
+        ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.moveTo(...c); ctx.lineTo(...d); ctx.stroke();
+      }
+    } else {
+      diamond(x, y, 0.46, 'rgba(120,230,160,0.18)', 'rgba(120,230,160,0.6)');
+      for (let k = 1; k <= 3; k++) diamond(x, y - k * 0.05, 0.4 - k * 0.1, `rgba(140,240,180,${0.15 + k * 0.1})`);
+    }
   }
 
   function drawWall(i, j, alpha) {
@@ -733,20 +1414,20 @@
     ctx.beginPath(); ctx.ellipse(sx, sy - 4, 2.5, 5 + flick * 0.5, 0, 0, Math.PI * 2); ctx.fill();
   }
 
-  function drawShadow(x, y, rx) {
+  function drawShadow(x, y, rx, a = 0.45) {
     const [sx, sy] = iso(x, y);
-    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.fillStyle = `rgba(0,0,0,${a})`;
     ctx.beginPath(); ctx.ellipse(sx, sy, rx, rx * 0.45, 0, 0, Math.PI * 2); ctx.fill();
   }
 
-  function drawSprite(sheet, frame, fw, fh, scale, x, y, flip, flash) {
+  function drawSprite(sheet, frame, fw, fh, scale, x, y, flip, filter) {
     if (!sheet.complete || !sheet.naturalWidth) return;
     const [sx, sy] = iso(x, y);
     const w = fw * scale, h = fh * scale;
     ctx.save();
     ctx.translate(Math.round(sx), Math.round(sy));
     if (flip) ctx.scale(-1, 1);
-    if (flash) ctx.filter = 'brightness(3.5)';
+    if (filter) ctx.filter = filter;
     ctx.drawImage(sheet, frame * fw, 0, fw, fh, -w / 2, -h + 4, w, h);
     ctx.restore();
   }
@@ -756,7 +1437,7 @@
     if (player.inv > 0 && Math.floor(player.inv * 12) % 2) return;
     drawShadow(player.x, player.y, 15);
     const frame = player.moving ? Math.floor(player.anim) % 3 : 3;
-    drawSprite(heroSheet, frame, 13, 22, 2.7, player.x, player.y, !player.faceRight, false);
+    drawSprite(heroSheet, frame, 13, 22, 2.7, player.x, player.y, !player.faceRight);
 
     if (player.swing > 0) {
       const [sx, sy] = iso(player.x, player.y, 26);
@@ -779,13 +1460,88 @@
   }
 
   function drawFoe(e) {
-    drawShadow(e.x, e.y, 14);
-    const bob = Math.abs(Math.sin(e.anim * 2)) * 3;
-    const frame = Math.floor(e.anim) % 2;
-    ctx.save();
-    ctx.translate(0, -bob);
-    drawSprite(foeSheet, frame, 13, 24, 2.4, e.x, e.y, e.faceRight, e.flash > 0);
-    ctx.restore();
+    const def = e.def;
+    const flash = e.flash > 0;
+    const look = def.look;
+    if (look === 'sprite') {
+      drawShadow(e.x, e.y, 14);
+      if (e.down > 0) {
+        drawSprite(foeSheet, 0, 13, 24, 2.4, e.x, e.y, e.faceRight, 'grayscale(1) brightness(0.5) opacity(0.6)');
+        return;
+      }
+      const bob = Math.abs(Math.sin(e.anim * 2)) * 3;
+      const frame = Math.floor(e.anim) % 2;
+      const filter = flash ? 'brightness(3.5)' : def.grey ? 'grayscale(0.9) brightness(0.85) hue-rotate(180deg)' : null;
+      ctx.save();
+      ctx.translate(0, -bob);
+      drawSprite(foeSheet, frame, 13, 24, 2.4, e.x, e.y, e.faceRight, filter);
+      ctx.restore();
+      return;
+    }
+
+    const [sx, sy] = iso(e.x, e.y);
+    const col = flash ? '#ffffff' : def.color;
+    if (look === 'slime') {
+      const size = def.small ? 0.6 : 1;
+      drawShadow(e.x, e.y, 16 * size);
+      const squash = 1 + Math.sin(e.anim * 3) * 0.12;
+      const rx = 17 * size * squash, ry = 14 * size / squash;
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.ellipse(sx, sy - ry, rx, ry, 0, Math.PI, 0); ctx.lineTo(sx + rx, sy - 2); ctx.lineTo(sx - rx, sy - 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.beginPath(); ctx.ellipse(sx - rx * 0.4, sy - ry * 1.4, rx * 0.2, ry * 0.15, -0.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#10140f';
+      const look = e.faceRight ? 3 : -3;
+      ctx.fillRect(sx - 6 * size + look, sy - ry - 2, 3, 4);
+      ctx.fillRect(sx + 3 * size + look, sy - ry - 2, 3, 4);
+    } else if (look === 'dart') {
+      drawShadow(e.x, e.y, 10);
+      const ang = Math.atan2((e.vx + e.vy) * TH / 2, (e.vx - e.vy) * TW / 2);
+      for (let k = e.dashing ? 3 : 0; k >= 0; k--) {
+        ctx.save();
+        ctx.translate(sx - Math.cos(ang) * k * 9, sy - 18 - Math.sin(ang) * k * 9);
+        ctx.rotate(ang);
+        ctx.globalAlpha = k ? 0.25 : 1;
+        poly([[12, 0], [0, -7], [-9, 0], [0, 7]], col);
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(sx - 1, sy - 20, 3, 3);
+    } else if (look === 'orb') {
+      const z = 26 + Math.sin(e.anim * 2) * 4;
+      drawShadow(e.x, e.y, 10, 0.35);
+      const g = ctx.createRadialGradient(sx, sy - z, 2, sx, sy - z, 18);
+      g.addColorStop(0, flash ? '#ffffff' : '#fff1c1');
+      g.addColorStop(0.45, col);
+      g.addColorStop(1, 'rgba(255,120,40,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(sx, sy - z, 18, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,230,180,0.8)';
+      ctx.lineWidth = 1.5;
+      for (let k = 0; k < 3; k++) {
+        const a = e.anim * 3 + k * 2.1;
+        ctx.beginPath();
+        ctx.moveTo(sx + Math.cos(a) * 8, sy - z + Math.sin(a) * 8);
+        ctx.lineTo(sx + Math.cos(a + 0.3) * 16, sy - z + Math.sin(a + 0.3) * 16);
+        ctx.stroke();
+      }
+    } else if (look === 'ring') {
+      const z = 34 + Math.sin(e.anim) * 4;
+      drawShadow(e.x, e.y, 30, 0.5);
+      ctx.save();
+      ctx.translate(sx, sy - z);
+      for (let k = 0; k < 10; k++) {
+        const a = k / 10 * Math.PI * 2 + e.anim * 1.5;
+        ctx.fillStyle = k % 2 ? col : (flash ? '#ffffff' : '#e0d0ff');
+        ctx.beginPath(); ctx.arc(Math.cos(a) * 30, Math.sin(a) * 15, 6, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+      text('∞', sx, sy - z + 9, 30, flash ? '#ffffff' : '#c4a7ff');
+    }
   }
 
   function drawShrine(r) {
@@ -863,10 +1619,27 @@
     }
   }
 
+  function drawPickup(p) {
+    const [sx, sy] = iso(p.x, p.y, 18 + Math.sin(time * 3 + p.seed) * 4);
+    drawShadow(p.x, p.y, 8, 0.3);
+    drawHeart(sx - 7, sy - 6, true, 2);
+  }
+
+  function drawProjectile(p) {
+    const [sx, sy] = iso(p.x, p.y, 24);
+    const g = ctx.createRadialGradient(sx, sy, 1, sx, sy, 9);
+    g.addColorStop(0, '#ffffff');
+    g.addColorStop(0.4, p.color);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(sx - 9, sy - 9, 18, 18);
+  }
+
   function drawWorld() {
     const pDepth = player.x + player.y;
     const pDiag = player.x - player.y;
     const list = [];
+    const seen = (x, y) => explored[idx(Math.floor(x), Math.floor(y))];
 
     for (let j = 0; j < MAP_H; j++) {
       for (let i = 0; i < MAP_W; i++) {
@@ -874,27 +1647,27 @@
         if (tiles[k] !== WALL || !explored[k]) continue;
         const [sx, sy] = iso(i, j);
         if (sx < -TW || sx > W + TW || sy < -TH || sy > H + TH + WALL_H) continue;
-        const depth = i + j + 1;
+        const d = i + j + 1;
         // Fade walls standing between the camera and the player
-        const front = depth > pDepth && depth - pDepth < 3.2 && Math.abs(i - j - pDiag) < 1.6;
-        list.push({ d: depth, draw: () => drawWall(i, j, front ? 0.3 : 1) });
+        const front = d > pDepth && d - pDepth < 3.2 && Math.abs(i - j - pDiag) < 1.6;
+        list.push({ d, draw: () => drawWall(i, j, front ? 0.3 : 1) });
       }
     }
     torches.forEach(t => {
       if (explored[idx(t.wx, t.wy)]) list.push({ d: t.wx + t.wy + 1.01, draw: () => drawTorch(t) });
     });
     props.forEach(p => {
-      if (explored[idx(Math.floor(p.x), Math.floor(p.y))]) list.push({ d: p.x + p.y, draw: () => drawProp(p) });
+      if (seen(p.x, p.y)) list.push({ d: p.x + p.y, draw: () => drawProp(p) });
     });
     rooms.forEach(r => {
-      if (!explored[idx(r.cx, r.cy)]) return;
-      if (r.id === 'thanks') list.push({ d: chest.x + chest.y, draw: drawChest });
+      if (r.kind === 'plain' || !explored[idx(r.cx, r.cy)]) return;
+      if (r.kind === 'chest') list.push({ d: chest.x + chest.y, draw: drawChest });
       else if (r.broken) list.push({ d: r.cx + r.cy, draw: () => drawShrine(r) });
       else list.push({ d: r.cx + r.cy + 1, draw: () => drawShrine(r) });
     });
-    enemies.forEach(e => {
-      if (explored[idx(Math.floor(e.x), Math.floor(e.y))]) list.push({ d: e.x + e.y, draw: () => drawFoe(e) });
-    });
+    pickups.forEach(p => { if (seen(p.x, p.y)) list.push({ d: p.x + p.y, draw: () => drawPickup(p) }); });
+    enemies.forEach(e => { if (seen(e.x, e.y)) list.push({ d: e.x + e.y, draw: () => drawFoe(e) }); });
+    projectiles.forEach(p => list.push({ d: p.x + p.y, draw: () => drawProjectile(p) }));
     list.push({ d: pDepth, draw: drawPlayer });
 
     list.sort((a, b) => a.d - b.d).forEach(o => o.draw());
@@ -921,7 +1694,7 @@
     fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     fctx.globalCompositeOperation = 'source-over';
     fctx.clearRect(0, 0, W, H);
-    fctx.fillStyle = 'rgba(4,3,10,0.76)';
+    fctx.fillStyle = mode === 'endless' ? 'rgba(3,2,8,0.84)' : 'rgba(4,3,10,0.76)';
     fctx.fillRect(0, 0, W, H);
     fctx.globalCompositeOperation = 'destination-out';
 
@@ -932,10 +1705,22 @@
       const [sx, sy] = iso(t.x, t.y, WALL_H * 0.5);
       light(fctx, sx, sy, 170 + Math.sin(time * 13 + t.seed) * 8, 0.85);
     });
+    const glows = [];
     rooms.forEach(r => {
-      if (!explored[idx(r.cx, r.cy)]) return;
+      if (r.kind === 'plain' || !explored[idx(r.cx, r.cy)]) return;
       const [sx, sy] = iso(r.cx + 0.5, r.cy + 0.5, 40);
       light(fctx, sx, sy, r.broken ? 90 : 150, r.broken ? 0.4 : 0.75);
+      glows.push([sx, sy - 10, 120, rgb(r.rgb, 0.12)]);
+    });
+    [portalOpen() && portal, stairsDown, stairsUp].forEach(s => {
+      if (!s || !explored[idx(Math.floor(s.x), Math.floor(s.y))]) return;
+      const [sx, sy] = iso(s.x, s.y, 20);
+      light(fctx, sx, sy, 140, 0.7);
+      glows.push([sx, sy, 110, s === stairsUp ? 'rgba(120,230,160,0.12)' : s === stairsDown ? 'rgba(255,209,102,0.12)' : 'rgba(160,110,255,0.2)']);
+    });
+    projectiles.forEach(p => {
+      const [sx, sy] = iso(p.x, p.y, 24);
+      light(fctx, sx, sy, 50, 0.6);
     });
     ctx.drawImage(fog, 0, 0, W, H);
 
@@ -953,11 +1738,7 @@
       const [sx, sy] = iso(t.x, t.y, WALL_H * 0.62);
       glow(sx, sy, 90 + Math.sin(time * 11 + t.seed) * 6, 'rgba(255,140,40,0.16)');
     });
-    rooms.forEach(r => {
-      if (!explored[idx(r.cx, r.cy)]) return;
-      const [sx, sy] = iso(r.cx + 0.5, r.cy + 0.5, 50);
-      glow(sx, sy, 120, rgb(r.rgb, 0.12));
-    });
+    glows.forEach(g => glow(...g));
     ctx.globalCompositeOperation = 'source-over';
 
     // Vignette
@@ -968,8 +1749,8 @@
     ctx.fillRect(0, 0, W, H);
   }
 
-  function text(str, x, y, size, color, align = 'center') {
-    ctx.font = `${size}px 'Silkscreen', monospace`;
+  function text(str, x, y, size, color, align = 'center', font = 'Silkscreen') {
+    ctx.font = `${size}px '${font}', monospace`;
     ctx.textAlign = align;
     ctx.lineWidth = 4;
     ctx.strokeStyle = 'rgba(0,0,0,0.85)';
@@ -978,9 +1759,16 @@
     ctx.fillText(str, x, y);
   }
 
+  function prompt(s, label) {
+    const [sx, sy] = iso(s.x, s.y, 70);
+    ctx.globalAlpha = 0.65 + 0.35 * Math.sin(time * 6);
+    text(label, sx, sy, 12, '#ffffff');
+    ctx.globalAlpha = 1;
+  }
+
   function drawLabels() {
     rooms.forEach(r => {
-      if (!explored[idx(r.cx, r.cy)]) return;
+      if (r.kind === 'plain' || !explored[idx(r.cx, r.cy)]) return;
       const [sx, sy] = iso(r.cx + 0.5, r.cy + 0.5, 110 + Math.sin(time * 2 + r.n) * 3);
       text(r.label.toUpperCase(), sx, sy, 15, r.color);
     });
@@ -988,13 +1776,19 @@
     if (near) {
       const [sx, sy] = iso(near.cx + 0.5, near.cy + 0.5, 135);
       ctx.globalAlpha = 0.65 + 0.35 * Math.sin(time * 6);
-      text(near.id === 'thanks' ? 'SPACE - OPEN THE CHEST' : 'SPACE - STRIKE THE SHRINE', sx, sy, 12, '#ffffff');
+      text(near.kind === 'chest' ? 'SPACE - OPEN THE CHEST' : 'SPACE - STRIKE THE SHRINE', sx, sy, 12, '#ffffff');
       ctx.globalAlpha = 1;
     }
+    const close = s => s && explored[idx(Math.floor(s.x), Math.floor(s.y))] && Math.hypot(s.x - player.x, s.y - player.y) < 3;
+    if (portalOpen() && close(portal)) prompt(portal, 'THE ENDLESS DEPTHS');
+    if (close(stairsDown)) prompt(stairsDown, bossAlive ? 'LOCKED - DEFEAT THE LOOP' : 'STAIRS DOWN');
+    if (close(stairsUp)) prompt(stairsUp, 'BACK TO THE SURFACE');
+
     enemies.forEach(e => {
       const d = Math.hypot(e.x - player.x, e.y - player.y);
-      if (d > 4.5 || !explored[idx(Math.floor(e.x), Math.floor(e.y))]) return;
-      const [sx, sy] = iso(e.x, e.y, 70);
+      if (e.def.boss || d > 4.5 || e.down > 0 || !explored[idx(Math.floor(e.x), Math.floor(e.y))]) return;
+      const lift = e.def.look === 'orb' ? 96 : 70;
+      const [sx, sy] = iso(e.x, e.y, lift);
       ctx.globalAlpha = Math.min(1, (4.5 - d) * 1.5);
       text(e.name, sx, sy - 6, 11, '#f2e6d0');
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
@@ -1009,11 +1803,96 @@
       text(f.text, sx, sy, 13, f.color);
     });
     ctx.globalAlpha = 1;
+    drawWings();
+  }
+
+  // Wings: a little pixel bat, drawn above the lighting so it is always visible
+  function drawWings() {
+    if (wings.state === 'away') return;
+    const [gx, gy] = iso(wings.x, wings.y);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath(); ctx.ellipse(gx, gy, 10, 4, 0, 0, Math.PI * 2); ctx.fill();
+
+    const [sx, sy] = iso(wings.x, wings.y, wings.z);
+    const f = Math.sin(wings.flap);
+    ctx.save();
+    ctx.translate(Math.round(sx), Math.round(sy));
+    if (!wings.faceRight) ctx.scale(-1, 1);
+    ctx.fillStyle = '#2b1d3a';
+    [-1, 1].forEach(side => {
+      ctx.beginPath();
+      ctx.moveTo(side * 4, -3);
+      ctx.lineTo(side * 14, -11 - f * 7);
+      ctx.lineTo(side * 22, -5 - f * 9);
+      ctx.lineTo(side * 18, 1 - f * 4);
+      ctx.lineTo(side * 13, -1 - f * 2);
+      ctx.lineTo(side * 9, 3);
+      ctx.closePath();
+      ctx.fill();
+    });
+    ctx.fillStyle = '#3b2a52';
+    ctx.beginPath(); ctx.ellipse(0, 0, 7, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#5a4378';
+    ctx.beginPath(); ctx.ellipse(1, 2, 4, 5, 0, 0, Math.PI * 2); ctx.fill();
+    poly([[-6, -5], [-4, -13], [-1, -6]], '#3b2a52');
+    poly([[1, -6], [4, -13], [6, -5]], '#3b2a52');
+    ctx.fillStyle = '#ffd166';
+    ctx.fillRect(-4, -3, 2, 2);
+    ctx.fillRect(2, -3, 2, 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(1, 2, 1, 2);
+    ctx.restore();
+
+    if (wings.msg) drawBubble(sx, sy - 16, wings.msg, Math.min(1, wings.msgLife * 3, (wings.msgMax - wings.msgLife) * 6));
+  }
+
+  function wrap(str, maxW) {
+    const words = str.split(' ');
+    const lines = [];
+    let line = '';
+    words.forEach(w => {
+      const test = line ? `${line} ${w}` : w;
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; } else { line = test; }
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function drawBubble(x, y, msg, alpha) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, alpha);
+    ctx.font = "13px 'Kode', monospace";
+    const lines = wrap(msg, 270);
+    const lh = 17;
+    const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + 22;
+    const h = lines.length * lh + 30;
+    let bx = Math.max(10, Math.min(W - w - 10, x - w / 2));
+    const by = Math.max(10, y - h - 10);
+    ctx.fillStyle = '#f4efe2';
+    ctx.strokeStyle = '#2b1d3a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(bx, by, w, h, 8) : ctx.rect(bx, by, w, h);
+    ctx.fill();
+    ctx.stroke();
+    const tx = Math.max(bx + 12, Math.min(bx + w - 12, x));
+    if (by + h < y) {
+      ctx.beginPath();
+      ctx.moveTo(tx - 6, by + h - 1); ctx.lineTo(tx, by + h + 8); ctx.lineTo(tx + 6, by + h - 1);
+      ctx.fill();
+    }
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#7b4fc4';
+    ctx.font = "10px 'Silkscreen', monospace";
+    ctx.fillText('WINGS', bx + 11, by + 15);
+    ctx.fillStyle = '#1a1520';
+    ctx.font = "13px 'Kode', monospace";
+    lines.forEach((l, k) => ctx.fillText(l, bx + 11, by + 32 + k * lh));
+    ctx.restore();
   }
 
   const HEART = ['.XX.XX.', 'XXXXXXX', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...'];
-  function drawHeart(x, y, full) {
-    const s = 3;
+  function drawHeart(x, y, full, s = 3) {
     HEART.forEach((row, ry) => {
       [...row].forEach((c, rx) => {
         if (c !== 'X') return;
@@ -1041,10 +1920,13 @@
         ctx.fillRect(ox + x * s, oy + y * s, s, s);
       }
     }
+    const dot = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(ox + x * s - 1, oy + y * s - 1, s + 2, s + 2); };
     rooms.forEach(r => {
-      if (!explored[idx(r.cx, r.cy)]) return;
-      ctx.fillStyle = r.read ? r.color : '#ffffff';
-      ctx.fillRect(ox + r.cx * s - 1, oy + r.cy * s - 1, s + 2, s + 2);
+      if (r.kind === 'plain' || !explored[idx(r.cx, r.cy)]) return;
+      dot(r.cx, r.cy, r.read ? r.color : '#ffffff');
+    });
+    [[portalOpen() && portal, '#c4a7ff'], [stairsDown, '#ffd166'], [stairsUp, '#7ee6a0']].forEach(([p, c]) => {
+      if (p && explored[idx(Math.floor(p.x), Math.floor(p.y))]) dot(Math.floor(p.x), Math.floor(p.y), c);
     });
     if (Math.floor(time * 3) % 2 === 0) {
       ctx.fillStyle = '#ffffff';
@@ -1054,9 +1936,24 @@
 
   function drawHud() {
     for (let i = 0; i < MAX_HP; i++) drawHeart(18 + i * 26, 18, i < player.hp);
-    const read = rooms.filter(r => r.read && r.id !== 'thanks').length;
-    text(`LORE ${read}/${rooms.length - 1}`, 18, 58, 14, '#f2e6d0', 'left');
-    text(`BUGS SQUASHED ${kills}`, 18, 78, 14, '#9be35a', 'left');
+    if (mode === 'story') {
+      const read = rooms.filter(r => r.read && r.kind === 'shrine').length;
+      text(`LORE ${read}/${rooms.length - 1}`, 18, 58, 14, '#f2e6d0', 'left');
+      text(`BUGS SQUASHED ${kills}`, 18, 78, 14, '#9be35a', 'left');
+    } else {
+      text(`DEPTH ${depth}`, 18, 60, 18, '#c4a7ff', 'left');
+      text(`BEST ${save.best}`, 18, 80, 13, '#f2e6d0', 'left');
+      text(`BUGS THIS RUN ${runKills}`, 18, 99, 13, '#9be35a', 'left');
+      const boss = enemies.find(e => e.def.boss);
+      if (boss) {
+        const bw = Math.min(360, W * 0.4);
+        text(boss.name.toUpperCase(), W / 2, 30, 14, '#c4a7ff');
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(W / 2 - bw / 2, 38, bw, 10);
+        ctx.fillStyle = '#a77bff';
+        ctx.fillRect(W / 2 - bw / 2 + 2, 40, (bw - 4) * Math.max(0, boss.hp) / boss.maxHp, 6);
+      }
+    }
     drawMinimap();
 
     if (banner) {
@@ -1079,8 +1976,13 @@
       ctx.fillRect(0, 0, W, H);
       ctx.globalAlpha = a;
       text('YOU DIED', W / 2, H / 2, 54, '#b3122e');
-      text('Respawning at the Entrance Hall...', W / 2, H / 2 + 36, 14, '#d8cfb8');
+      text(mode === 'endless' ? `Reached depth ${depth}. Back to the surface...` : 'Respawning at the Entrance Hall...', W / 2, H / 2 + 36, 14, '#d8cfb8');
       ctx.globalAlpha = 1;
+    }
+
+    if (fade > 0) {
+      ctx.fillStyle = `rgba(0,0,0,${Math.min(1, fade)})`;
+      ctx.fillRect(0, 0, W, H);
     }
   }
 
@@ -1146,6 +2048,7 @@
     e.preventDefault();
     canvas.focus({ preventScroll: true });
     if (player.dead || paused) return;
+    lastInput = time;
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left + cam.x - W / 2;
     const my = e.clientY - rect.top + cam.y - H / 2;
@@ -1153,13 +2056,13 @@
     const wx = (a + b) / 2, wy = (b - a) / 2;
 
     // Clicking a nearby foe swings at it
-    const foe = enemies.find(o => Math.hypot(o.x - wx, o.y - wy) < 0.9);
-    if (foe && Math.hypot(foe.x - player.x, foe.y - player.y) < 1.7) { attack(); return; }
+    const foe = enemies.find(o => hittable(o) && Math.hypot(o.x - wx, o.y - wy) < 0.9 + o.r);
+    if (foe && Math.hypot(foe.x - player.x, foe.y - player.y) < 1.4 + foe.r) { attack(); return; }
 
     const tx = Math.floor(wx), ty = Math.floor(wy);
     if (!inBounds(tx, ty) || !explored[idx(tx, ty)]) return;
     const t = tiles[idx(tx, ty)];
-    const shrine = rooms.find(r => r.cx === tx && r.cy === ty && isIntact(r));
+    const shrine = mode === 'story' && rooms.find(r => r.cx === tx && r.cy === ty && isIntact(r));
     if (shrine) {
       if (shrineInReach() === shrine) attack();
       else { walkTo(tx, ty, false); strikeOnArrive = shrine; }
@@ -1170,6 +2073,20 @@
   overlayClose.addEventListener('click', closeLore);
   overlay.addEventListener('pointerdown', e => { if (e.target === overlay) closeLore(); });
 
+  wingsToggle.addEventListener('change', () => {
+    save.wingsMuted = !wingsToggle.checked;
+    persist();
+    if (!save.wingsMuted) wingsSay('Oh, I see how it is. You missed me.', 3);
+    canvas.focus({ preventScroll: true });
+  });
+  resetButton.addEventListener('click', () => {
+    if (!window.confirm('Reset your TechJourney progress? This clears read chapters, the key and your best depth.')) return;
+    try {
+      localStorage.removeItem(SAVE_KEY);
+    } catch (e) { /* ignore */ }
+    window.location.reload();
+  });
+
   // Phones, tablets and touch screens get the text version instead (see style.css)
   const textOnly = window.matchMedia('(max-width: 1032px), (hover: none) and (pointer: coarse)');
   let started = false;
@@ -1179,9 +2096,14 @@
     fetch('rooms.json')
       .then(r => r.json())
       .then(data => {
-        buildDungeon(data);
+        storyData = data;
+        buildStory();
         renderCodex();
         resize();
+        if (save.key) {
+          ensureNews();
+          wings.next = 6;
+        }
         requestAnimationFrame(frame);
       });
   }

@@ -153,6 +153,59 @@ kbd {
   color: var(--accent);
 }
 
+.codex-wide {
+  grid-column: 1 / -1;
+}
+
+.codex-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: -4px 0 14px;
+  font-size: 0.75em;
+  color: #8f8aa3;
+}
+
+.codex-settings label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.codex-settings input {
+  accent-color: #a77bff;
+}
+
+.codex-reset {
+  padding: 3px 8px;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: #8f8aa3;
+  font-family: 'Kode', monospace;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.codex-reset:hover,
+.codex-reset:focus-visible {
+  border-color: #ff4d6d;
+  color: #ffffff;
+  outline: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 /* Lore entry */
 .lore {
   --accent: #e8b04b;
