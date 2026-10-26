@@ -10,10 +10,51 @@
   <body>
     <header id="site-header" class="site-header"></header>
     
-    <div class="section" id="me">
+    <div class="section me-layout" id="me">
+      <aside class="char-card" aria-label="Character sheet">
+        <div class="char-stage">
+          <div class="char-bubble" id="heroBubble" aria-live="polite"></div>
+          <button type="button" class="char-hero" id="heroButton" aria-label="Say hi to King">
+            <canvas id="heroIdle" width="13" height="23"></canvas>
+          </button>
+          <div class="char-shadow"></div>
+        </div>
+
+        <div class="char-name">King Toi Ho</div>
+        <div class="char-class">Lead Engineer &middot; Data Platform</div>
+
+        <div class="char-level">
+          <span class="char-lvl">LVL <b data-age>40</b></span>
+          <span class="char-xp-label" id="xpLabel"></span>
+        </div>
+        <div class="char-xp" role="progressbar" aria-label="Progress to next level" aria-valuemin="0" aria-valuemax="100" id="xpBar">
+          <span class="char-xp-fill" id="xpFill"></span>
+        </div>
+
+        <dl class="char-stats">
+          <dt>Guild</dt><dd>Greenpeace International</dd>
+          <dt>Home base</dt><dd>Hilversum (NL)</dd>
+          <dt>Party</dt><dd>Partner &times;1 &middot; Kids &times;2 &middot; Cats &times;2</dd>
+          <dt>Status</dt><dd class="char-status">Caffeinated</dd>
+        </dl>
+
+        <div class="char-group">
+          <h3>Skills</h3>
+          <ul class="char-tags">
+            <li>GCP</li><li>Terraform</li><li>GitLab CI</li><li>BigQuery</li><li>dbt</li><li>Airbyte</li>
+          </ul>
+        </div>
+        <div class="char-group">
+          <h3>Side quests</h3>
+          <ul class="char-tags side">
+            <li>Cooking</li><li>Espresso</li><li>Football</li><li>Gardening</li>
+          </ul>
+        </div>
+      </aside>
+
       <p class="kingho">
         <b>HI!</b><br /><br />My name is <b>King Toi Ho</b
-        ><br /><br />👨🏽‍💻👩🏼‍💼👶🏼👱🏻<br />I am 38 years old, live in Hilversum (NL), am
+        ><br /><br />👨🏽‍💻👩🏼‍💼👶🏼👱🏻<br />I am <span data-age>40</span> years old, live in Hilversum (NL), am
         a father of two, partner of one and owner of two cats.<br /><br />🧑‍🍳☕⚽🪴<br />I
         am an amateur cook, barista, footballer and gardener, though sometimes I
         like to think of myself as a self-proclaimed coffee-snob when I pull the
@@ -24,19 +65,19 @@
         shift my focus to Sociology at UCR in Middelburg, before pursuing a
         degree in Computer Games Development in Southampton. Finally, I
         completed my studies with a degree in Software Engineering at the VU in
-        Amsterdam.<br /><br />🌍☮️✌️💻<br />Followin my studies I went to work
+        Amsterdam.<br /><br />🌍☮️✌️💻<br />Following my studies I went to work
         on my own projects and was quickly recruited by Greenpeace International
         where I worked in IT Support. Soon after I became team lead then moved
         over to the SRE team where I was also the scrum master but my core
         specialty was in GCP Cloud infrastructure and IaC DevOps. After this
         challenge I moved to the Data Platform team as Lead Engineer and IaC
-        Specialist (on top of Scum Master duties).
+        Specialist (on top of Scrum Master duties).
       </p>
     </div>
     
     <div id="footer-placeholder"></div>
     
-    <script src="js/jq.js"></script>
     <script src="js/components.js"></script>
+    <script src="js/me.js"></script>
   </body>
 </html> 

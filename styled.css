@@ -143,6 +143,242 @@ a:hover {
     color: #4CAF50;
 }
 
+/* Me Page: character sheet */
+.me-layout {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 30px;
+    align-items: start;
+}
+
+.me-layout .kingho {
+    margin: 0;
+}
+
+.char-card {
+    position: sticky;
+    top: 20px;
+    padding: 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    font-size: 0.85em;
+    line-height: 1.5;
+}
+
+.char-stage {
+    position: relative;
+    height: 260px;
+    margin: -4px -4px 14px;
+    border-radius: 10px;
+    background:
+        radial-gradient(ellipse at 50% 88%, rgba(76,175,80,0.22) 0%, rgba(76,175,80,0) 60%),
+        linear-gradient(180deg, #15151b 0%, #1f2522 100%);
+    border: 1px solid rgba(255,255,255,0.06);
+    overflow: hidden;
+}
+
+.char-hero {
+    position: absolute;
+    left: 50%;
+    bottom: 24px;
+    width: 104px;
+    height: 184px;
+    margin-left: -52px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.char-hero:focus-visible {
+    outline: 2px dashed #4CAF50;
+    outline-offset: 4px;
+}
+
+.char-hero canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+}
+
+.char-hero.hop {
+    animation: charHop 0.45s cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+
+.char-shadow {
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    width: 76px;
+    height: 12px;
+    margin-left: -38px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    animation: charBreath 1.3s steps(2) infinite;
+}
+
+.char-bubble {
+    position: absolute;
+    left: 50%;
+    top: 12px;
+    max-width: 90%;
+    padding: 6px 10px;
+    background: #f2f2f2;
+    color: #1a1a1a;
+    border-radius: 6px;
+    font-size: 0.85em;
+    white-space: nowrap;
+    transform: translate(-50%, 6px);
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.char-bubble::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    margin-left: -6px;
+    border: 6px solid transparent;
+    border-bottom: 0;
+    border-top-color: #f2f2f2;
+}
+
+.char-bubble.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.char-name {
+    font-size: 1.4em;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.25);
+}
+
+.char-class {
+    color: #4CAF50;
+    margin-bottom: 14px;
+}
+
+.char-level {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+}
+
+.char-lvl b {
+    color: #ffffff;
+    font-size: 1.3em;
+}
+
+.char-xp-label {
+    color: #888;
+    font-size: 0.85em;
+}
+
+.char-xp {
+    height: 10px;
+    padding: 2px;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 3px;
+    margin-bottom: 16px;
+}
+
+.char-xp-fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: repeating-linear-gradient(90deg, #4CAF50 0 6px, #66BB6A 6px 8px);
+    border-radius: 1px;
+    transition: width 1.2s ease-out;
+}
+
+.char-stats {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 12px;
+    margin: 0 0 16px;
+}
+
+.char-stats dt {
+    color: #888;
+}
+
+.char-stats dd {
+    margin: 0;
+    color: #e0e0e0;
+}
+
+.char-status::before {
+    content: "\2615 ";
+}
+
+.char-group h3 {
+    margin: 0 0 6px;
+    font-size: 0.85em;
+    font-weight: normal;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #888;
+}
+
+.char-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 14px;
+    padding: 0;
+    list-style: none;
+}
+
+.char-tags li {
+    padding: 2px 8px;
+    border: 1px solid rgba(76,175,80,0.45);
+    border-radius: 4px;
+    background: rgba(76,175,80,0.08);
+    color: #cfe8d0;
+}
+
+.char-tags.side li {
+    border-color: rgba(232,176,75,0.45);
+    background: rgba(232,176,75,0.08);
+    color: #f0e0c0;
+}
+
+@keyframes charHop {
+    0%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-18px); }
+}
+
+@keyframes charBreath {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0.94); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .char-shadow,
+    .char-hero.hop {
+        animation: none;
+    }
+}
+
+@media (max-width: 860px) {
+    .me-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .char-card {
+        position: static;
+    }
+}
+
 /* Footer */
 .site-footer {
     margin-top: 60px;

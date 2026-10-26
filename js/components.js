@@ -64,8 +64,28 @@ function updateMenuSelection() {
     });
 }
 
+// Date of birth: March 1986. The exact day isn't published, so the 1st is used.
+const BIRTH = { year: 1986, month: 2, day: 1 };
+
+function birthdayIn(year) {
+    return new Date(year, BIRTH.month, BIRTH.day);
+}
+
+function currentAge(now = new Date()) {
+    const age = now.getFullYear() - BIRTH.year;
+    return now < birthdayIn(now.getFullYear()) ? age - 1 : age;
+}
+
+// Any element marked data-age shows the current age
+function fillAges() {
+    document.querySelectorAll('[data-age]').forEach(el => {
+        el.textContent = currentAge();
+    });
+}
+
 // Initialize components
 document.addEventListener('DOMContentLoaded', async function() {
+    fillAges();
     await loadAllComponents();
     updateMenuSelection();
 });

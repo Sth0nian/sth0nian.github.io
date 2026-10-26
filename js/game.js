@@ -382,7 +382,7 @@
 
   function openLore(r) {
     r.read = true;
-    let body = r.info;
+    let body = r.info.replace('{{age}}', typeof currentAge === 'function' ? currentAge() : '');
     if (r.id === 'thanks') {
       const read = rooms.filter(o => o.read && o.id !== 'thanks').length;
       body += `<br><br><b>Your run:</b> ${read}/${rooms.length - 1} shrines read · ${kills} bug${kills === 1 ? '' : 's'} squashed.`;
