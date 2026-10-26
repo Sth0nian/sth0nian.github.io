@@ -342,22 +342,36 @@ main {
     margin-bottom: 40px;
 }
 
-.avatar {
+.avatar-wrap {
+    position: relative;
     flex-shrink: 0;
-    width: 104px;
-    height: 104px;
+}
+
+.avatar {
+    display: block;
+    width: 208px;
+    height: 208px;
+    padding: 0;
     border-radius: 50%;
     background: linear-gradient(160deg, rgba(74, 222, 128, 0.25), rgba(96, 165, 250, 0.15));
     border: 1px solid var(--border-strong);
-    display: grid;
-    place-items: center;
     overflow: hidden;
+    cursor: pointer;
 }
 
-.avatar img {
-    height: 84px;
-    width: auto;
-    margin-top: 18px;
+.avatar:hover {
+    border-color: var(--accent);
+}
+
+.avatar:focus-visible {
+    outline: 2px dashed var(--accent);
+    outline-offset: 4px;
+}
+
+.avatar canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
     image-rendering: pixelated;
 }
 
@@ -394,15 +408,6 @@ main {
     color: var(--text);
 }
 
-.avatar-sprite {
-    display: block;
-    width: 52px;
-    height: 88px;
-    margin-top: 22px;
-    background: url('img/player.png') -156px 0 / 208px 88px no-repeat;
-    image-rendering: pixelated;
-}
-
 .xp {
     display: block;
     height: 6px;
@@ -429,54 +434,10 @@ main {
     color: var(--text-faint);
 }
 
-/* Me page: the animated hero in "Off the clock" */
-.off-clock {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 24px;
-    align-items: center;
-}
-
-.char-stage {
-    position: relative;
-    width: 240px;
-    height: 180px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    overflow: hidden;
-    background: #1c1f26;
-}
-
-.char-hero {
-    display: block;
-    width: 100%;
-    height: 100%;
-    padding: 0;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-.char-hero:hover {
-    border: none;
-}
-
-.char-hero:focus-visible {
-    outline: 2px dashed var(--accent);
-    outline-offset: -4px;
-}
-
-.char-hero canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-    image-rendering: pixelated;
-}
-
 .char-bubble {
     position: absolute;
     left: 50%;
-    top: 10px;
+    top: -14px;
     max-width: 92%;
     padding: 4px 9px;
     background: #f2f2f2;
@@ -506,42 +467,6 @@ main {
 .char-bubble.show {
     opacity: 1;
     transform: translate(-50%, 0);
-}
-
-.char-scenes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    width: 240px;
-    margin-top: 8px;
-}
-
-.char-scene {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    color: var(--text-muted);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    cursor: pointer;
-    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-}
-
-.char-scene:hover,
-.char-scene:focus-visible {
-    color: var(--text);
-    border-color: var(--border-strong);
-    outline: none;
-}
-
-.char-scene[aria-pressed="true"] {
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-color: rgba(74, 222, 128, 0.25);
 }
 
 .highlight {
@@ -684,18 +609,4 @@ hr {
         gap: 20px;
     }
 
-    .off-clock {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .char-stage,
-    .char-scenes {
-        width: 100%;
-        max-width: 288px;
-        height: auto;
-    }
-
-    .char-stage {
-        aspect-ratio: 4 / 3;
-    }
 }

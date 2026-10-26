@@ -18,7 +18,12 @@
 
     <main class="wrap" id="me">
       <section class="profile fade-in">
-        <div class="avatar"><span class="avatar-sprite" role="img" aria-label="Pixel-art King, as seen in TechJourney"></span></div>
+        <div class="avatar-wrap">
+          <div class="char-bubble" id="heroBubble" aria-live="polite"></div>
+          <button type="button" class="avatar char-hero" id="heroButton" aria-label="Pixel-art King going about his day. Click to say hi.">
+            <canvas id="heroIdle" width="52" height="52"></canvas>
+          </button>
+        </div>
         <div>
           <p class="eyebrow">Hi! 👋</p>
           <h1 class="page-title">King Toi Ho</h1>
@@ -39,23 +44,12 @@
 
       <section class="card fade-in">
         <h2 class="card-title"><span class="emoji">🧑‍🍳☕⚽🪴</span> Off the clock</h2>
-        <div class="off-clock">
-          <div class="char">
-            <div class="char-stage">
-              <div class="char-bubble" id="heroBubble" aria-live="polite"></div>
-              <button type="button" class="char-hero" id="heroButton" aria-label="Say hi to King">
-                <canvas id="heroIdle" width="48" height="36"></canvas>
-              </button>
-            </div>
-            <div class="char-scenes" id="heroScenes" aria-label="Pick an activity"></div>
-          </div>
-          <p>
-            I am an amateur cook, barista, footballer and gardener, though
-            sometimes I like to think of myself as a self-proclaimed
-            <span class="highlight">coffee snob</span> when I pull the perfect shot
-            of espresso.
-          </p>
-        </div>
+        <p>
+          I am an amateur cook, barista, footballer and gardener, though
+          sometimes I like to think of myself as a self-proclaimed
+          <span class="highlight">coffee snob</span> when I pull the perfect shot
+          of espresso.
+        </p>
       </section>
 
       <section class="card fade-in">

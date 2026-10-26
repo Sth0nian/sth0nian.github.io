@@ -1,6 +1,7 @@
-// Bio page character sheet: a pixel hero that cycles through idle activities
-// (coffee, coding, gaming, football, basketball) plus a level / XP bar where
-// the level is my age and XP fills up towards the next birthday.
+// Me page: the profile circle is a tiny pixel world where the TechJourney hero
+// goes about his day (coffee, coding, gaming, football, basketball), standing up
+// and walking into the next room between activities. Also fills in the level /
+// XP bar, where the level is my age and XP fills up towards the next birthday.
 (() => {
   'use strict';
 
@@ -23,11 +24,12 @@
   const canvas = document.getElementById('heroIdle');
   const button = document.getElementById('heroButton');
   const bubble = document.getElementById('heroBubble');
-  const sceneBar = document.getElementById('heroScenes');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = 48, H = 36;
-  const FLOOR = 33;
+
+  // Each room is 48x36 pixels; the circle shows a 52x52 window onto it
+  const W = 48, FLOOR = 33;
+  const VIEW = 52, OFF_X = 2, OFF_Y = 10;
 
   // ---------- Pixel helpers ----------
 
@@ -112,6 +114,7 @@
   }
 
   // x, y: top-left of the 13x21 sprite. hand / back: arm targets in sprite space.
+  // legs: stand | sit | kick | walk0 | walk1
   function hero(o) {
     const { x, y, bob = 0, eyes = 'open', flip = false, legs = 'stand', hand = null, back = null, footY = 32 } = o;
     ctx.save();
@@ -126,9 +129,9 @@
     if (legs === 'sit') {
       sittingLegs(x, y, footY);
     } else {
-      rows(LEGS, x, y + 18, col => col <= 6);
-      const kick = legs === 'kick';
-      rows(LEGS, x + (kick ? 1 : 0), y + 18 - (kick ? 2 : 0), col => col >= 7);
+      const kick = legs === 'kick', w0 = legs === 'walk0', w1 = legs === 'walk1';
+      rows(LEGS, x - (w0 ? 1 : 0), y + 18 - (w1 ? 1 : 0), col => col <= 6);
+      rows(LEGS, x + (kick || w0 ? 1 : 0), y + 18 - (kick ? 2 : w0 ? 1 : 0), col => col >= 7);
     }
     rows(TORSO, x, y + 13);
     if (!hand) HANGING_ARM.forEach(([ax, ay, c]) => px(x + ax, y + ay, c));
@@ -143,10 +146,11 @@
     rect(x, FLOOR, w, 1, 'rgba(0,0,0,0.35)');
   }
 
+  // Rooms paint a little past their 48px so the circle never shows a gap
   function room(wall, floor, floorHi) {
-    rect(0, 0, W, FLOOR, wall);
-    rect(0, FLOOR, W, H - FLOOR, floor);
-    rect(0, FLOOR, W, 1, floorHi);
+    rect(-2, -OFF_Y - 2, W + 4, FLOOR + OFF_Y + 2, wall);
+    rect(-2, FLOOR, W + 4, 24, floor);
+    rect(-2, FLOOR, W + 4, 1, floorHi);
   }
 
   // ---------- Props ----------
@@ -185,31 +189,38 @@
     px(x + 2 - f, y + 2, seam);
   }
 
-  // ---------- Scenes ----------
+  // Door frame between two rooms, seen while walking through
+  function doorway(x) {
+    rect(x - 2, -OFF_Y - 2, 4, FLOOR + OFF_Y + 2, '#0e0f13');
+    rect(x - 1, -OFF_Y - 2, 2, FLOOR + OFF_Y + 2, '#2a2b35');
+  }
 
-  const blink = { until: 0, next: 1500 };
+  // ---------- Scenes ----------
+  // Each scene has a background (bg) and the hero doing his thing (act).
+  // x is where he stands when he walks in or out.
 
   const scenes = [
     {
-      id: 'idle', icon: '🧍', label: 'Idle',
+      id: 'idle', x: 17,
       lines: ['Hallo! Hi! 👋', 'Fancy a dungeon? Try TechJourney.', 'Two cats, zero bugs. Mostly.'],
-      draw(t, s) {
+      bg(t) {
         room('#1c1f26', '#2a2d36', '#3a3e4a');
         rect(6, 8, 9, 7, '#2b303b');
         rect(7, 9, 7, 5, '#3b4a63');
         px(9, 10, '#ffd166');
         plant(40, Math.floor(t * 0.8) % 2);
+      },
+      act(t, s) {
         shadow(19, 9);
         const glance = (t % 9) > 6.5 && (t % 9) < 7.8;
         hero({ x: 17, y: 12 + s.hop, bob: Math.floor(t / 0.65) % 2, eyes: s.eyes, flip: glance });
       }
     },
     {
-      id: 'coffee', icon: '☕', label: 'Coffee',
+      id: 'coffee', x: 13,
       lines: ['Coffee first. ☕', 'Perfect shot. 9 bar, ~28 seconds.', 'Ahh. Now we can talk.'],
-      draw(t, s) {
+      bg(t) {
         room('#231d1b', '#3a2c24', '#4a3a30');
-        // Counter and espresso machine
         rect(31, 23, 17, 10, '#5a3d2b');
         rect(31, 23, 17, 1, PAL.D);
         rect(34, 11, 11, 12, '#8c939c');
@@ -219,7 +230,8 @@
         px(42, 14, Math.floor(t * 2) % 2 ? '#ff4d4d' : '#6b1f1f');
         rect(35, 22, 9, 1, '#5d636b');
         if ((t % 2.4) < 1.2) px(39, 19 + Math.floor((t % 1.2) * 2.5), '#6b4226');
-
+      },
+      act(t, s) {
         const T = 4.6, p = t % T;
         const rest = [11, 16], sip = [9, 11];
         let k = 0;
@@ -234,87 +246,77 @@
       }
     },
     {
-      id: 'coding', icon: '⌨️', label: 'Coding',
+      id: 'coding', x: 10,
       lines: ['terraform plan: no changes.', 'Pipeline is green!', 'dbt run... done!'],
-      init(s) { s.code = [{ len: 0, max: 6, indent: 0, color: '#c792ea' }]; s.acc = 0; },
-      draw(t, s, dt) {
+      init(st) { st.code = [{ len: 0, max: 6, indent: 0, color: '#c792ea' }]; st.acc = 0; },
+      bg(t, st) {
         room('#161b22', '#4a3527', '#5c4433');
-        // Monitor
         rect(30, 5, 16, 13, '#0b0b0f');
         rect(31, 6, 14, 11, '#0d1a12');
         rect(37, 18, 2, 3, '#3a3d46');
         rect(35, 20, 6, 1, '#3a3d46');
-        // Desk and keyboard
         rect(22, 21, 26, 2, '#7a5236');
         rect(22, 21, 26, 1, '#9a6a46');
         rect(24, 23, 2, 10, '#5a3d2b');
         rect(45, 23, 2, 10, '#5a3d2b');
         rect(23, 20, 7, 1, '#3a3d46');
         mug(42, 18, true, t);
-
-        const typing = (t % 3.8) < 2.6;
-        if (typing) {
-          s.acc += dt;
-          while (s.acc > 0.11) {
-            s.acc -= 0.11;
-            const cur = s.code[s.code.length - 1];
-            if (++cur.len >= cur.max) {
-              const colors = ['#c792ea', '#82aaff', '#ffcb6b', '#7fd1b9', '#f07178'];
-              s.code.push({
-                len: 0, max: 3 + Math.floor(Math.random() * 7),
-                indent: Math.floor(Math.random() * 3), color: colors[Math.floor(Math.random() * colors.length)]
-              });
-              if (s.code.length > 5) s.code.shift();
-            }
-          }
-        }
-        s.code.forEach((l, i) => rect(32 + l.indent, 7 + i * 2, l.len, 1, l.color));
+        st.code.forEach((l, i) => rect(32 + l.indent, 7 + i * 2, l.len, 1, l.color));
         if (Math.floor(t * 3) % 2) {
-          const l = s.code[s.code.length - 1];
-          px(32 + l.indent + l.len, 7 + (s.code.length - 1) * 2, '#ffffff');
+          const l = st.code[st.code.length - 1];
+          px(32 + l.indent + l.len, 7 + (st.code.length - 1) * 2, '#ffffff');
         }
-
-        // Office chair (behind the hero)
+        // Office chair
         rect(7, 13, 2, 14, '#2a2b35');
         rect(9, 26, 11, 2, '#2a2b35');
         rect(13, 28, 2, 4, '#5d636b');
         rect(10, 32, 8, 1, '#5d636b');
         px(10, 32, PAL.C); px(17, 32, PAL.C);
-
+      },
+      act(t, s, st, dt) {
+        const typing = (t % 3.8) < 2.6;
+        if (typing) {
+          st.acc += dt;
+          while (st.acc > 0.11) {
+            st.acc -= 0.11;
+            const cur = st.code[st.code.length - 1];
+            if (++cur.len >= cur.max) {
+              const colors = ['#c792ea', '#82aaff', '#ffcb6b', '#7fd1b9', '#f07178'];
+              st.code.push({
+                len: 0, max: 3 + Math.floor(Math.random() * 7),
+                indent: Math.floor(Math.random() * 3), color: colors[Math.floor(Math.random() * colors.length)]
+              });
+              if (st.code.length > 5) st.code.shift();
+            }
+          }
+        }
         const tap = typing ? Math.floor(t * 9) % 2 : 0;
-        const x = 10, y = 7 + s.hop;
         hero({
-          x, y, legs: 'sit', footY: 32,
+          x: 10, y: 7 + s.hop, legs: 'sit', footY: 32,
           bob: typing ? 0 : Math.floor(t / 0.65) % 2, eyes: s.eyes,
           hand: [15, 12 - tap], back: [13, 12 - (typing ? 1 - tap : 0)]
         });
-        // Screen glow
-        rect(0, 0, W, H, `rgba(120,200,160,${0.03 + 0.02 * Math.sin(t * 7)})`);
+        rect(-2, -OFF_Y - 2, W + 4, 60, `rgba(120,200,160,${0.03 + 0.02 * Math.sin(t * 7)})`);
       }
     },
     {
-      id: 'gaming', icon: '🎮', label: 'Gaming',
+      id: 'gaming', x: 6,
       lines: ['One more level.', 'Who paused it?!', 'Fancy a dungeon? Try TechJourney.'],
-      draw(t, s) {
+      bg(t) {
         room('#1a1626', '#3b2f4a', '#4a3c5c');
-        // TV on a cabinet
         rect(32, 27, 15, 6, '#5a3d2b');
         rect(32, 27, 15, 1, '#7a5236');
         rect(31, 12, 16, 14, '#0b0b0f');
         rect(32, 13, 14, 12, '#10203a');
         [[34, 15], [40, 14], [44, 17], [37, 18]].forEach(([sx, sy]) => px(sx, sy, '#3b5a8a'));
         rect(32, 23, 14, 2, '#2f6b34');
-        const P = 1.6, f = (t % P) / P, round = Math.floor(t / P);
+        const P = 1.6, f = (t % P) / P;
         const obX = Math.round(45 - f * 13);
         if (obX >= 32) rect(obX, 21, 2, 2, '#f07178');
         const js = Math.min(1, Math.max(0, (f - 0.62) / 0.3));
-        const jump = Math.round(4 * Math.sin(Math.PI * js));
-        rect(35, 21 - jump, 2, 2, '#ffd166');
-        const press = f > 0.6 && f < 0.7;
-        const win = round % 4 === 3 && f > 0.85;
-        if (win) rect(32, 13, 14, 12, 'rgba(255,209,102,0.25)');
-
-        // Couch, with the hero sitting on it
+        rect(35, 21 - Math.round(4 * Math.sin(Math.PI * js)), 2, 2, '#ffd166');
+        if (Math.floor(t / P) % 4 === 3 && f > 0.85) rect(32, 13, 14, 12, 'rgba(255,209,102,0.25)');
+        // Couch
         rect(1, 13, 5, 17, '#6b3b5a');
         rect(1, 13, 5, 1, '#8e5279');
         rect(3, 27, 19, 4, '#7c4669');
@@ -323,60 +325,60 @@
         rect(19, 23, 4, 1, '#8e5279');
         rect(2, 31, 21, 1, '#4a2840');
         px(3, 32, PAL.C); px(21, 32, PAL.C);
-
-        const cheer = win ? -1 : 0;
-        const x = 5, y = 7 + s.hop + cheer;
+      },
+      act(t, s) {
+        const P = 1.6, f = (t % P) / P;
+        const press = f > 0.6 && f < 0.7;
+        const win = Math.floor(t / P) % 4 === 3 && f > 0.85;
+        const x = 5, y = 7 + s.hop + (win ? -1 : 0);
         const hand = [11, 14 + (press ? 1 : 0)];
         hero({ x, y, legs: 'sit', footY: 32, bob: Math.floor(t / 0.65) % 2, eyes: s.eyes, hand, back: [10, 15] });
-        // Controller
         const cx = x + hand[0] - 1, cy = y + hand[1] - 1;
         rect(cx - 1, cy - 1, 6, 4, PAL.C);
         rect(cx, cy, 4, 2, '#3a3d46');
         px(cx + 3, cy, press ? '#7fd1b9' : '#2f6b34');
         px(cx + 2, cy + 1, '#a33');
         if (win) glyphs('!', x + 5, y - 6, '#ffd166');
-        // TV glow
-        rect(0, 0, W, H, `rgba(90,140,255,${0.04 + 0.03 * Math.sin(t * 13)})`);
+        rect(-2, -OFF_Y - 2, W + 4, 60, `rgba(90,140,255,${0.04 + 0.03 * Math.sin(t * 13)})`);
       }
     },
     {
-      id: 'football', icon: '⚽', label: 'Football',
+      id: 'football', x: 12,
       lines: ['Keep it up!', 'Sunday league legs.', 'Top bins! ⚽'],
-      draw(t, s) {
+      bg(t) {
         room('#0f1a2e', '#2f6b34', '#3f8a45');
-        [[4, 4], [11, 9], [20, 3], [29, 7], [43, 4], [36, 10]].forEach(([sx, sy], k) => {
+        [[4, -4], [11, 9], [20, -6], [29, 7], [43, 4], [36, -2], [16, 2]].forEach(([sx, sy], k) => {
           if (Math.floor(t * 1.5 + k) % 5) px(sx, sy, '#c8d3e8');
         });
-        for (let gx = 0; gx < W; gx += 8) rect(gx, FLOOR + 1, 4, 2, '#357a3b');
-        // Goal
+        for (let gx = -2; gx < W + 2; gx += 8) rect(gx, FLOOR + 1, 4, 2, '#357a3b');
         for (let ny = 22; ny < 33; ny += 2) for (let nx = 39; nx < 46; nx += 2) px(nx, ny, '#7d8799');
         rect(38, 20, 9, 1, 'H');
         rect(38, 20, 1, 13, 'H');
         rect(46, 20, 1, 13, 'H');
-
+      },
+      act(t, s) {
         const P = 0.8, n = Math.floor(t / P), u = (t % P) / P;
         const high = n % 5 === 4;
         const top = 26 - (high ? 20 : 10) * 4 * u * (1 - u);
         const kick = u < 0.14 || u > 0.86;
-        const x = 12, y = 12 + s.hop;
         shadow(14, 9);
         rect(23, FLOOR, 4 - Math.round((26 - top) / 10), 1, 'rgba(0,0,0,0.3)');
-        hero({ x, y, legs: kick ? 'kick' : 'stand', bob: high && u > 0.3 && u < 0.7 ? -1 : 0, eyes: s.eyes });
+        hero({ x: 12, y: 12 + s.hop, legs: kick ? 'kick' : 'stand', bob: high && u > 0.3 && u < 0.7 ? -1 : 0, eyes: s.eyes });
         ball(23, top, t * 8, 'H', 'C');
       }
     },
     {
-      id: 'basketball', icon: '🏀', label: 'Basketball',
+      id: 'basketball', x: 8,
       lines: ['Swish!', 'Nothing but net.', 'Ball is life. 🏀'],
-      draw(t, s) {
+      bg() {
         room('#1d1f2a', '#9a6a38', '#b98248');
-        rect(0, FLOOR + 1, W, 1, '#8a5c2e');
-        // Hoop
+        rect(-2, FLOOR + 1, W + 4, 1, '#8a5c2e');
         rect(45, 9, 2, 24, '#5d636b');
         rect(42, 3, 3, 12, 'C');
         rect(43, 4, 1, 10, 'H');
         rect(37, 11, 6, 1, '#e0662c');
-
+      },
+      act(t, s) {
         const T = 4.2, p = t % T;
         let bx, by, hand, jump = 0, net = 0;
         const x = 8;
@@ -401,42 +403,45 @@
           const k = (p - 3.3) / 0.9;
           bx = 38 + (21 - 38) * k; by = 29;
         }
-        const y = 12 + s.hop - jump;
         shadow(10, 9);
-        // Net (wiggles after a score)
         const wig = net ? Math.floor(t * 12) % 2 : 0;
         for (let k = 0; k < 4; k++) {
           px(38 + wig + (k % 2), 12 + k, 'H');
           px(41 - wig - (k % 2), 12 + k, 'H');
         }
-        hero({ x, y, hand, eyes: s.eyes, bob: 0 });
+        hero({ x, y: 12 + s.hop - jump, hand, eyes: s.eyes });
         ball(Math.round(bx), Math.round(by), t * 6, '#e0662c', 'C');
         if (p > 2.9 && p < 3.9) glyphs('+2', 33, 2 - Math.round((p - 2.9) * 2), '#ffd166');
       }
     }
   ];
 
-  // ---------- Loop, rotation and interaction ----------
+  // ---------- Loop: act, stand up, walk into the next room ----------
 
+  const ACT_TIME = 9000, STAND = 350, WALK = 2400;
   const still = window.matchMedia('(prefers-reduced-motion: reduce)');
   const state = { hop: 0, eyes: 'open' };
-  let scene = 0, sceneStart = 0, pinnedUntil = 0, hopStart = -1, last = 0;
-  let bubbleTimer = 0;
+  const sceneState = scenes.map(() => ({}));
+  const blink = { until: 0, next: 1500 };
+  let scene = Math.floor(Math.random() * scenes.length);
+  let phase = 'act', phaseStart = performance.now(), last = phaseStart;
+  let hopStart = -1, bubbleTimer = 0;
   const lineIndex = {};
 
-  function setScene(i, now) {
-    scene = (i + scenes.length) % scenes.length;
-    sceneStart = now;
-    if (scenes[scene].init) scenes[scene].init(state);
-    sceneBar.querySelectorAll('button').forEach((b, k) => b.setAttribute('aria-pressed', k === scene));
+  const startScene = i => { if (scenes[i].init) scenes[i].init(sceneState[i]); };
+  scenes.forEach((sc, i) => startScene(i));
+
+  function drawRoom(i, t, dx) {
+    ctx.save();
+    ctx.translate(dx, 0);
+    scenes[i].bg(t, sceneState[i]);
+    ctx.restore();
   }
 
   function frame(now) {
     const dt = Math.min(0.1, (now - last) / 1000 || 0);
     last = now;
     const moving = !still.matches;
-
-    if (moving && now > pinnedUntil && now - sceneStart > 9000) setScene(scene + 1, now);
 
     if (moving && now > blink.next) {
       blink.until = now + 140;
@@ -445,10 +450,45 @@
     state.eyes = now < blink.until ? 'blink' : 'open';
     state.hop = hopStart >= 0 && now - hopStart < 400 ? -Math.round(3 * Math.sin(Math.PI * (now - hopStart) / 400)) : 0;
 
-    const t = moving ? (now - sceneStart) / 1000 : 1;
-    ctx.clearRect(0, 0, W, H);
-    scenes[scene].draw(t, state, moving ? dt : 0);
-    if (moving && t < 0.25) rect(0, 0, W, H, `rgba(0,0,0,${1 - t / 0.25})`);
+    const elapsed = now - phaseStart;
+    if (moving && phase === 'act' && elapsed > ACT_TIME) { phase = 'walk'; phaseStart = now; }
+    if (phase === 'walk' && now - phaseStart > STAND + WALK) {
+      scene = (scene + 1) % scenes.length;
+      startScene(scene);
+      phase = 'act';
+      phaseStart = now;
+    }
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, VIEW, VIEW);
+    ctx.translate(OFF_X, OFF_Y);
+    const cur = scenes[scene];
+    const t = moving ? (now - phaseStart) / 1000 : 1;
+
+    if (phase === 'act') {
+      drawRoom(scene, t, 0);
+      cur.act(t, state, sceneState[scene], moving ? dt : 0);
+    } else {
+      const u = now - phaseStart;
+      const nextIdx = (scene + 1) % scenes.length;
+      const next = scenes[nextIdx];
+      if (u < STAND) {
+        // Get up from whatever he was doing
+        drawRoom(scene, 0, 0);
+        shadow(cur.x + 2, 9);
+        hero({ x: cur.x, y: 12 - Math.round(2 * Math.sin(Math.PI * u / STAND)), eyes: state.eyes });
+      } else {
+        const k = (u - STAND) / WALK;
+        const pan = Math.round(W * (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2));
+        drawRoom(scene, 0, -pan);
+        drawRoom(nextIdx, 0, W - pan);
+        doorway(W - pan);
+        const hx = Math.round(cur.x + (W + next.x - cur.x) * k) - pan;
+        const step = Math.floor(u / 140) % 2;
+        shadow(hx + 2, 9);
+        hero({ x: hx, y: 12 - step, legs: step ? 'walk1' : 'walk0', eyes: state.eyes });
+      }
+    }
 
     requestAnimationFrame(frame);
   }
@@ -456,28 +496,13 @@
   function say() {
     const sc = scenes[scene];
     const i = lineIndex[sc.id] = ((lineIndex[sc.id] ?? -1) + 1) % sc.lines.length;
-    bubble.textContent = sc.lines[i];
+    bubble.textContent = phase === 'walk' ? 'On my way!' : sc.lines[i];
     bubble.classList.add('show');
     hopStart = performance.now();
     clearTimeout(bubbleTimer);
     bubbleTimer = setTimeout(() => bubble.classList.remove('show'), 2600);
   }
 
-  scenes.forEach((sc, i) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'char-scene';
-    b.innerHTML = `<span aria-hidden="true">${sc.icon}</span>${sc.label}`;
-    b.addEventListener('click', () => {
-      const now = performance.now();
-      pinnedUntil = now + 30000;
-      if (i !== scene) setScene(i, now);
-    });
-    sceneBar.appendChild(b);
-  });
-
   button.addEventListener('click', say);
-  const start = performance.now();
-  setScene(Math.floor(Math.random() * scenes.length), start);
   requestAnimationFrame(frame);
 })();
