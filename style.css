@@ -162,6 +162,7 @@ kbd {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  flex-wrap: wrap;
   margin: -4px 0 14px;
   font-size: 0.75em;
   color: #8f8aa3;
@@ -259,6 +260,130 @@ kbd {
 
 .lore-body b {
   color: var(--accent);
+}
+
+/* Pixel-style news card that Wings links to */
+.news-card {
+  position: absolute;
+  left: 18px;
+  top: 118px;
+  z-index: 5;
+  width: 300px;
+  max-height: calc(100% - 150px);
+  overflow-y: auto;
+  padding: 16px 18px 14px;
+  background: #f4efe2;
+  color: #1a1520;
+  font-family: 'Kode', monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  /* Stepped "pixel" border */
+  border: 3px solid #2b1d3a;
+  box-shadow:
+    0 0 0 3px #f4efe2,
+    0 0 0 6px #2b1d3a,
+    6px 6px 0 6px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translateX(-16px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  scrollbar-width: thin;
+}
+
+.news-card[hidden] {
+  display: none;
+}
+
+.news-card.show {
+  opacity: 1;
+  transform: none;
+}
+
+.news-close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  padding: 0 6px;
+  background: none;
+  border: none;
+  color: #2b1d3a;
+  font-family: 'Silkscreen', monospace;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.news-close:hover,
+.news-close:focus-visible {
+  color: #7b4fc4;
+  outline: none;
+}
+
+.news-from,
+.news-site {
+  margin: 0;
+  font-family: 'Silkscreen', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.news-from {
+  color: #7b4fc4;
+}
+
+.news-site {
+  margin-top: 8px;
+  color: #6b6278;
+}
+
+.news-title {
+  margin: 4px 0 8px;
+  font-family: 'Silkscreen', monospace;
+  font-size: 15px;
+  font-weight: normal;
+  line-height: 1.35;
+  color: #1a1520;
+}
+
+.news-meta {
+  margin: 0 0 10px;
+  padding-bottom: 10px;
+  border-bottom: 2px dashed #c9bfdc;
+  font-size: 11px;
+  color: #6b6278;
+}
+
+.news-blurb {
+  margin: 0 0 12px;
+}
+
+.news-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+
+.news-links a {
+  padding: 4px 8px;
+  border: 2px solid #2b1d3a;
+  background: #2b1d3a;
+  color: #f4efe2;
+  font-family: 'Silkscreen', monospace;
+  font-size: 10px;
+  text-decoration: none;
+  box-shadow: 3px 3px 0 #7b4fc4;
+}
+
+.news-links a + a {
+  background: transparent;
+  color: #2b1d3a;
+}
+
+.news-links a:hover,
+.news-links a:focus-visible {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 #7b4fc4;
+  outline: none;
 }
 
 /* Lore overlay shown over the paused game */

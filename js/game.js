@@ -18,6 +18,9 @@
   const settings = document.getElementById('codexSettings');
   const wingsToggle = document.getElementById('wingsToggle');
   const resetButton = document.getElementById('resetSave');
+  const teleportButton = document.getElementById('teleportEnd');
+  const replayButton = document.getElementById('replayStory');
+  const newsCard = document.getElementById('newsCard');
   const wingsLog = document.getElementById('wingsLog');
   const fog = document.createElement('canvas');
   const fctx = fog.getContext('2d');
@@ -66,7 +69,7 @@
   // ---------- Save data (localStorage) ----------
 
   const SAVE_KEY = 'sth0nian.techjourney.v1';
-  const NEWS_KEY = 'sth0nian.wings.news';
+  const NEWS_KEY = 'sth0nian.wings.news.v2';
 
   function loadJSON(key) {
     try { return JSON.parse(localStorage.getItem(key)) || null; } catch (e) { return null; }
@@ -768,6 +771,7 @@
 
     settings.hidden = !save.key && !save.read.length;
     wingsToggle.closest('label').hidden = !save.key;
+    teleportButton.hidden = replayButton.hidden = !save.key;
     wingsToggle.checked = !save.wingsMuted;
   }
 
@@ -865,12 +869,15 @@
   };
   const wingsOn = () => save.key && !save.wingsMuted;
 
-  function wingsSay(text, priority = 1) {
+  // item: an optional Hacker News story the line is about; makes the bubble clickable
+  function wingsSay(text, priority = 1, item = null) {
     if (!wingsOn() || !text) return;
     if (wings.msg && wings.priority > priority) return;
     if (priority < 2 && wings.cooldown > 0) return;
     wings.msg = text;
-    wings.msgLife = wings.msgMax = 2.8 + text.length * 0.05;
+    wings.item = item;
+    // Linked lines stay up a little longer so there is time to click them
+    wings.msgLife = wings.msgMax = 2.8 + text.length * 0.05 + (item ? 4 : 0);
     wings.priority = priority;
     wings.cooldown = 6;
     wings.stay = Math.max(wings.stay, wings.msgLife + 3);
@@ -896,8 +903,16 @@
       .then(r => r.json())
       .then(ids => Promise.all(ids.slice(0, 15).map(id => fetch(`${api}/item/${id}.json`).then(r => r.json()).catch(() => null))))
       .then(items => {
-        const list = items.filter(i => i && i.title && i.type === 'story')
-          .map(i => ({ title: i.title.length > 80 ? `${i.title.slice(0, 77)}...` : i.title, score: i.score || 0 }));
+        const list = items.filter(i => i && i.title && i.type === 'story').map(i => ({
+          id: i.id,
+          title: i.title,
+          score: i.score || 0,
+          by: i.by || '',
+          comments: i.descendants || 0,
+          time: i.time || 0,
+          url: /^https?:\/\//.test(i.url || '') ? i.url : '',
+          text: i.text || ''
+        }));
         if (list.length) {
           news = { at: Date.now(), items: list };
           storeJSON(NEWS_KEY, news);
@@ -907,17 +922,60 @@
       .finally(() => { newsLoading = false; });
   }
 
-  function newsLine() {
-    if (!news || !news.items.length) return pick(LINES.offline);
+  function sayNews() {
+    if (!news || !news.items.length) { wingsSay(pick(LINES.offline), 0); return; }
     const item = news.items[newsSeen++ % news.items.length];
-    return pick(LINES.news).replace('{t}', item.title).replace('{s}', item.score);
+    const title = item.title.length > 80 ? `${item.title.slice(0, 77)}...` : item.title;
+    wingsSay(pick(LINES.news).replace('{t}', title).replace('{s}', item.score), 0, item);
   }
 
-  function ambientLine() {
+  function sayAmbient() {
     const r = Math.random();
-    if (r < 0.38) return pick(LINES.jokes);
-    if (r < 0.7) return newsLine();
-    return mode === 'endless' && Math.random() < 0.5 ? fill(pick(LINES.depth)) : pick(LINES.sass);
+    if (r < 0.38) wingsSay(pick(LINES.jokes), 0);
+    else if (r < 0.7) sayNews();
+    else wingsSay(mode === 'endless' && Math.random() < 0.5 ? fill(pick(LINES.depth)) : pick(LINES.sass), 0);
+  }
+
+  // ---------- The news card Wings links to ----------
+
+  const ago = secs => {
+    const m = Math.max(1, Math.round((Date.now() / 1000 - secs) / 60));
+    if (m < 60) return `${m} min ago`;
+    const h = Math.round(m / 60);
+    return h < 48 ? `${h} hour${h === 1 ? '' : 's'} ago` : `${Math.round(h / 24)} days ago`;
+  };
+
+  // HN post text arrives as HTML; reduce it to plain text for the card
+  function plainText(html) {
+    const doc = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
+    doc.querySelectorAll('p').forEach(p => p.prepend(' '));
+    const text = doc.body.textContent.replace(/\s+/g, ' ').trim();
+    return text.length > 320 ? `${text.slice(0, 317)}...` : text;
+  }
+
+  function showNewsCard(item) {
+    const discuss = `https://news.ycombinator.com/item?id=${encodeURIComponent(item.id)}`;
+    let site = 'news.ycombinator.com';
+    try { if (item.url) site = new URL(item.url).hostname.replace(/^www\./, ''); } catch (e) { /* keep default */ }
+    newsCard.querySelector('.news-site').textContent = site;
+    newsCard.querySelector('.news-title').textContent = item.title;
+    newsCard.querySelector('.news-meta').textContent =
+      `${item.score} points · ${item.comments} comments · by ${item.by || 'someone'} · ${item.time ? ago(item.time) : 'recently'}`;
+    const blurb = newsCard.querySelector('.news-blurb');
+    blurb.textContent = item.text ? plainText(item.text) : `Wings has opinions. The article itself lives on ${site}.`;
+    const read = newsCard.querySelector('.news-read');
+    read.href = item.url || discuss;
+    read.textContent = item.url ? 'Read the article' : 'Read the post';
+    newsCard.querySelector('.news-discuss').href = discuss;
+    newsCard.hidden = false;
+    newsCard.classList.remove('show');
+    void newsCard.offsetWidth;
+    newsCard.classList.add('show');
+  }
+
+  function hideNewsCard() {
+    newsCard.classList.remove('show');
+    setTimeout(() => { if (!newsCard.classList.contains('show')) newsCard.hidden = true; }, 300);
   }
 
   function updateWings(dt) {
@@ -927,7 +985,7 @@
 
     wings.next -= dt;
     if (wings.next <= 0 && !player.dead) {
-      wingsSay(ambientLine(), 0);
+      sayAmbient();
       wings.next = mode === 'endless' ? 30 + Math.random() * 25 : 55 + Math.random() * 35;
     }
     if (time - lastInput > 25 && !player.dead) {
@@ -1843,7 +1901,8 @@
     ctx.fillRect(1, 2, 1, 2);
     ctx.restore();
 
-    if (wings.msg) drawBubble(sx, sy - 16, wings.msg, Math.min(1, wings.msgLife * 3, (wings.msgMax - wings.msgLife) * 6));
+    if (wings.msg) drawBubble(sx, sy - 16, wings.msg, Math.min(1, wings.msgLife * 3, (wings.msgMax - wings.msgLife) * 6), wings.item);
+    else bubbleBox = null;
   }
 
   function wrap(str, maxW) {
@@ -1858,19 +1917,23 @@
     return lines;
   }
 
-  function drawBubble(x, y, msg, alpha) {
+  // Where the current bubble is on screen, so a linked one can be clicked
+  let bubbleBox = null;
+  let bubbleHover = false;
+
+  function drawBubble(x, y, msg, alpha, item) {
     ctx.save();
     ctx.globalAlpha = Math.max(0, alpha);
     ctx.font = "13px 'Kode', monospace";
     const lines = wrap(msg, 270);
     const lh = 17;
-    const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + 22;
-    const h = lines.length * lh + 30;
+    const w = Math.max(...lines.map(l => ctx.measureText(l).width), item ? 150 : 0) + 22;
+    const h = lines.length * lh + 30 + (item ? 18 : 0);
     let bx = Math.max(10, Math.min(W - w - 10, x - w / 2));
     const by = Math.max(10, y - h - 10);
-    ctx.fillStyle = '#f4efe2';
-    ctx.strokeStyle = '#2b1d3a';
-    ctx.lineWidth = 2;
+    ctx.fillStyle = item && bubbleHover ? '#fffaf0' : '#f4efe2';
+    ctx.strokeStyle = item && bubbleHover ? '#7b4fc4' : '#2b1d3a';
+    ctx.lineWidth = item && bubbleHover ? 3 : 2;
     ctx.beginPath();
     ctx.roundRect ? ctx.roundRect(bx, by, w, h, 8) : ctx.rect(bx, by, w, h);
     ctx.fill();
@@ -1888,6 +1951,13 @@
     ctx.fillStyle = '#1a1520';
     ctx.font = "13px 'Kode', monospace";
     lines.forEach((l, k) => ctx.fillText(l, bx + 11, by + 32 + k * lh));
+    if (item) {
+      ctx.fillStyle = '#7b4fc4';
+      ctx.font = "10px 'Silkscreen', monospace";
+      ctx.fillText('> CLICK TO READ', bx + 11, by + h - 9);
+    }
+    const m = ctx.getTransform();
+    bubbleBox = item ? { x: bx + m.e / dpr, y: by + m.f / dpr, w, h, item } : null;
     ctx.restore();
   }
 
@@ -2044,9 +2114,22 @@
   document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
   window.addEventListener('blur', () => { Object.keys(keys).forEach(k => { keys[k] = false; }); });
 
+  const overBubble = e => {
+    if (!bubbleBox) return false;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left, y = e.clientY - rect.top;
+    return x >= bubbleBox.x && x <= bubbleBox.x + bubbleBox.w && y >= bubbleBox.y && y <= bubbleBox.y + bubbleBox.h;
+  };
+
+  canvas.addEventListener('pointermove', e => {
+    bubbleHover = overBubble(e);
+    canvas.style.cursor = bubbleHover ? 'pointer' : '';
+  });
+
   canvas.addEventListener('pointerdown', e => {
     e.preventDefault();
     canvas.focus({ preventScroll: true });
+    if (overBubble(e)) { showNewsCard(bubbleBox.item); return; }
     if (player.dead || paused) return;
     lastInput = time;
     const rect = canvas.getBoundingClientRect();
@@ -2079,6 +2162,40 @@
     if (!save.wingsMuted) wingsSay('Oh, I see how it is. You missed me.', 3);
     canvas.focus({ preventScroll: true });
   });
+  // Once the key is found, skip straight to the portal or play the story again
+  teleportButton.addEventListener('click', () => {
+    if (paused || player.dead) return;
+    if (mode === 'endless') {
+      leaveEndless(false);
+    } else {
+      placePlayer(portal.x + 1, portal.y);
+      path = null; repath = 0; strikeOnArrive = null;
+      fade = 1;
+      wingsSay('Shortcut taken. The portal is right there. Try not to fall in. Actually, do.', 2);
+    }
+    canvas.focus({ preventScroll: true });
+  });
+
+  replayButton.addEventListener('click', () => {
+    if (paused || player.dead) return;
+    if (!window.confirm('Play the story again from the Entrance Hall? Your key, best depth and Wings stay.')) return;
+    Object.assign(save, { read: [], broken: [], chest: false, explored: '', kills: 0 });
+    kills = 0;
+    persist();
+    buildStory();
+    player.hp = MAX_HP;
+    fade = 1;
+    time = 0;
+    renderCodex();
+    wingsSay('From the top? Bold. I will pretend I have not seen this bit before.', 3);
+    canvas.focus({ preventScroll: true });
+  });
+
+  newsCard.querySelector('.news-close').addEventListener('click', () => {
+    hideNewsCard();
+    canvas.focus({ preventScroll: true });
+  });
+
   resetButton.addEventListener('click', () => {
     if (!window.confirm('Reset your TechJourney progress? This clears read chapters, the key and your best depth.')) return;
     try {

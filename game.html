@@ -21,6 +21,18 @@
       <div class="dungeon-stage">
         <div class="dungeon-screen">
           <canvas id="gameCanvas" tabindex="0" aria-label="Isometric dungeon: explore the rooms to read about my tech journey"></canvas>
+          <aside id="newsCard" class="news-card" aria-live="polite" hidden>
+            <button type="button" class="news-close" aria-label="Close article">&times;</button>
+            <p class="news-from">Wings' reading list</p>
+            <p class="news-site"></p>
+            <h3 class="news-title"></h3>
+            <p class="news-meta"></p>
+            <p class="news-blurb"></p>
+            <p class="news-links">
+              <a class="news-read" href="#" target="_blank" rel="noopener noreferrer">Read the article</a>
+              <a class="news-discuss" href="#" target="_blank" rel="noopener noreferrer">Hacker News thread</a>
+            </p>
+          </aside>
           <div id="loreOverlay" class="lore-overlay" hidden>
             <article class="lore-card" role="dialog" aria-modal="true" aria-labelledby="loreTitle">
               <header class="lore-head"><span class="lore-sigil"></span><div><h3 id="loreTitle"></h3><small id="loreSub"></small></div></header>
@@ -36,6 +48,8 @@
         <ol id="codexList" class="codex-list"></ol>
         <div id="codexSettings" class="codex-settings" hidden>
           <label><input type="checkbox" id="wingsToggle" checked> Wings the bat</label>
+          <button type="button" id="teleportEnd" class="codex-reset" hidden>Teleport to the end</button>
+          <button type="button" id="replayStory" class="codex-reset" hidden>Replay from the start</button>
           <button type="button" id="resetSave" class="codex-reset">Reset progress</button>
         </div>
         <p id="wingsLog" class="visually-hidden" aria-live="polite"></p>
