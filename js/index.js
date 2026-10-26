@@ -46,12 +46,24 @@ function formatDate(dateString) {
 }
 
 function readingTime(body) {
-  const words = body.join(' ').split(/\s+/).filter(Boolean).length;
+  const words = body.filter(p => !EMBED.test(p.trim())).join(' ').split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200)) + ' min read';
 }
 
+// A paragraph of just {{embed /path/page.html}} becomes an inline frame,
+// e.g. an interactive chart; only pages on this site are allowed
+const EMBED = /^\{\{embed (\/[\w\/.-]+\.html)\}\}$/;
+
+function renderParagraph(p) {
+  const embed = p.trim().match(EMBED);
+  if (embed) {
+    return '<div class="embed"><iframe src="' + escapeHtml(embed[1]) + '" loading="lazy" title="Interactive chart"></iframe></div>';
+  }
+  return '<p>' + renderInline(p) + '</p>';
+}
+
 function renderArticle(article) {
-  const body = article.body.map(p => '<p>' + renderInline(p) + '</p>').join('');
+  const body = article.body.map(renderParagraph).join('');
   const tags = article.tags
     .map(tag => '<li class="tag" role="button" tabindex="0" data-tag="' + escapeHtml(tag) + '">' + escapeHtml(tag) + '</li>')
     .join('');

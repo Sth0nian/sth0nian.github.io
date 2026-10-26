@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Every run - Sth0nian</title>
+  <meta name="robots" content="noindex">
+  <style>
+    @font-face {
+      font-family: 'Kode';
+      src: url('/fonts/KodeMono-Medium.ttf') format('truetype');
+      font-display: swap;
+    }
+
+    :root {
+      --text: #e6e8eb;
+      --muted: #9aa1ab;
+      --faint: #6b7280;
+      --border: rgba(255, 255, 255, 0.08);
+      --run-2025: #4ade80;
+      --run-2026: #60a5fa;
+      --target: #fbbf24;
+      --font-mono: 'Kode', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      overflow: hidden;
+    }
+
+    .bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      color: var(--muted);
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin-right: 5px;
+      border-radius: 2px;
+      vertical-align: -1px;
+      background: var(--swatch);
+    }
+
+    .legend .target::before {
+      height: 2px;
+      vertical-align: 3px;
+    }
+
+    .views {
+      display: flex;
+      gap: 4px;
+    }
+
+    .views button {
+      padding: 3px 9px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .views button:hover,
+    .views button:focus-visible {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.2);
+      outline: none;
+    }
+
+    .views button[aria-pressed="true"] {
+      color: var(--run-2025);
+      border-color: rgba(74, 222, 128, 0.35);
+      background: rgba(74, 222, 128, 0.12);
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    svg:active { cursor: grabbing; }
+
+    .axis text { fill: var(--faint); font-family: var(--font-mono); }
+    .axis path, .axis line { stroke: rgba(255, 255, 255, 0.12); }
+    .grid line { stroke: rgba(255, 255, 255, 0.05); }
+    .grid path { display: none; }
+
+    .hint {
+      margin-top: 2px;
+      color: var(--faint);
+      text-align: right;
+    }
+
+    .tip {
+      position: fixed;
+      pointer-events: none;
+      padding: 6px 9px;
+      background: rgba(14, 16, 19, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      line-height: 1.5;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.12s ease;
+    }
+
+    .tip b { color: #fff; }
+    .tip .sub { color: var(--muted); }
+
+    .error {
+      padding: 40px 0;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="bar">
+    <div class="legend">
+      <span style="--swatch: var(--run-2025)">2025 runs</span>
+      <span style="--swatch: var(--run-2026)">2026 runs</span>
+      <span class="target" style="--swatch: var(--target)">daily target</span>
+    </div>
+    <div class="views" role="group" aria-label="Zoom to">
+      <button type="button" data-view="all" aria-pressed="true">All</button>
+      <button type="button" data-view="2025">2025</button>
+      <button type="button" data-view="dec">Dec '25</button>
+      <button type="button" data-view="2026">2026</button>
+    </div>
+  </div>
+  <svg id="chart" role="img" aria-label="Bar chart of every run: distance per day from January 2025 onwards"></svg>
+  <div class="hint">Scroll or pinch to zoom, drag to pan</div>
+  <div class="tip" id="tip"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script>
+    (() => {
+      'use strict';
+
+      const YEARS = [2025, 2026];
+      const HEIGHT = 300;
+      const M = { top: 10, right: 10, bottom: 24, left: 34 };
+      const svg = d3.select('#chart').attr('height', HEIGHT);
+      const tip = document.getElementById('tip');
+      const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+      const fmtPace = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}/km`;
+      const fmtTime = s => {
+        const h = Math.floor(s / 3600), m = Math.round(s % 3600 / 60);
+        return h ? `${h}h ${String(m).padStart(2, '0')}m` : `${m} min`;
+      };
+      const fmtDate = d3.timeFormat('%a %-d %b %Y');
+
+      // The 2025 challenge: 3km a day in January, one more every month
+      const targetFor = d => d.getFullYear() === 2025 ? d.getMonth() + 3 : null;
+
+      Promise.all(YEARS.map(y => fetch(`/x-km-per-day/data/running-data-${y}.json`).then(r => r.ok ? r.json() : null).catch(() => null)))
+        .then(files => {
+          // One bar per day; days with two runs are stacked
+          const byDay = new Map();
+          files.filter(Boolean).forEach(file => file.activities.forEach(a => {
+            const key = a.date.slice(0, 10);
+            const day = byDay.get(key) || { date: d3.timeParse('%Y-%m-%d')(key), runs: [] };
+            day.runs.push({ km: +a.distanceKm, time: +a.movingTime, elev: +a.totalElevationGain || 0 });
+            byDay.set(key, day);
+          }));
+          const days = [...byDay.values()].filter(d => d.date).sort((a, b) => a.date - b.date);
+          if (!days.length) throw new Error('no data');
+          days.forEach(d => {
+            d.km = d3.sum(d.runs, r => r.km);
+            d.time = d3.sum(d.runs, r => r.time);
+            d.elev = d3.sum(d.runs, r => r.elev);
+          });
+          draw(days);
+        })
+        .catch(() => {
+          svg.remove();
+          document.querySelector('.hint').remove();
+          document.body.insertAdjacentHTML('beforeend', '<p class="error">The running data could not be loaded right now.</p>');
+        });
+
+      function draw(days) {
+        const start = d3.timeDay.offset(days[0].date, -3);
+        const end = d3.timeDay.offset(days[days.length - 1].date, 4);
+        const x0 = d3.scaleTime().domain([start, end]);
+        const y = d3.scaleLinear().domain([0, Math.ceil(d3.max(days, d => d.km) / 5) * 5]).range([HEIGHT - M.bottom, M.top]);
+        let x = x0.copy();
+
+        const defs = svg.append('defs');
+        defs.append('clipPath').attr('id', 'clip').append('rect');
+        const grid = svg.append('g').attr('class', 'grid');
+        const plot = svg.append('g').attr('clip-path', 'url(#clip)');
+        const bars = plot.append('g').selectAll('rect').data(days).join('rect')
+          .attr('fill', d => d.date.getFullYear() === 2025 ? css('--run-2025') : css('--run-2026'))
+          .attr('rx', 1);
+        const target = plot.append('path').attr('fill', 'none').attr('stroke', css('--target')).attr('stroke-width', 1.5).attr('stroke-dasharray', '4 3');
+        const hover = plot.append('rect').attr('fill', 'rgba(255,255,255,0.08)').attr('visibility', 'hidden');
+        const xAxis = svg.append('g').attr('class', 'axis');
+        const yAxis = svg.append('g').attr('class', 'axis');
+
+        // Target steps for every day of 2025
+        const targetDays = d3.timeDay.range(new Date(2025, 0, 1), new Date(2026, 0, 1)).map(d => [d, targetFor(d)]);
+        targetDays.push([new Date(2026, 0, 1), 14]);
+        const targetLine = d3.line().curve(d3.curveStepAfter).x(d => x(d[0])).y(d => y(d[1]));
+
+        let width = 0;
+        function render() {
+          const dayW = Math.max(1, x(d3.timeDay.offset(start, 1)) - x(start));
+          const gap = dayW > 6 ? 1 : 0;
+          bars
+            .attr('x', d => x(d.date) + gap / 2)
+            .attr('width', Math.max(0.6, dayW - gap))
+            .attr('y', d => y(d.km))
+            .attr('height', d => y(0) - y(d.km));
+          target.attr('d', targetLine(targetDays));
+          xAxis.attr('transform', `translate(0,${HEIGHT - M.bottom})`).call(d3.axisBottom(x).ticks(Math.max(2, width / 90)).tickSizeOuter(0));
+        }
+
+        function layout() {
+          width = svg.node().clientWidth;
+          x0.range([M.left, width - M.right]);
+          x = zoomState.rescaleX(x0);
+          defs.select('#clip rect').attr('x', M.left).attr('y', 0).attr('width', width - M.left - M.right).attr('height', HEIGHT);
+          yAxis.attr('transform', `translate(${M.left},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(d => `${d}km`).tickSizeOuter(0));
+          grid.attr('transform', `translate(${M.left},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(width - M.left - M.right)).tickFormat(''));
+          zoom.extent([[M.left, 0], [width - M.right, HEIGHT]]).translateExtent([[M.left, 0], [width - M.right, HEIGHT]]);
+          render();
+        }
+
+        let zoomState = d3.zoomIdentity;
+        const zoom = d3.zoom()
+          .scaleExtent([1, 60])
+          .on('zoom', e => {
+            zoomState = e.transform;
+            x = zoomState.rescaleX(x0);
+            render();
+            if (e.sourceEvent) setPressed(null);
+          });
+        svg.call(zoom);
+
+        // Preset views
+        function show(view) {
+          const ranges = {
+            all: [start, end],
+            2025: [new Date(2024, 11, 29), new Date(2026, 0, 3)],
+            dec: [new Date(2025, 10, 30), new Date(2026, 0, 2)],
+            2026: [new Date(2025, 11, 29), end]
+          };
+          const [a, b] = ranges[view];
+          const k = (x0.range()[1] - x0.range()[0]) / (x0(b) - x0(a));
+          const t = d3.zoomIdentity.translate(x0.range()[0], 0).scale(k).translate(-x0(a), 0);
+          svg.transition().duration(650).call(zoom.transform, t);
+          setPressed(view);
+        }
+        function setPressed(view) {
+          document.querySelectorAll('.views button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === view));
+        }
+        document.querySelectorAll('.views button').forEach(b => b.addEventListener('click', () => show(b.dataset.view)));
+
+        // Tooltip for the day under the pointer
+        svg.on('pointermove', e => {
+          const [mx] = d3.pointer(e);
+          const day = d3.timeDay.floor(x.invert(mx));
+          const d = byKey.get(+day);
+          if (!d || mx < M.left || mx > width - M.right) { hideTip(); return; }
+          const dayW = Math.max(1, x(d3.timeDay.offset(day, 1)) - x(day));
+          hover.attr('visibility', 'visible').attr('x', x(day)).attr('width', dayW).attr('y', M.top).attr('height', HEIGHT - M.top - M.bottom);
+          const goal = targetFor(d.date);
+          tip.innerHTML =
+            `<b>${fmtDate(d.date)}</b><br>` +
+            `${d.km.toFixed(2)} km` + (d.runs.length > 1 ? ` <span class="sub">(${d.runs.length} runs)</span>` : '') + '<br>' +
+            `<span class="sub">${fmtTime(d.time)} · ${fmtPace(d.time / d.km)} · ${Math.round(d.elev)} m up</span>` +
+            (goal ? `<br><span class="sub">target ${goal} km</span>` : '');
+          const bw = tip.offsetWidth, bh = tip.offsetHeight;
+          tip.style.left = `${Math.min(window.innerWidth - bw - 4, Math.max(4, e.clientX + 12))}px`;
+          tip.style.top = `${Math.max(4, e.clientY - bh - 10)}px`;
+          tip.style.opacity = 1;
+        });
+        svg.on('pointerleave', hideTip);
+        function hideTip() {
+          hover.attr('visibility', 'hidden');
+          tip.style.opacity = 0;
+        }
+
+        const byKey = new Map(days.map(d => [+d.date, d]));
+        new ResizeObserver(layout).observe(svg.node());
+        layout();
+      }
+    })();
+  </script>
+</body>
+</html>
