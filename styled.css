@@ -168,33 +168,28 @@ a:hover {
 
 .char-stage {
     position: relative;
-    height: 260px;
-    margin: -4px -4px 14px;
-    border-radius: 10px;
-    background:
-        radial-gradient(ellipse at 50% 88%, rgba(76,175,80,0.22) 0%, rgba(76,175,80,0) 60%),
-        linear-gradient(180deg, #15151b 0%, #1f2522 100%);
-    border: 1px solid rgba(255,255,255,0.06);
+    width: 240px;
+    height: 180px;
+    margin: 0 auto 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
     overflow: hidden;
+    background: #1c1f26;
 }
 
 .char-hero {
-    position: absolute;
-    left: 50%;
-    bottom: 24px;
-    width: 104px;
-    height: 184px;
-    margin-left: -52px;
+    display: block;
+    width: 100%;
+    height: 100%;
     padding: 0;
     background: none;
     border: none;
     cursor: pointer;
-    z-index: 1;
 }
 
 .char-hero:focus-visible {
     outline: 2px dashed #4CAF50;
-    outline-offset: 4px;
+    outline-offset: -4px;
 }
 
 .char-hero canvas {
@@ -204,20 +199,40 @@ a:hover {
     image-rendering: pixelated;
 }
 
-.char-hero.hop {
-    animation: charHop 0.45s cubic-bezier(0.3, 0.7, 0.4, 1);
+.char-scenes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 16px;
 }
 
-.char-shadow {
-    position: absolute;
-    left: 50%;
-    bottom: 20px;
-    width: 76px;
-    height: 12px;
-    margin-left: -38px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.5);
-    animation: charBreath 1.3s steps(2) infinite;
+.char-scene {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 7px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    color: #aaa;
+    font-family: inherit;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.char-scene:hover,
+.char-scene:focus-visible {
+    border-color: #4CAF50;
+    color: #ffffff;
+    outline: none;
+}
+
+.char-scene[aria-pressed="true"] {
+    border-color: #4CAF50;
+    background: rgba(76,175,80,0.14);
+    color: #ffffff;
 }
 
 .char-bubble {
@@ -352,23 +367,6 @@ a:hover {
     color: #f0e0c0;
 }
 
-@keyframes charHop {
-    0%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-18px); }
-}
-
-@keyframes charBreath {
-    from { transform: scaleX(1); }
-    to { transform: scaleX(0.94); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .char-shadow,
-    .char-hero.hop {
-        animation: none;
-    }
-}
-
 @media (max-width: 860px) {
     .me-layout {
         grid-template-columns: minmax(0, 1fr);
@@ -376,6 +374,11 @@ a:hover {
 
     .char-card {
         position: static;
+    }
+
+    .char-stage {
+        width: 288px;
+        height: 216px;
     }
 }
 
