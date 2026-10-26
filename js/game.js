@@ -1170,12 +1170,21 @@
   overlayClose.addEventListener('click', closeLore);
   overlay.addEventListener('pointerdown', e => { if (e.target === overlay) closeLore(); });
 
-  fetch('rooms.json')
-    .then(r => r.json())
-    .then(data => {
-      buildDungeon(data);
-      renderCodex();
-      resize();
-      requestAnimationFrame(frame);
-    });
+  // Phones, tablets and touch screens get the text version instead (see style.css)
+  const textOnly = window.matchMedia('(max-width: 1032px), (hover: none) and (pointer: coarse)');
+  let started = false;
+  function start() {
+    if (started || textOnly.matches) return;
+    started = true;
+    fetch('rooms.json')
+      .then(r => r.json())
+      .then(data => {
+        buildDungeon(data);
+        renderCodex();
+        resize();
+        requestAnimationFrame(frame);
+      });
+  }
+  textOnly.addEventListener('change', start);
+  start();
 })();

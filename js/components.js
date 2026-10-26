@@ -1,78 +1,71 @@
-// Component loader for header, menu, and footer
-async function loadComponent(elementId, componentPath) {
+// Component loader for the shared site header and footer.
+// Also used by /x-km-per-day/ (the Running section), so paths are absolute.
+async function fetchComponent(componentPath) {
     try {
         const response = await fetch(componentPath);
-        const content = await response.text();
-        document.getElementById(elementId).innerHTML = content;
+        return response.ok ? await response.text() : '';
     } catch (error) {
         console.error(`Error loading component ${componentPath}:`, error);
+        return '';
     }
+}
+
+async function loadComponent(elementId, componentPaths) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    const parts = await Promise.all(componentPaths.map(fetchComponent));
+    element.innerHTML = parts.join('');
 }
 
 // Load commit hash from a generated file or use a fallback
 async function loadCommitHash() {
+    const commitHashElement = document.getElementById('commit-hash');
+    if (!commitHashElement) return;
     try {
-        const response = await fetch('./commit-hash.txt');
+        const response = await fetch('/commit-hash.txt');
         const hash = await response.text();
-        const commitHashElement = document.getElementById('commit-hash');
-        if (commitHashElement) {
-            commitHashElement.textContent = hash.trim();
-        }
+        commitHashElement.textContent = hash.trim();
     } catch (error) {
         console.log('Could not load commit hash, using fallback');
-        const commitHashElement = document.getElementById('commit-hash');
-        if (commitHashElement) {
-            commitHashElement.textContent = 'dev';
-        }
+        commitHashElement.textContent = 'dev';
     }
 }
 
 // Load all components when the page loads
 async function loadAllComponents() {
     await Promise.all([
-        loadComponent('header-placeholder', './components/header.html'),
-        loadComponent('menu-placeholder', './components/menu.html'),
-        loadComponent('footer-placeholder', './components/footer.html')
+        loadComponent('site-header', ['/components/header.html', '/components/menu.html']),
+        loadComponent('footer-placeholder', ['/components/footer.html'])
     ]);
-    
+
     // Load commit hash after footer is loaded
     await loadCommitHash();
 }
 
-// Update menu selection based on current page
+// Work out which section the current page belongs to
+function currentSection() {
+    const path = window.location.pathname;
+    if (path.startsWith('/x-km-per-day')) return 'running';
+    const page = path.split('/').pop() || 'index.html';
+    if (page === 'me.html') return 'me';
+    if (page === 'game.html') return 'techjourney';
+    return 'blog';
+}
+
+// Highlight the current section in the menu
 function updateMenuSelection() {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    
-    // Wait a bit for DOM to be ready
-    setTimeout(() => {
-        // Remove selected class from all menu items
-        document.querySelectorAll('.menubar a').forEach(item => {
-            item.classList.remove('selected');
-            item.classList.add('unselected');
-        });
-        
-        // Add selected class based on current page
-        if (currentPage === 'index.html' || currentPage === '') {
-            const blogElement = document.querySelector('[identifier="blog"]');
-            if (blogElement) {
-                blogElement.classList.replace('unselected', 'selected');
-            }
-        } else if (currentPage === 'me.html') {
-            const meElement = document.querySelector('[identifier="me"]');
-            if (meElement) {
-                meElement.classList.replace('unselected', 'selected');
-            }
-        } else if (currentPage === 'game.html') {
-            const techElement = document.querySelector('[identifier="techjourney"]');
-            if (techElement) {
-                techElement.classList.replace('unselected', 'selected');
-            }
+    const section = currentSection();
+    document.querySelectorAll('.site-nav a').forEach(item => {
+        if (item.dataset.section === section) {
+            item.setAttribute('aria-current', 'page');
+        } else {
+            item.removeAttribute('aria-current');
         }
-    }, 100);
+    });
 }
 
 // Initialize components
 document.addEventListener('DOMContentLoaded', async function() {
     await loadAllComponents();
     updateMenuSelection();
-}); 
+});

@@ -1,20 +1,17 @@
-$(document).ready(function() {
-    console.log("jq loaded");
-    
-    function hideall() {
-        $(".content-section").removeClass("active").hide();
-        $(".btn").removeClass("active");
-    }
-    
-    hideall();
-    $(".content-section.kingho").addClass("active").show();
-    $(".btn[t='kingho']").addClass("active");
-    
-    $(".btn").on("click", function() {
-        hideall();
-        const target = $(this).attr("t");
-        console.log(target);
-        $(".content-section." + target).addClass("active").show();
-        $(this).addClass("active");
+// Text version of TechJourney for phones, tablets and touch screens
+document.addEventListener('DOMContentLoaded', () => {
+  const tabs = document.querySelectorAll('.mobile-tab');
+  const sections = document.querySelectorAll('.content-section');
+
+  function show(target) {
+    tabs.forEach(tab => {
+      const on = tab.dataset.t === target;
+      tab.classList.toggle('active', on);
+      tab.setAttribute('aria-pressed', on);
     });
+    sections.forEach(section => section.classList.toggle('active', section.classList.contains(target)));
+  }
+
+  tabs.forEach(tab => tab.addEventListener('click', () => show(tab.dataset.t)));
+  show('kingho');
 });
