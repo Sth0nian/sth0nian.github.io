@@ -21,12 +21,16 @@
   const teleportButton = document.getElementById('teleportEnd');
   const replayButton = document.getElementById('replayStory');
   const newsCard = document.getElementById('newsCard');
+  const wardrobe = document.getElementById('wardrobe');
+  const wardrobeButton = document.getElementById('wardrobeOpen');
   const wingsLog = document.getElementById('wingsLog');
   const fog = document.createElement('canvas');
   const fctx = fog.getContext('2d');
 
   const loadImage = src => { const i = new Image(); i.src = src; return i; };
   const heroSheet = loadImage('./img/player.png'); // 4 frames of 13x22, facing right
+  // The hero as actually drawn: player.png recoloured to the chosen look, with room above for hats
+  const heroCanvas = document.createElement('canvas');
   const foeSheet = loadImage('./img/enemy.png');   // 2 frames of 13x24, facing left
 
   // Tile / projection constants
@@ -79,10 +83,117 @@
   }
 
   const save = Object.assign({
+    look: null,
     read: [], broken: [], chest: false, key: false, kills: 0, explored: '',
     best: 0, runs: 0, deepKills: 0, wingsMuted: false
   }, loadJSON(SAVE_KEY));
   const persist = () => storeJSON(SAVE_KEY, save);
+
+  // ---------- The hero's look (unlocked with the key) ----------
+
+  const HEAD_ROOM = 6;
+  const HERO_W = 13, HERO_H = 22 + HEAD_ROOM;
+  const HEAD_DROP = [0, 1, 0, 1]; // frames 1 and 3 sit a pixel lower
+
+  // Each option recolours a pair of the sprite's palette entries: [main, shade]
+  const LOOKS = {
+    hair: {
+      label: 'Hair', original: ['6a4834', '432e27'], options: [
+        { id: 'brown', name: 'Brown', c: ['#6a4834', '#432e27'] },
+        { id: 'black', name: 'Black', c: ['#2b2b33', '#141418'] },
+        { id: 'blonde', name: 'Blonde', c: ['#e3c16f', '#a8843f'] },
+        { id: 'ginger', name: 'Ginger', c: ['#c8642c', '#8a3f17'] },
+        { id: 'grey', name: 'Grey', c: ['#b8b8c0', '#7c7c88'] },
+        { id: 'blue', name: 'Blue', c: ['#4f7fe0', '#2c4f9e'] },
+        { id: 'pink', name: 'Pink', c: ['#e57ab4', '#a3477c'] }
+      ]
+    },
+    skin: {
+      label: 'Skin', original: ['e8d4b2', 'bfa787'], options: [
+        { id: 's1', name: 'Light', c: ['#e8d4b2', '#bfa787'] },
+        { id: 's2', name: 'Fair', c: ['#f1c9a5', '#c99a76'] },
+        { id: 's3', name: 'Medium', c: ['#d9a679', '#a87a52'] },
+        { id: 's4', name: 'Tan', c: ['#b5784e', '#8a5634'] },
+        { id: 's5', name: 'Brown', c: ['#8d5a3b', '#663f27'] },
+        { id: 's6', name: 'Dark', c: ['#5c3a28', '#3f2619'] }
+      ]
+    },
+    shirt: {
+      label: 'Shirt', original: ['c43c3c', '882e2e'], options: [
+        { id: 'red', name: 'Red', c: ['#c43c3c', '#882e2e'] },
+        { id: 'green', name: 'Green', c: ['#3fb860', '#257a3c'] },
+        { id: 'blue', name: 'Blue', c: ['#3f78c4', '#294f88'] },
+        { id: 'purple', name: 'Purple', c: ['#8a55d4', '#5c3591'] },
+        { id: 'orange', name: 'Orange', c: ['#e8822c', '#a8561a'] },
+        { id: 'white', name: 'White', c: ['#e9e9ee', '#a9a9b6'] },
+        { id: 'black', name: 'Black', c: ['#3a3a44', '#22222a'] }
+      ]
+    },
+    pants: {
+      label: 'Trousers', original: ['65659b', '5586b9'], options: [
+        { id: 'indigo', name: 'Indigo', c: ['#65659b', '#5586b9'] },
+        { id: 'denim', name: 'Denim', c: ['#3e5f8f', '#5b82b8'] },
+        { id: 'black', name: 'Black', c: ['#2e2e36', '#4a4a56'] },
+        { id: 'khaki', name: 'Khaki', c: ['#a08a5c', '#c2ab79'] },
+        { id: 'grey', name: 'Grey', c: ['#76767f', '#9a9aa4'] }
+      ]
+    }
+  };
+
+  // Hats in sprite coordinates of an upright frame: rows may start above the head (negative)
+  const HATS = [
+    { id: 'none', name: 'None' },
+    { id: 'cap', name: 'Cap', top: -1, rows: ['....CCCCC....', '...CXXXXXC...', '..CXXXXXXXC..', '..CCCCCCCCCCC'], colors: { X: '#3f78c4' } },
+    { id: 'beanie', name: 'Beanie', top: -2, rows: ['.....CCC.....', '...CXXXXXC...', '..CXXXXXXXC..', '..CRRRRRRRRC.'], colors: { X: '#c43c3c', R: '#e9e9ee' } },
+    { id: 'headphones', name: 'Headphones', top: 0, rows: ['....CCCCCC...', '...C.........', '...C.........', '...C.........', '...C.........', '..CXXC.......', '..CXXC.......', '..CXXC.......', '...CC........'], colors: { X: '#ff4d6d' } },
+    { id: 'crown', name: 'Crown', top: -2, rows: ['....Y.Y.Y.Y..', '....YYYYYYY..', '....OROOOOO..'], colors: { Y: '#ffd166', O: '#c9971f', R: '#e2384d' } },
+    { id: 'wizard', name: 'Wizard', top: -5, rows: ['........P....', '.......PP....', '......PPP....', '.....PPSPP...', '....PPPPPP...', '...PPPPPPPP..', '..LLLLLLLLLL.'], colors: { P: '#6a3fb5', S: '#ffd166', L: '#4a2a80' } }
+  ];
+
+  const DEFAULT_LOOK = { hair: 'brown', skin: 's1', shirt: 'red', pants: 'indigo', hat: 'none' };
+  const look = () => ({ ...DEFAULT_LOOK, ...(save.look || {}) });
+  const hexOf = (r, g, b) => [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+
+  // Recolour player.png to the current look and draw the hat on every frame
+  function buildHero(target = heroCanvas, l = look()) {
+    if (!heroSheet.complete || !heroSheet.naturalWidth) return;
+    target.width = HERO_W * 4;
+    target.height = HERO_H;
+    const c = target.getContext('2d');
+    c.clearRect(0, 0, target.width, target.height);
+    c.drawImage(heroSheet, 0, HEAD_ROOM);
+    const img = c.getImageData(0, 0, target.width, target.height);
+    const map = {};
+    Object.entries(LOOKS).forEach(([key, group]) => {
+      const opt = group.options.find(o => o.id === l[key]) || group.options[0];
+      group.original.forEach((hex, i) => { map[hex] = hexToRgb(opt.c[i]); });
+    });
+    for (let i = 0; i < img.data.length; i += 4) {
+      if (!img.data[i + 3]) continue;
+      const hex = hexOf(img.data[i], img.data[i + 1], img.data[i + 2]);
+      const to = map[hex];
+      if (!to) continue;
+      // The darkest brown is hair on the head but boots and belt below it
+      const px = (i / 4) % target.width, py = Math.floor(i / 4 / target.width);
+      if (hex === '432e27' && py - HEAD_ROOM >= 13 + HEAD_DROP[Math.floor(px / HERO_W)]) continue;
+      img.data[i] = to[0]; img.data[i + 1] = to[1]; img.data[i + 2] = to[2];
+    }
+    c.putImageData(img, 0, 0);
+
+    const hat = HATS.find(h => h.id === l.hat);
+    if (hat && hat.rows) {
+      for (let f = 0; f < 4; f++) {
+        hat.rows.forEach((row, r) => {
+          [...row].forEach((ch, col) => {
+            if (ch === '.') return;
+            c.fillStyle = ch === 'C' ? '#171717' : hat.colors[ch];
+            c.fillRect(f * HERO_W + col, HEAD_ROOM + hat.top + r + HEAD_DROP[f] + 1, 1, 1);
+          });
+        });
+      }
+    }
+  }
+  heroSheet.addEventListener('load', () => buildHero());
 
   // ---------- World state ----------
 
@@ -130,6 +241,8 @@
   let repath = 0;
   let kills = save.kills;
   let paused = null;
+  let wardrobeOpen = false;
+  let wardrobeDue = 0;
   let strikeOnArrive = null;
   let currentRoom = -1;
   let banner = null;
@@ -852,6 +965,7 @@
     renderCodex();
     ensureNews();
     wingsSay(LINES.intro, 3);
+    wardrobeDue = time + 3.5;
   }
 
   function renderCodex() {
@@ -905,7 +1019,7 @@
 
     settings.hidden = !save.key && !save.read.length;
     wingsToggle.closest('label').hidden = !save.key;
-    teleportButton.hidden = replayButton.hidden = !save.key;
+    teleportButton.hidden = replayButton.hidden = wardrobeButton.hidden = !save.key;
     wingsToggle.checked = !save.wingsMuted;
   }
 
@@ -955,6 +1069,12 @@
     up: ['Back up to depth {d}. Exactly as you left it. Cached, not fresh.', 'Depth {d} again. Nostalgic already?'],
     back: ['Depth {d}, straight from the cache.', 'Oh, depth {d}. We have been here. I remember the smell.'],
     gc: ['Memory pressure! The garbage collector just evicted depth {d}. Hope you did not leave anything there.', 'GC pause. Depth {d} is gone. It will come back, but it will not remember you.'],
+    outfit: [
+      'New look. Bold. I would not have chosen it, but I am a bat.',
+      'Ooh, fancy. The bugs will be very impressed. They will still bite you.',
+      'Nice outfit. Shame about the swordsmanship.',
+      'Dressed for success. Or at least for depth 3.'
+    ],
     weapon: {
       sword: ['The Sword. Classic. Reliable. A bit 2019.'],
       cleaver: ['The Cleaver. Wide arc, slow swing. Refactoring by force.'],
@@ -1159,6 +1279,108 @@
     if (wings.state === 'out' && (wings.t += dt) > 1.8) wings.state = 'away';
   }
 
+  // ---------- Wardrobe ----------
+
+  const preview = document.getElementById('wardrobePreview');
+  const previewHero = document.createElement('canvas');
+  let draftLook = null;
+  let previewStart = 0;
+
+  function openWardrobe(first) {
+    if (paused || wardrobeOpen) return;
+    wardrobeOpen = true;
+    draftLook = look();
+    document.getElementById('wardrobeSub').textContent = first
+      ? 'The story is done. Before you descend, make the hero yours.'
+      : 'Change your look. Wings will judge you either way.';
+    renderWardrobe();
+    wardrobe.hidden = false;
+    Object.keys(keys).forEach(k => { keys[k] = false; });
+    previewStart = performance.now();
+    requestAnimationFrame(drawPreview);
+    document.getElementById('wardrobeDone').focus({ preventScroll: true });
+  }
+
+  function closeWardrobe() {
+    if (!wardrobeOpen) return;
+    wardrobeOpen = false;
+    wardrobe.hidden = true;
+    const changed = JSON.stringify(draftLook) !== JSON.stringify(look());
+    save.look = draftLook;
+    persist();
+    buildHero();
+    if (changed) {
+      burst(player.x, player.y, 30, '#ffd166', 24, 3);
+      wingsSay(pick(LINES.outfit), 2);
+    }
+    canvas.focus({ preventScroll: true });
+  }
+
+  function renderWardrobe() {
+    const box = document.getElementById('wardrobeOptions');
+    box.innerHTML = '';
+    const group = (label, items, key, swatch) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'wardrobe-group';
+      wrap.innerHTML = `<h4>${label}</h4>`;
+      const row = document.createElement('div');
+      row.className = 'wardrobe-row';
+      row.setAttribute('role', 'group');
+      row.setAttribute('aria-label', label);
+      items.forEach(o => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = swatch ? 'wardrobe-swatch' : 'wardrobe-chip';
+        b.setAttribute('aria-pressed', draftLook[key] === o.id);
+        b.setAttribute('aria-label', `${label}: ${o.name}`);
+        b.title = o.name;
+        if (swatch) b.style.setProperty('--swatch', o.c[0]);
+        else b.textContent = o.name;
+        b.addEventListener('click', () => {
+          draftLook = { ...draftLook, [key]: o.id };
+          renderWardrobe();
+          previewStart = performance.now();
+          box.querySelector(`[aria-label="${label}: ${o.name}"]`).focus();
+        });
+        row.appendChild(b);
+      });
+      wrap.appendChild(row);
+      box.appendChild(wrap);
+    };
+    Object.entries(LOOKS).forEach(([key, g]) => group(g.label, g.options, key, true));
+    group('Headwear', HATS, 'hat', false);
+    buildHero(previewHero, draftLook);
+  }
+
+  // Idle, then a little walk, so the whole outfit can be seen moving
+  function drawPreview(now) {
+    if (!wardrobeOpen) return;
+    const c = preview.getContext('2d');
+    c.clearRect(0, 0, preview.width, preview.height);
+    c.fillStyle = 'rgba(0,0,0,0.35)';
+    c.fillRect(2, preview.height - 2, 11, 1);
+    const t = (now - previewStart) / 1000;
+    const walking = t % 4 > 2.6;
+    const frame = walking ? Math.floor(t * 9) % 3 : 3;
+    const hop = t < 0.3 ? Math.round(2 * Math.sin(Math.PI * t / 0.3)) : 0;
+    const flip = walking && Math.floor(t / 4) % 2 === 1;
+    c.save();
+    if (flip) { c.translate(preview.width, 0); c.scale(-1, 1); }
+    c.drawImage(previewHero, frame * HERO_W, 0, HERO_W, HERO_H, 1, preview.height - HERO_H - 1 - hop, HERO_W, HERO_H);
+    c.restore();
+    requestAnimationFrame(drawPreview);
+  }
+
+  function randomLook() {
+    const r = list => list[Math.floor(Math.random() * list.length)].id;
+    draftLook = {
+      hair: r(LOOKS.hair.options), skin: r(LOOKS.skin.options), shirt: r(LOOKS.shirt.options),
+      pants: r(LOOKS.pants.options), hat: r(HATS)
+    };
+    renderWardrobe();
+    previewStart = performance.now();
+  }
+
   // ---------- Update ----------
 
   const held = (...ks) => ks.some(k => keys[k]);
@@ -1213,6 +1435,10 @@
     if (strikeOnArrive && !path && repath <= 0 && !player.dead) {
       if (shrineInReach() === strikeOnArrive) attack();
       strikeOnArrive = null;
+    }
+    if (wardrobeDue && time > wardrobeDue && !paused && !player.dead) {
+      wardrobeDue = 0;
+      openWardrobe(true);
     }
     if (chest && chest.open > 0 && chest.open < 1) {
       chest.open = Math.min(1, chest.open + dt * 2.5);
@@ -1645,7 +1871,7 @@
   }
 
   function drawSprite(sheet, frame, fw, fh, scale, x, y, flip, filter) {
-    if (!sheet.complete || !sheet.naturalWidth) return;
+    if (sheet instanceof HTMLImageElement && (!sheet.complete || !sheet.naturalWidth)) return;
     const [sx, sy] = iso(x, y);
     const w = fw * scale, h = fh * scale;
     ctx.save();
@@ -1661,7 +1887,7 @@
     if (player.inv > 0 && Math.floor(player.inv * 12) % 2) return;
     drawShadow(player.x, player.y, 15);
     const frame = player.moving ? Math.floor(player.anim) % 3 : 3;
-    drawSprite(heroSheet, frame, 13, 22, 2.7, player.x, player.y, !player.faceRight);
+    drawSprite(heroCanvas, frame, HERO_W, HERO_H, 2.7, player.x, player.y, !player.faceRight);
 
     if (player.swing > 0) {
       const [sx, sy] = iso(player.x, player.y, 26);
@@ -2325,7 +2551,7 @@
     last = now;
     if (canvas.clientWidth !== W || canvas.clientHeight !== H) resize();
     if (W > 0) {
-      if (!paused) update(dt);
+      if (!paused && !wardrobeOpen) update(dt);
       render();
     }
     requestAnimationFrame(frame);
@@ -2337,6 +2563,10 @@
   document.addEventListener('keydown', e => {
     if (typing(e) || !canvas.clientWidth) return;
     const k = e.key.toLowerCase();
+    if (wardrobeOpen) {
+      if (k === 'escape') { e.preventDefault(); closeWardrobe(); }
+      return;
+    }
     if (paused) {
       if (['escape', 'enter', ' ', 'e'].includes(k)) {
         e.preventDefault();
@@ -2431,6 +2661,16 @@
     wingsSay('From the top? Bold. I will pretend I have not seen this bit before.', 3);
     canvas.focus({ preventScroll: true });
   });
+
+  wardrobeButton.addEventListener('click', () => openWardrobe(false));
+  document.getElementById('wardrobeDone').addEventListener('click', closeWardrobe);
+  document.getElementById('wardrobeRandom').addEventListener('click', randomLook);
+  document.getElementById('wardrobeReset').addEventListener('click', () => {
+    draftLook = { ...DEFAULT_LOOK };
+    renderWardrobe();
+    previewStart = performance.now();
+  });
+  wardrobe.addEventListener('pointerdown', e => { if (e.target === wardrobe) closeWardrobe(); });
 
   newsCard.querySelector('.news-close').addEventListener('click', () => {
     hideNewsCard();

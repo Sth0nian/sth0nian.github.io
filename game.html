@@ -48,6 +48,7 @@
         <ol id="codexList" class="codex-list"></ol>
         <div id="codexSettings" class="codex-settings" hidden>
           <label><input type="checkbox" id="wingsToggle" checked> Wings the bat</label>
+          <button type="button" id="wardrobeOpen" class="codex-reset" hidden>Wardrobe</button>
           <button type="button" id="teleportEnd" class="codex-reset" hidden>Teleport to the end</button>
           <button type="button" id="replayStory" class="codex-reset" hidden>Replay from the start</button>
           <button type="button" id="resetSave" class="codex-reset">Reset progress</button>
@@ -58,6 +59,21 @@
           <div class="lore-body">These halls hold the story of my tech journey. Each chamber guards a glowing <b>shrine</b>, and each shrine holds one chapter.<br><br><b>Strike a shrine</b> to shatter it and reveal its chapter. The game pauses while you read.<br><br>Short on time? Click a chapter in the codex and your hero will walk there and strike it for you. Click a chapter you've already read to read it again.<br><br>Rumour has it the chest at the end holds more than a thank-you. Your progress is saved in this browser.</div>
         </div>
       </aside>
+    </div>
+
+    <div id="wardrobe" class="lore-overlay wardrobe" hidden>
+      <article class="lore-card wardrobe-card" role="dialog" aria-modal="true" aria-labelledby="wardrobeTitle">
+        <header class="lore-head"><span class="lore-sigil"></span><div><h3 id="wardrobeTitle">Wardrobe</h3><small id="wardrobeSub"></small></div></header>
+        <div class="wardrobe-body">
+          <div class="wardrobe-stage"><canvas id="wardrobePreview" width="15" height="30" aria-label="Preview of your hero"></canvas></div>
+          <div id="wardrobeOptions" class="wardrobe-options"></div>
+        </div>
+        <footer class="lore-foot wardrobe-foot">
+          <button type="button" id="wardrobeRandom" class="lore-close">Randomise</button>
+          <button type="button" id="wardrobeReset" class="lore-close">Reset</button>
+          <button type="button" id="wardrobeDone" class="lore-close">Done <kbd>Esc</kbd></button>
+        </footer>
+      </article>
     </div>
 
     <div id="mobileContent">

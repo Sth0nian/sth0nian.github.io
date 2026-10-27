@@ -386,6 +386,106 @@ kbd {
   outline: none;
 }
 
+/* Wardrobe: hero customisation, unlocked with the key */
+.wardrobe {
+  --accent: #ffd166;
+}
+
+.wardrobe-card {
+  max-width: 760px;
+}
+
+.wardrobe-body {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 24px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.wardrobe-stage {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 18px 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background:
+    radial-gradient(ellipse at 50% 85%, rgba(255,209,102,0.22), rgba(255,209,102,0) 60%),
+    linear-gradient(180deg, #15141d 0%, #221f2c 100%);
+}
+
+#wardrobePreview {
+  width: 150px;
+  height: 300px;
+  image-rendering: pixelated;
+}
+
+.wardrobe-group + .wardrobe-group {
+  margin-top: 14px;
+}
+
+.wardrobe-group h4 {
+  margin: 0 0 6px;
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.75em;
+  font-weight: normal;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #8f8aa3;
+}
+
+.wardrobe-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wardrobe-swatch {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  background: var(--swatch);
+  box-shadow: inset 0 -6px 0 rgba(0,0,0,0.25);
+  cursor: pointer;
+}
+
+.wardrobe-chip {
+  padding: 5px 10px;
+  border: 2px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.03);
+  color: #b8b2c9;
+  font-family: 'Kode', monospace;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+.wardrobe-swatch:hover,
+.wardrobe-chip:hover,
+.wardrobe-swatch:focus-visible,
+.wardrobe-chip:focus-visible {
+  border-color: rgba(255,255,255,0.5);
+  outline: none;
+}
+
+.wardrobe-swatch[aria-pressed="true"],
+.wardrobe-chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(255,209,102,0.35), inset 0 -6px 0 rgba(0,0,0,0.25);
+}
+
+.wardrobe-chip[aria-pressed="true"] {
+  color: #ffffff;
+  background: rgba(255,209,102,0.12);
+}
+
+.wardrobe-foot {
+  gap: 10px;
+}
+
 /* Lore overlay shown over the paused game */
 .dungeon-screen {
   position: relative;
