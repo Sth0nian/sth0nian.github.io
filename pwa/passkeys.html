@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e1013" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PWA Lab" />
+    <meta name="description" content="WebAuthn passkey registration, sign-in and autofill (conditional UI)." />
+    <title>Passkeys · PWA Lab</title>
+    <link rel="manifest" href="/pwa/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/pwa/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/pwa/icons/icon-180.png" />
+    <link rel="stylesheet" href="/styled.css" />
+    <link rel="stylesheet" href="/site-header.css" />
+    <link rel="stylesheet" href="/pwa/pwa.css" />
+  </head>
+  <body class="lab">
+    <header class="site-header">
+      <div class="wrap">
+        <a href="/pwa/" class="brand"><span class="brand-mark">~/</span>pwa-lab</a>
+        <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <a class="back" href="/pwa/">← All labs</a>
+      <section class="page-intro">
+        <p class="eyebrow">Lab 10</p>
+        <h1 class="page-title">Passkeys</h1>
+        <p class="lede">Create and use a passkey with Face ID or Touch ID, entirely in the browser.</p>
+      </section>
+
+      <p class="note warn">
+        <strong>Demo only.</strong> There's no server, so nothing checks the signatures: this tests the OS flows,
+        not real security. Passkeys you create here are saved to your iCloud Keychain for
+        <strong>sth0nian.github.io</strong>. Remove them in Settings → Passwords.
+      </p>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">🔍</span> Support</h2>
+        <dl class="kv" id="support"></dl>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">🆕</span> Create a passkey</h2>
+        <label class="field">Username<input type="text" id="username" name="username" autocomplete="username webauthn" placeholder="e.g. king" /></label>
+        <p class="muted small" style="margin-top: 8px">If you already have a passkey here, it's offered as autofill when you tap this field.</p>
+        <div class="button-row">
+          <button type="button" class="button" id="register">Create passkey</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">🔓</span> Sign in</h2>
+        <p class="big-number" id="who" style="font-size: 1.6rem">Signed out</p>
+        <div class="button-row">
+          <button type="button" class="button" id="signin">Sign in with a passkey</button>
+          <button type="button" class="button secondary" id="signout">Sign out</button>
+        </div>
+        <h3>Passkeys created on this device</h3>
+        <ul class="features" id="creds"></ul>
+        <div class="button-row">
+          <button type="button" class="button danger" id="forget">Forget the list</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">📜</span> Events</h2>
+        <div class="log" id="log"></div>
+      </section>
+    </main>
+
+    <footer id="footer-placeholder" class="site-footer"></footer>
+
+    <script src="/js/components.js"></script>
+    <script src="/pwa/lab.js"></script>
+    <script src="/pwa/js/passkeys.js"></script>
+  </body>
+</html>

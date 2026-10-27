@@ -53,3 +53,10 @@ node scripts/generate-articles.js
 ```
 
 This will regenerate the `articles.js` file from your markdown files. 
+## PWA Lab
+
+`pwa/` is a self-contained progressive web app for testing what PWAs can do on iOS. It has its own manifest, service worker (scope `/pwa/`) and icons, so it installs separately from the blog via Share → Add to Home Screen.
+
+- `pwa/index.html` runs live capability checks (defined in `pwa/features.js`) and can copy a report.
+- Each lab page (`pwa/<lab>.html` + `pwa/js/<lab>.js`) exercises one area: install, offline, notifications and badge, camera, motion and location, wake lock, speech, storage, share and clipboard, passkeys, Apple Pay, view transitions and graphics.
+- After changing any lab file, bump `VERSION` in `pwa/sw.js` so installed copies pick up the update.

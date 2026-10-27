@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e1013" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PWA Lab" />
+    <meta name="description" content="Notification permission, local notifications and the app icon badge." />
+    <title>Notifications · PWA Lab</title>
+    <link rel="manifest" href="/pwa/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/pwa/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/pwa/icons/icon-180.png" />
+    <link rel="stylesheet" href="/styled.css" />
+    <link rel="stylesheet" href="/site-header.css" />
+    <link rel="stylesheet" href="/pwa/pwa.css" />
+  </head>
+  <body class="lab">
+    <header class="site-header">
+      <div class="wrap">
+        <a href="/pwa/" class="brand"><span class="brand-mark">~/</span>pwa-lab</a>
+        <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <a class="back" href="/pwa/">← All labs</a>
+      <section class="page-intro">
+        <p class="eyebrow">Lab 03</p>
+        <h1 class="page-title">Notifications & badge</h1>
+        <p class="lede">Local notifications shown by the service worker, and the number on the app icon.</p>
+      </section>
+
+            <p class="note warn only-browser">
+              <strong>Install to test.</strong> Notifications and the app badge only exist in the installed app on iOS.
+              Tap <strong>Share</strong> → <strong>Add to Home Screen</strong>, then open PWA Lab from your home screen.
+            </p>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">🔔</span> Permission</h2>
+          <span id="permission"></span>
+        </div>
+        <p class="muted small">iOS only shows the prompt in response to a tap, and only asks once. If you deny it,
+        re-enable it in Settings → Notifications → PWA Lab.</p>
+        <div class="button-row">
+          <button type="button" class="button" id="request">Ask for permission</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">✉️</span> Send a local notification</h2>
+        <div class="field-row">
+          <label class="field">Title<input type="text" id="nTitle" value="Hello from PWA Lab" /></label>
+          <label class="field">Delay
+            <select id="nDelay">
+              <option value="0">Now</option>
+              <option value="5">In 5 seconds</option>
+              <option value="15">In 15 seconds</option>
+            </select>
+          </label>
+        </div>
+        <label class="field">Body<input type="text" id="nBody" value="Tap me to jump back into the lab." /></label>
+        <label class="check"><input type="checkbox" id="nSameTag" /> Replace the previous one (same tag)</label>
+        <div class="button-row">
+          <button type="button" class="button" id="send">Send notification</button>
+        </div>
+        <p class="note" style="margin-top: 16px">Delays use a timer inside the page. iOS pauses the app soon after you leave it,
+        so a delayed notification may only arrive when you come back. Reliable scheduled notifications need Web Push.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">🔴</span> App icon badge</h2>
+          <span id="badgeStatus"></span>
+        </div>
+        <p class="muted small">Sets the red number on the home screen icon. Needs notification permission.</p>
+        <label class="field">Count<input type="number" id="badgeCount" value="3" min="0" max="999" inputmode="numeric" /></label>
+        <div class="button-row">
+          <button type="button" class="button" id="setBadge">Set badge</button>
+          <button type="button" class="button secondary" id="bumpBadge">+1</button>
+          <button type="button" class="button secondary" id="clearBadge">Clear</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">📜</span> Events</h2>
+        <div class="log" id="log"></div>
+      </section>
+    </main>
+
+    <footer id="footer-placeholder" class="site-footer"></footer>
+
+    <script src="/js/components.js"></script>
+    <script src="/pwa/lab.js"></script>
+    <script src="/pwa/js/notifications.js"></script>
+  </body>
+</html>

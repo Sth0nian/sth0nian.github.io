@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e1013" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PWA Lab" />
+    <meta name="description" content="Web Share API with files, and the async clipboard for text and images." />
+    <title>Share & clipboard · PWA Lab</title>
+    <link rel="manifest" href="/pwa/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/pwa/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/pwa/icons/icon-180.png" />
+    <link rel="stylesheet" href="/styled.css" />
+    <link rel="stylesheet" href="/site-header.css" />
+    <link rel="stylesheet" href="/pwa/pwa.css" />
+  </head>
+  <body class="lab">
+    <header class="site-header">
+      <div class="wrap">
+        <a href="/pwa/" class="brand"><span class="brand-mark">~/</span>pwa-lab</a>
+        <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <a class="back" href="/pwa/">← All labs</a>
+      <section class="page-intro">
+        <p class="eyebrow">Lab 09</p>
+        <h1 class="page-title">Share & clipboard</h1>
+        <p class="lede">Hand text, links and files to the iOS share sheet, and use the clipboard.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">📤</span> Share sheet</h2>
+          <span id="shareStatus"></span>
+        </div>
+        <label class="field">Text<input type="text" id="shareText" value="Testing PWA features on iOS" /></label>
+        <div class="button-row">
+          <button type="button" class="button" id="shareLink">Share link</button>
+          <button type="button" class="button secondary" id="shareImage">Share an image</button>
+          <button type="button" class="button secondary" id="shareFile">Share a text file</button>
+        </div>
+        <canvas id="card" width="600" height="315" class="media"></canvas>
+        <p class="muted small" style="margin-top: 12px">Receiving shares from other apps (Web Share Target) isn't supported on iOS.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">📋</span> Clipboard</h2>
+          <span id="clipStatus"></span>
+        </div>
+        <label class="field">Text<input type="text" id="clipText" value="Copied from PWA Lab" /></label>
+        <div class="button-row">
+          <button type="button" class="button" id="copyText">Copy text</button>
+          <button type="button" class="button secondary" id="pasteText">Paste text</button>
+          <button type="button" class="button secondary" id="copyImage">Copy the image</button>
+        </div>
+        <pre class="code" id="pasted">Pasted text shows up here.</pre>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">📜</span> Events</h2>
+        <div class="log" id="log"></div>
+      </section>
+    </main>
+
+    <footer id="footer-placeholder" class="site-footer"></footer>
+
+    <script src="/js/components.js"></script>
+    <script src="/pwa/lab.js"></script>
+    <script src="/pwa/js/share.js"></script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e1013" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PWA Lab" />
+    <meta name="description" content="Screen Wake Lock API: request, release and re-acquire on return." />
+    <title>Wake lock · PWA Lab</title>
+    <link rel="manifest" href="/pwa/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/pwa/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/pwa/icons/icon-180.png" />
+    <link rel="stylesheet" href="/styled.css" />
+    <link rel="stylesheet" href="/site-header.css" />
+    <link rel="stylesheet" href="/pwa/pwa.css" />
+  </head>
+  <body class="lab">
+    <header class="site-header">
+      <div class="wrap">
+        <a href="/pwa/" class="brand"><span class="brand-mark">~/</span>pwa-lab</a>
+        <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <a class="back" href="/pwa/">← All labs</a>
+      <section class="page-intro">
+        <p class="eyebrow">Lab 06</p>
+        <h1 class="page-title">Screen wake lock</h1>
+        <p class="lede">Keep the screen on, the way a recipe, timer or boarding pass app would.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">💡</span> Wake lock</h2>
+          <span id="status"></span>
+        </div>
+        <p class="muted small">Turn it on, put the phone down and watch the counter. Without the lock the screen
+        dims after your auto-lock time. iOS drops the lock whenever you leave the app.</p>
+        <p class="big-number" id="elapsed">00:00</p>
+        <p class="muted small" id="elapsedLabel">Screen kept awake</p>
+        <label class="check"><input type="checkbox" id="auto" checked /> Re-acquire when I come back to the app</label>
+        <div class="button-row">
+          <button type="button" class="button" id="toggle">Keep screen on</button>
+        </div>
+        <p class="note" style="margin-top: 16px">Wake lock has worked in Safari since iOS 16.4, but in installed apps only
+        since iOS 18.4. Try it in both.</p>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">📜</span> Events</h2>
+        <div class="log" id="log"></div>
+      </section>
+    </main>
+
+    <footer id="footer-placeholder" class="site-footer"></footer>
+
+    <script src="/js/components.js"></script>
+    <script src="/pwa/lab.js"></script>
+    <script src="/pwa/js/wakelock.js"></script>
+  </body>
+</html>

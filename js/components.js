@@ -49,7 +49,9 @@ function updateMenuSelection() {
     };
     const path = window.location.pathname;
     const currentPage = path.split('/').pop() || 'index.html';
-    const identifier = path.startsWith('/x-km-per-day') ? 'running' : pages[currentPage];
+    const identifier = path.startsWith('/x-km-per-day') ? 'running'
+        : path.startsWith('/pwa/') ? 'pwa'
+        : pages[currentPage];
 
     document.querySelectorAll('.menubar a').forEach(item => {
         const isCurrent = item.getAttribute('identifier') === identifier;

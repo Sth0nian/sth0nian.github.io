@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e1013" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PWA Lab" />
+    <meta name="description" content="Storage quota, persistence, IndexedDB notes, OPFS and an eviction tracker." />
+    <title>Storage · PWA Lab</title>
+    <link rel="manifest" href="/pwa/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/pwa/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/pwa/icons/icon-180.png" />
+    <link rel="stylesheet" href="/styled.css" />
+    <link rel="stylesheet" href="/site-header.css" />
+    <link rel="stylesheet" href="/pwa/pwa.css" />
+  </head>
+  <body class="lab">
+    <header class="site-header">
+      <div class="wrap">
+        <a href="/pwa/" class="brand"><span class="brand-mark">~/</span>pwa-lab</a>
+        <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <a class="back" href="/pwa/">← All labs</a>
+      <section class="page-intro">
+        <p class="eyebrow">Lab 08</p>
+        <h1 class="page-title">Storage</h1>
+        <p class="lede">How much the lab may store, whether it's protected from eviction, and the private file system.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">📊</span> Quota</h2>
+          <span id="persistStatus"></span>
+        </div>
+        <dl class="kv" id="quota"></dl>
+        <div class="meter"><span id="quotaBar"></span></div>
+        <div class="button-row">
+          <button type="button" class="button" id="persist">Ask for persistent storage</button>
+        </div>
+        <p class="muted small" style="margin-top: 12px">Safari deletes a site's data after 7 days without a visit, unless it's
+        an installed app or storage is persistent.</p>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">⏳</span> Eviction tracker</h2>
+        <p class="muted small">Remembers your first visit in both IndexedDB and localStorage. If either gets wiped,
+        its date resets and the two disagree.</p>
+        <dl class="kv" id="tracker"></dl>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">🗒️</span> Notes (IndexedDB)</h2>
+        <form id="noteForm" class="field">
+          <input type="text" id="noteText" placeholder="Write a note and press enter" autocomplete="off" />
+        </form>
+        <ul class="features" id="notes" style="margin-top: 12px"></ul>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">📁</span> Origin Private File System</h2>
+          <span id="opfsStatus"></span>
+        </div>
+        <p class="muted small">A private, fast file system for the lab. Write a test file to probe the quota.</p>
+        <label class="field">File size
+          <select id="opfsSize">
+            <option value="1">1 MB</option>
+            <option value="10">10 MB</option>
+            <option value="50">50 MB</option>
+            <option value="200">200 MB</option>
+          </select>
+        </label>
+        <div class="button-row">
+          <button type="button" class="button" id="opfsWrite">Write file</button>
+          <button type="button" class="button secondary" id="opfsList">List files</button>
+          <button type="button" class="button danger" id="opfsClear">Delete all</button>
+        </div>
+        <ul class="features" id="opfsFiles" style="margin-top: 12px"></ul>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">📜</span> Events</h2>
+        <div class="log" id="log"></div>
+      </section>
+    </main>
+
+    <footer id="footer-placeholder" class="site-footer"></footer>
+
+    <script src="/js/components.js"></script>
+    <script src="/pwa/lab.js"></script>
+    <script src="/pwa/js/storage.js"></script>
+  </body>
+</html>

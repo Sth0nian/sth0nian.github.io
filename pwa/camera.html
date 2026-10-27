@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e1013" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PWA Lab" />
+    <meta name="description" content="getUserMedia camera preview, photo capture, MediaRecorder and BarcodeDetector." />
+    <title>Camera & mic · PWA Lab</title>
+    <link rel="manifest" href="/pwa/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/pwa/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/pwa/icons/icon-180.png" />
+    <link rel="stylesheet" href="/styled.css" />
+    <link rel="stylesheet" href="/site-header.css" />
+    <link rel="stylesheet" href="/pwa/pwa.css" />
+  </head>
+  <body class="lab">
+    <header class="site-header">
+      <div class="wrap">
+        <a href="/pwa/" class="brand"><span class="brand-mark">~/</span>pwa-lab</a>
+        <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <a class="back" href="/pwa/">← All labs</a>
+      <section class="page-intro">
+        <p class="eyebrow">Lab 04</p>
+        <h1 class="page-title">Camera & microphone</h1>
+        <p class="lede">Live preview, photos, video and audio recording, and barcode scanning.</p>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">📷</span> Live camera</h2>
+        <div class="field-row">
+          <label class="field">Camera
+            <select id="facing">
+              <option value="environment">Back</option>
+              <option value="user">Front</option>
+            </select>
+          </label>
+          <label class="field">Resolution
+            <select id="resolution">
+              <option value="1280x720">720p</option>
+              <option value="1920x1080">1080p</option>
+              <option value="3840x2160">4K</option>
+            </select>
+          </label>
+        </div>
+        <video id="preview" class="media" playsinline muted autoplay hidden></video>
+        <div class="button-row">
+          <button type="button" class="button" id="start">Start camera</button>
+          <button type="button" class="button secondary" id="stop" disabled>Stop</button>
+          <button type="button" class="button secondary" id="snap" disabled>Take photo</button>
+          <button type="button" class="button secondary" id="torch" hidden>Torch</button>
+        </div>
+        <dl class="kv" id="track" style="margin-top: 16px"></dl>
+        <div class="thumbs" id="photos"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">🎬</span> Record</h2>
+          <span id="recStatus"></span>
+        </div>
+        <p class="muted small">Records the live camera with sound, or just the microphone.</p>
+        <div class="button-row">
+          <button type="button" class="button" id="recVideo" disabled>Record video</button>
+          <button type="button" class="button secondary" id="recAudio">Record audio</button>
+          <button type="button" class="button danger" id="recStop" disabled>Stop recording</button>
+        </div>
+        <div id="recordings"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">🔍</span> Barcode &amp; QR scanning</h2>
+          <span id="barcodeStatus"></span>
+        </div>
+        <p class="muted small">Uses <code>BarcodeDetector</code> on the live camera when available.</p>
+        <div class="button-row">
+          <button type="button" class="button secondary" id="scan" disabled>Scan with live camera</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">🖼️</span> File input fallback</h2>
+        <p class="muted small">The oldest trick: <code>&lt;input type="file" capture&gt;</code> opens the native camera.</p>
+        <label class="field">Take or pick a photo<input type="file" id="fileInput" accept="image/*" capture="environment" /></label>
+        <img id="filePreview" class="media" alt="" hidden />
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">📜</span> Events</h2>
+        <div class="log" id="log"></div>
+      </section>
+    </main>
+
+    <footer id="footer-placeholder" class="site-footer"></footer>
+
+    <script src="/js/components.js"></script>
+    <script src="/pwa/lab.js"></script>
+    <script src="/pwa/js/camera.js"></script>
+  </body>
+</html>

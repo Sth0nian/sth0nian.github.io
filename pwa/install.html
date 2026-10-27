@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e1013" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PWA Lab" />
+    <meta name="description" content="Display mode, safe areas, launch count and the web app manifest." />
+    <title>Install & launch · PWA Lab</title>
+    <link rel="manifest" href="/pwa/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/pwa/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/pwa/icons/icon-180.png" />
+    <link rel="stylesheet" href="/styled.css" />
+    <link rel="stylesheet" href="/site-header.css" />
+    <link rel="stylesheet" href="/pwa/pwa.css" />
+  </head>
+  <body class="lab">
+    <header class="site-header">
+      <div class="wrap">
+        <a href="/pwa/" class="brand"><span class="brand-mark">~/</span>pwa-lab</a>
+        <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <a class="back" href="/pwa/">← All labs</a>
+      <section class="page-intro">
+        <p class="eyebrow">Lab 01</p>
+        <h1 class="page-title">Install & launch</h1>
+        <p class="lede">How the lab is running right now, and what changes once it lives on your home screen.</p>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">📲</span> Launch state</h2>
+        <dl class="kv" id="state"></dl>
+      </section>
+
+      <section class="card only-browser">
+        <h2 class="card-title"><span class="emoji">➕</span> Add to Home Screen</h2>
+        <p>iOS has no install prompt (<code>beforeinstallprompt</code>). Installing is manual:</p>
+        <ul class="timeline">
+          <li><span class="tl-title">Tap Share</span><span class="tl-sub">The square with an arrow, in Safari's toolbar or ⋯ menu.</span></li>
+          <li><span class="tl-title">Add to Home Screen</span><span class="tl-sub">Scroll down the share sheet if it's not visible.</span></li>
+          <li><span class="tl-title">Keep "Open as Web App" on</span><span class="tl-sub">On iOS 26 this toggle decides whether it opens standalone or as a Safari bookmark.</span></li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">📐</span> Safe areas &amp; viewport</h2>
+        <p class="muted small">The installed app uses a translucent status bar, so content sits under it unless the
+        layout respects these insets.</p>
+        <dl class="kv" id="insets"></dl>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">🧾</span> Web app manifest</h2>
+        <p class="muted small">What iOS reads when you add the lab to your home screen.</p>
+        <pre class="code" id="manifest">Loading…</pre>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">📜</span> Events</h2>
+        <div class="log" id="log"></div>
+      </section>
+    </main>
+
+    <footer id="footer-placeholder" class="site-footer"></footer>
+
+    <script src="/js/components.js"></script>
+    <script src="/pwa/lab.js"></script>
+    <script src="/pwa/js/install.js"></script>
+  </body>
+</html>

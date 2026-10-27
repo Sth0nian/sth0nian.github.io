@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e1013" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PWA Lab" />
+    <meta name="description" content="ApplePaySession and Payment Request availability checks." />
+    <title>Apple Pay · PWA Lab</title>
+    <link rel="manifest" href="/pwa/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/pwa/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/pwa/icons/icon-180.png" />
+    <link rel="stylesheet" href="/styled.css" />
+    <link rel="stylesheet" href="/site-header.css" />
+    <link rel="stylesheet" href="/pwa/pwa.css" />
+  </head>
+  <body class="lab">
+    <header class="site-header">
+      <div class="wrap">
+        <a href="/pwa/" class="brand"><span class="brand-mark">~/</span>pwa-lab</a>
+        <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <a class="back" href="/pwa/">← All labs</a>
+      <section class="page-intro">
+        <p class="eyebrow">Lab 11</p>
+        <h1 class="page-title">Apple Pay</h1>
+        <p class="lede">What the device reports about Apple Pay, and how far a payment gets without a merchant.</p>
+      </section>
+
+      <p class="note">
+        <strong>No money moves here.</strong> A real payment needs an Apple Pay merchant ID and a server to validate it.
+        The lab has neither, so the sheet stops at merchant validation, which is exactly what the test shows.
+      </p>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">🔍</span> Availability</h2>
+        <dl class="kv" id="support"></dl>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">💳</span> Try the payment sheet</h2>
+        <p class="muted small">Starts a €0.01 Payment Request with Apple Pay as the method.</p>
+        <div class="button-row">
+          <button type="button" class="apple-pay-button" id="pay" aria-label="Pay with Apple Pay"></button>
+          <button type="button" class="button secondary" id="payFallback">Try Payment Request</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">📜</span> Events</h2>
+        <div class="log" id="log"></div>
+      </section>
+    </main>
+
+    <footer id="footer-placeholder" class="site-footer"></footer>
+
+    <script src="/js/components.js"></script>
+    <script src="/pwa/lab.js"></script>
+    <script src="/pwa/js/applepay.js"></script>
+  </body>
+</html>

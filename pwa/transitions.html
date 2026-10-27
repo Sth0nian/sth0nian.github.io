@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e1013" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PWA Lab" />
+    <meta name="description" content="Same-document and cross-document view transitions, scroll-driven animations and anchor positioning." />
+    <title>Visuals · PWA Lab</title>
+    <link rel="manifest" href="/pwa/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/pwa/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/pwa/icons/icon-180.png" />
+    <link rel="stylesheet" href="/styled.css" />
+    <link rel="stylesheet" href="/site-header.css" />
+    <link rel="stylesheet" href="/pwa/pwa.css" />
+    <script>
+      // pagereveal can fire before the page's scripts run, so record it as early as possible
+      window.addEventListener('pagereveal', function (event) {
+        window.labReveal = { transition: !!event.viewTransition };
+        window.dispatchEvent(new Event('lab-reveal'));
+      });
+    </script>
+  </head>
+  <body class="lab">
+    <header class="site-header">
+      <div class="wrap">
+        <a href="/pwa/" class="brand"><span class="brand-mark">~/</span>pwa-lab</a>
+        <nav id="menu-placeholder" class="menubar" aria-label="Main"></nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <a class="back" href="/pwa/">← All labs</a>
+      <section class="page-intro">
+        <p class="eyebrow">Lab 12</p>
+        <h1 class="page-title">Modern visuals</h1>
+        <p class="lede">View transitions within a page and between pages, scroll-driven animation and anchor positioning.</p>
+      </section>
+
+      <div class="scroll-progress" aria-hidden="true"></div>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">🔀</span> Within a page</h2>
+          <span id="sameStatus"></span>
+        </div>
+        <p class="muted small">Shuffle the tiles, or tap one to expand it. Each change runs inside
+        <code>document.startViewTransition()</code>.</p>
+        <div class="button-row">
+          <button type="button" class="button" id="shuffle">Shuffle</button>
+        </div>
+        <div class="vt-grid" id="grid"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">↪️</span> Between pages</h2>
+          <span id="crossStatus"></span>
+        </div>
+        <p class="muted small">This link loads a new page. The swatch should morph into its new size instead of
+        flashing. Moving between any two labs also animates the page title.</p>
+        <div class="hero-swatch" id="hero"></div>
+        <div class="button-row">
+          <a class="button" id="heroLink" href="/pwa/transitions.html?view=detail">Open the big version</a>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">📜</span> Scroll-driven animation</h2>
+          <span id="scrollStatus"></span>
+        </div>
+        <p class="muted small">The green bar at the very top of the screen tracks your scroll position using only CSS
+        (<code>animation-timeline: scroll()</code>).</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="emoji">⚓</span> Anchor positioning</h2>
+          <span id="anchorStatus"></span>
+        </div>
+        <p class="muted small">The tooltip below is tied to the button with CSS alone.</p>
+        <div class="anchor-demo">
+          <button type="button" class="button secondary anchor-target">Anchor</button>
+          <span class="anchor-tip">I'm anchored with CSS</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="emoji">📜</span> Events</h2>
+        <div class="log" id="log"></div>
+      </section>
+    </main>
+
+    <footer id="footer-placeholder" class="site-footer"></footer>
+
+    <script src="/js/components.js"></script>
+    <script src="/pwa/lab.js"></script>
+    <script src="/pwa/js/transitions.js"></script>
+  </body>
+</html>
