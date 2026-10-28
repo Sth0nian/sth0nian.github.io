@@ -1,0 +1,19 @@
+{
+  "subjects": [
+    {
+      "id": "economie",
+      "title": "Economie",
+      "icon": "💶",
+      "color": "#1f6f78",
+      "book": "Economie voor jou",
+      "chapters": [
+        {
+          "id": "h1",
+          "title": "Economie is meer dan geld",
+          "number": 1,
+          "file": "economie/h1.json"
+        }
+      ]
+    }
+  ]
+}

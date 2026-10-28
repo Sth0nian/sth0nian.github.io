@@ -1,0 +1,556 @@
+{
+  "id": "h1",
+  "number": 1,
+  "title": "Economie is meer dan geld",
+  "sections": [
+    {
+      "id": "1.1",
+      "title": "Wat is economie?",
+      "intro": "Economie gaat over wat je nodig hebt, en over keuzes maken. Je leert ook afronden en geldbedragen goed opschrijven.",
+      "goals": [
+        "Ik kan uitleggen waar economie over gaat.",
+        "Ik kan voorbeelden geven van wat ik zelf met economie te maken heb.",
+        "Ik kan getallen goed afronden.",
+        "Ik kan uitleggen wat bedrijven en de overheid met economie te maken hebben.",
+        "Ik kan een geldbedrag goed opschrijven en uitspreken."
+      ],
+      "learn": [
+        {
+          "icon": "🛒",
+          "title": "Behoeften",
+          "text": [
+            "Elke dag heb je dingen nodig. Eten, drinken, kleding en spullen voor school.",
+            "Soms wil je ook iets omdat je het leuk vindt. Bijvoorbeeld een nieuwe game.",
+            "Alles wat je nodig hebt of graag wilt hebben, heet **behoeften**."
+          ],
+          "example": "Je hebt honger. Dan heb je behoefte aan eten. Je wilt een nieuwe game. Ook dat is een behoefte."
+        },
+        {
+          "icon": "⚖️",
+          "title": "Keuzes maken",
+          "text": [
+            "Je hebt meestal heel veel behoeften.",
+            "Maar je hebt niet genoeg **geld** en **tijd** om alles te doen.",
+            "Daarom moet je **kiezen** wat voor jou het belangrijkst is.",
+            "**Economie** gaat over behoeften, hoe je ze vervult en over keuzes maken."
+          ],
+          "check": {
+            "type": "mc",
+            "prompt": "Waarom kun je niet al je behoeften vervullen?",
+            "options": ["Je hebt te weinig geld en tijd.", "Het is verboden.", "Behoeften kun je nooit vervullen."],
+            "answer": 0
+          }
+        },
+        {
+          "icon": "🏪",
+          "title": "Consument en producent",
+          "text": [
+            "Koop je iets voor jezelf? Dan ben je aan het **consumeren**. Jij bent dan een **consument**.",
+            "Een winkel, webshop of bedrijf dat iets maakt of iets voor je doet, is een **producent**.",
+            "Consumenten willen hun behoeften vervullen. Producenten willen geld verdienen.",
+            "Ze hebben elkaar nodig. Ook dat is economie."
+          ],
+          "example": "Jij koopt een broodje bij de bakker. Jij bent de consument. De bakker is de producent.",
+          "check": {
+            "type": "mc",
+            "prompt": "Een kapper knipt jouw haar. Wie is de producent?",
+            "options": ["De kapper", "Jij"],
+            "answer": 0,
+            "keepOrder": true
+          }
+        },
+        {
+          "icon": "🔢",
+          "title": "Afronden",
+          "text": [
+            "Kijk naar het **eerste cijfer** na de plek waar je wilt afronden.",
+            "Is dat cijfer **5 of hoger**? Dan rond je **naar boven** af.",
+            "Is het **lager dan 5**? Dan haal je de cijfers die te veel zijn gewoon weg."
+          ],
+          "list": [
+            "Geld: op **2 decimalen** (2 cijfers achter de komma).",
+            "Personen: op **hele getallen**.",
+            "Andere getallen: op **1 decimaal**."
+          ],
+          "example": "7,485 op 1 decimaal: kijk naar de 8. Die is 5 of hoger, dus 7,5.",
+          "check": {
+            "type": "mc",
+            "prompt": "Rond € 8,5631 af op twee decimalen.",
+            "options": ["€ 8,56", "€ 8,57", "€ 8,5"],
+            "answer": 0
+          }
+        },
+        {
+          "icon": "🏛️",
+          "title": "De overheid",
+          "text": [
+            "De **overheid** maakt wetten en regels. Ook over economie.",
+            "De overheid bepaalt hoe hoog **belastingen** en **uitkeringen** zijn.",
+            "In de prijs van alles wat je koopt, zit belasting.",
+            "Een voorbeeld van een wet is de **Leerplichtwet**. Daarin staat dat je naar school moet."
+          ],
+          "example": "Ouders krijgen geld van de overheid voor hun kinderen. Dat heet **kinderbijslag**."
+        },
+        {
+          "icon": "📈",
+          "title": "Economie in het nieuws",
+          "text": [
+            "Gaat het goed met de economie? Dan hebben bedrijven meer werk. Mensen kunnen dan meer verdienen.",
+            "Bij een **crisis** is het precies andersom.",
+            "Hoe het met de economie gaat, merk je dus ook thuis."
+          ]
+        },
+        {
+          "icon": "💶",
+          "title": "Geldbedragen opschrijven",
+          "list": [
+            "Zet het **€-teken** vóór het bedrag: € 6,49.",
+            "Schrijf altijd **2 decimalen**: € 2,3658 wordt € 2,37.",
+            "Tussen euro's en centen schrijf je een **komma**. Op je rekenmachine typ je een **punt**.",
+            "Bij duizenden en miljoenen schrijf je een **punt**: € 1.553.500. Die punt typ je **niet** in op je rekenmachine.",
+            "Hele euro's mag je zo schrijven: € 2 of € 2,00 of € 2,-."
+          ],
+          "check": {
+            "type": "mc",
+            "prompt": "Welke manier van opschrijven is goed?",
+            "options": ["€ 6,49", "6,49 €", "€ 6.49"],
+            "answer": 0
+          }
+        },
+        {
+          "icon": "🗣️",
+          "title": "Bedragen uitspreken",
+          "text": [
+            "Waar de komma staat, zeg je **euro**.",
+            "€ 12,35 zeg je als: twaalf euro vijfendertig. Of korter: twaalf vijfendertig.",
+            "Een punt op 3 plekken van achteren betekent **duizend**. Op 6 plekken van achteren betekent **miljoen**."
+          ],
+          "example": "€ 475.000 zeg je als: vierhonderdvijfenzeventigduizend euro."
+        }
+      ],
+      "terms": [
+        { "term": "behoeften", "def": "Alles wat je nodig hebt of graag wilt hebben.", "example": "Eten, kleding, een nieuwe game." },
+        { "term": "economie", "def": "Gaat over behoeften die mensen hebben, hoe ze die vervullen en over keuzes maken." },
+        { "term": "consumeren", "def": "Iets kopen voor je eigen behoeften.", "example": "Je koopt een broodje." },
+        { "term": "consument", "def": "Iemand die iets koopt voor zijn eigen behoeften." },
+        { "term": "producent", "def": "Een bedrijf of winkel dat iets maakt, verkoopt of iets voor je doet.", "example": "De bakker, een webshop, de kapper." },
+        { "term": "overheid", "def": "Maakt wetten en regels, ook over economie. Bepaalt bijvoorbeeld de belastingen." },
+        { "term": "belasting", "def": "Geld dat je aan de overheid betaalt. Het zit ook in de prijs van wat je koopt." },
+        { "term": "uitkering", "def": "Geld dat mensen van de overheid krijgen, bijvoorbeeld als ze geen werk hebben." },
+        { "term": "kinderbijslag", "def": "Geld dat ouders van de overheid krijgen voor hun kinderen." },
+        { "term": "crisis", "def": "Het gaat slecht met de economie. Bedrijven hebben minder werk en mensen verdienen minder." },
+        { "term": "leerplicht", "def": "Een wet van de overheid: je moet naar school." },
+        { "term": "afronden", "def": "Een getal korter maken. Is het volgende cijfer 5 of hoger, dan rond je naar boven af." }
+      ],
+      "questions": [
+        { "id": "1.1-1", "type": "mc", "prompt": "Op je vrije dag wil je de buren helpen, shoppen, naar het strand, een serie kijken én je huiswerk maken. Waarom lukt dat niet allemaal?", "options": ["Je hebt niet genoeg tijd (en geld) voor alles.", "Je mag dat niet van de overheid.", "Je hebt geen behoeften."], "answer": 0, "explain": "Je hebt te weinig tijd en geld. Daarom moet je kiezen." },
+        { "id": "1.1-2", "type": "mc", "prompt": "Je kiest ervoor om de buren niet te helpen in de tuin. Wat is het nadeel?", "options": ["Je verdient dan geen geld.", "Je hebt dan meer tijd.", "Je hoeft geen huiswerk te maken."], "answer": 0, "explain": "Met helpen had je geld verdiend. Als je iets kiest, laat je iets anders liggen." },
+        { "id": "1.1-3", "type": "mc", "prompt": "Welke behoefte kun je vervullen zonder iets te kopen?", "options": ["Met vrienden naar het strand gaan", "Shoppen voor nieuwe kleren", "Een nieuwe game"], "answer": 0, "explain": "Naar het strand gaan kost geen geld. Shoppen en een game kopen wel." },
+        { "id": "1.1-4", "type": "mc", "prompt": "Waar heb je behoefte aan, maar wat is niet te koop?", "options": ["Vriendschap", "Een fiets", "Een broodje"], "answer": 0, "explain": "Vriendschap, liefde en gezondheid kun je niet kopen." },
+        { "id": "1.1-5", "type": "tf", "prompt": "Bij economie is het maken van keuzes belangrijk.", "answer": true },
+        { "id": "1.1-6", "type": "tf", "prompt": "Economie gaat over hoe je je wensen kunt vervullen.", "answer": true },
+        { "id": "1.1-7", "type": "tf", "prompt": "Economie is alleen voor volwassenen.", "answer": false, "explain": "Jij hebt ook behoeften en maakt ook keuzes. Economie is dus ook voor jou." },
+        { "id": "1.1-8", "type": "tf", "prompt": "In Nederland hebben we een minister van Economische Zaken.", "answer": true },
+        { "id": "1.1-9", "type": "open", "prompt": "Je gaat een nieuwe bril kopen. Noem drie keuzes die je moet maken.", "model": "Bijvoorbeeld: welk model en welke kleur, hoeveel geld je wilt uitgeven, een merkbril of een bril zonder merk, en bij welke opticien je hem koopt." },
+        { "id": "1.1-10", "type": "mc", "prompt": "Je mag € 300 aan een bril uitgeven. Je vindt twee brillen even mooi. De ene kost € 165 (zonder merk). De andere kost € 279 (merkbril). Wat is economisch de beste keuze?", "options": ["De bril van € 165", "De bril van € 279"], "answer": 0, "keepOrder": true, "explain": "Ze zijn even mooi. Met de goedkope bril hou je € 135 over voor andere behoeften." },
+        { "id": "1.1-11", "type": "fill", "prompt": "Kies de juiste woorden.", "text": "De klant die planten koopt, is een {consument}. Degene die de planten verkoopt, is een {producent}.", "bank": ["consument", "producent"] },
+        { "id": "1.1-12", "type": "classify", "prompt": "Consument of producent?", "buckets": ["Consument", "Producent"], "items": [["Jij koopt een game", 0], ["De kapper", 1], ["Een webshop", 1], ["Je moeder koopt boodschappen", 0], ["De bakker", 1]] },
+        { "id": "1.1-13", "type": "number", "rekenen": true, "prompt": "Rond af op hele euro's: € 3,645", "unit": "€", "answer": 4, "decimals": 0, "hint": "Kijk naar het eerste cijfer na de komma: de 6.", "steps": ["Het cijfer na de komma is een 6.", "6 is 5 of hoger, dus naar boven: € 4."] },
+        { "id": "1.1-14", "type": "number", "rekenen": true, "prompt": "Rond af op hele euro's: € 7,502", "unit": "€", "answer": 8, "decimals": 0, "hint": "Kijk naar het eerste cijfer na de komma.", "steps": ["Het cijfer na de komma is een 5.", "5 is 5 of hoger, dus naar boven: € 8."] },
+        { "id": "1.1-15", "type": "number", "rekenen": true, "prompt": "Rond af op hele euro's: € 6,498", "unit": "€", "answer": 6, "decimals": 0, "hint": "Kijk alleen naar het eerste cijfer na de komma.", "steps": ["Het cijfer na de komma is een 4.", "4 is lager dan 5, dus de rest gaat weg: € 6."] },
+        { "id": "1.1-16", "type": "number", "rekenen": true, "prompt": "Rond af op één decimaal: 2,15%", "unit": "%", "answer": 2.2, "decimals": 1, "hint": "Kijk naar het tweede cijfer na de komma: de 5.", "steps": ["Je houdt 1 cijfer na de komma: 2,1…", "Het volgende cijfer is een 5. Dat is 5 of hoger, dus: 2,2%."] },
+        { "id": "1.1-17", "type": "number", "rekenen": true, "prompt": "Rond af op één decimaal: 7,49%", "unit": "%", "answer": 7.5, "decimals": 1, "hint": "Kijk naar het tweede cijfer na de komma.", "steps": ["Je houdt 1 cijfer na de komma: 7,4…", "Het volgende cijfer is een 9, dus naar boven: 7,5%."] },
+        { "id": "1.1-18", "type": "number", "rekenen": true, "prompt": "Rond af op één decimaal: 18,96%", "unit": "%", "answer": 19, "decimals": 1, "hint": "Let op: 9 + 1 = 10. Dan schuift het door.", "steps": ["Je houdt 1 cijfer na de komma: 18,9…", "Het volgende cijfer is een 6, dus naar boven.", "18,9 + 0,1 = 19,0%."] },
+        { "id": "1.1-19", "type": "number", "rekenen": true, "prompt": "Rond af op twee decimalen: € 3,645", "unit": "€", "answer": 3.65, "decimals": 2, "hint": "Kijk naar het derde cijfer na de komma.", "steps": ["Je houdt 2 cijfers na de komma: 3,64…", "Het volgende cijfer is een 5, dus naar boven: € 3,65."] },
+        { "id": "1.1-20", "type": "number", "rekenen": true, "prompt": "Rond af op twee decimalen: € 9,005", "unit": "€", "answer": 9.01, "decimals": 2, "hint": "Kijk naar het derde cijfer na de komma.", "steps": ["Je houdt 2 cijfers na de komma: 9,00…", "Het volgende cijfer is een 5, dus naar boven: € 9,01."] },
+        { "id": "1.1-21", "type": "number", "rekenen": true, "prompt": "Rond af op twee decimalen: € 2,309", "unit": "€", "answer": 2.31, "decimals": 2, "hint": "Kijk naar het derde cijfer na de komma.", "steps": ["Je houdt 2 cijfers na de komma: 2,30…", "Het volgende cijfer is een 9, dus naar boven: € 2,31."] },
+        { "id": "1.1-22", "type": "mc", "prompt": "Hoe rond je geld af?", "options": ["Op twee decimalen", "Op hele getallen", "Op één decimaal"], "answer": 0, "explain": "Geld: 2 decimalen. Personen: hele getallen. Andere getallen: 1 decimaal." },
+        { "id": "1.1-23", "type": "mc", "prompt": "Hoe rond je een aantal personen af?", "options": ["Op hele getallen", "Op één decimaal", "Op twee decimalen"], "answer": 0, "explain": "Er bestaat geen halve persoon. Daarom rond je af op hele getallen." },
+        { "id": "1.1-24", "type": "number", "rekenen": true, "prompt": "Kinderbijslag per kwartaal: 0 t/m 5 jaar € 261,70. 6 t/m 11 jaar € 317,77. 12 t/m 17 jaar € 373,85. Hoeveel krijgen ouders per kwartaal voor een kind van 13 jaar?", "unit": "€", "answer": 373.85, "decimals": 2, "hint": "13 jaar valt in de groep 12 t/m 17 jaar.", "steps": ["13 jaar hoort bij 12 t/m 17 jaar.", "Dat is € 373,85."] },
+        { "id": "1.1-25", "type": "number", "rekenen": true, "prompt": "Een gezin heeft kinderen van 16, 13 en 10 jaar. Hoeveel kinderbijslag krijgt het gezin per kwartaal? (12 t/m 17 jaar: € 373,85. 6 t/m 11 jaar: € 317,77.)", "unit": "€", "answer": 1065.47, "decimals": 2, "hint": "Zoek per kind het bedrag op. Tel ze daarna op.", "steps": ["16 jaar: € 373,85", "13 jaar: € 373,85", "10 jaar: € 317,77", "373,85 + 373,85 + 317,77 = € 1.065,47"] },
+        { "id": "1.1-26", "type": "open", "prompt": "Denk je dat ouders met de kinderbijslag alle kosten voor hun kinderen kunnen betalen?", "model": "Nee. Kinderen kosten meer: eten, kleding, school, sport en zakgeld. Kinderbijslag is een hulp, maar niet genoeg voor alles." },
+        { "id": "1.1-27", "type": "mc", "prompt": "Sommige politici willen minder belasting op groente en fruit. Wat willen ze daarmee bereiken?", "options": ["Groente en fruit worden goedkoper. Dan eten mensen gezonder.", "Groente en fruit worden duurder.", "Winkels gaan minder groente verkopen."], "answer": 0 },
+        { "id": "1.1-28", "type": "mc", "prompt": "Welk risico loop je als je zonder diploma van school gaat?", "options": ["Je vindt moeilijker werk en verdient vaak minder.", "Je moet meer belasting betalen.", "Je krijgt meer kinderbijslag."], "answer": 0 },
+        { "id": "1.1-29", "type": "mc", "prompt": "De Leerplichtwet kwam er tegen kinderarbeid. Waarom lieten ouders vroeger hun kinderen al jong werken?", "options": ["Het gezin had het geld hard nodig.", "Kinderen vonden school saai.", "Er waren geen scholen."], "answer": 0 },
+        { "id": "1.1-30", "type": "tf", "prompt": "Wat hebben bedrijven aan de leerplicht? Bedrijven hebben voor hun productie goed opgeleid personeel nodig.", "answer": true },
+        { "id": "1.1-31", "type": "tf", "prompt": "Wat hebben bedrijven aan de leerplicht? Bedrijven kunnen dan goedkoper personeel vinden.", "answer": false, "explain": "Goed opgeleid personeel is meestal juist duurder. Maar bedrijven hebben het wel nodig." },
+        { "id": "1.1-32", "type": "tf", "prompt": "Wat hebben bedrijven aan de leerplicht? Bedrijven willen niet dat jongeren rondhangen op straat.", "answer": false, "explain": "Dat is niet de reden voor bedrijven. Zij willen goed opgeleid personeel." },
+        { "id": "1.1-33", "type": "mc", "prompt": "Hoe schrijf je 8,5 euro op de juiste manier?", "options": ["€ 8,50", "€ 8,5", "8,50 €"], "answer": 0, "explain": "€-teken vooraan en altijd 2 decimalen." },
+        { "id": "1.1-34", "type": "mc", "prompt": "Hoe schrijf je 131,65 € op de juiste manier?", "options": ["€ 131,65", "€ 131.65", "131,65 euro €"], "answer": 0, "explain": "Het €-teken staat vóór het bedrag." },
+        { "id": "1.1-35", "type": "mc", "prompt": "Hoe schrijf je 17,50,- op de juiste manier?", "options": ["€ 17,50", "€ 17,50,-", "€ 1.750"], "answer": 0, "explain": "Een streepje mag alleen bij hele euro's, zoals € 2,-." },
+        { "id": "1.1-36", "type": "mc", "prompt": "Hoe schrijf je € 143312 op de juiste manier?", "options": ["€ 143.312", "€ 143,312", "€ 1.433,12"], "answer": 0, "explain": "Bij duizenden zet je een punt. Tel 3 cijfers van achteren." },
+        { "id": "1.1-37", "type": "mc", "prompt": "Hoe schrijf je € 17582493 op de juiste manier?", "options": ["€ 17.582.493", "€ 17,582,493", "€ 175.824,93"], "answer": 0, "explain": "Tel steeds 3 cijfers van achteren en zet daar een punt." },
+        { "id": "1.1-38", "type": "mc", "prompt": "Hoe spreek je € 45,67 uit?", "options": ["vijfenveertig euro zevenenzestig", "zevenenzestig euro vijfenveertig", "vierenvijftig euro zevenenzestig"], "answer": 0, "explain": "Waar de komma staat, zeg je euro. Je mag ook zeggen: vijfenveertig zevenenzestig." },
+        { "id": "1.1-39", "type": "mc", "prompt": "Welk bedrag is 'tweehonderd euro zestig'?", "options": ["€ 200,60", "€ 260,00", "€ 200,06"], "answer": 0, "explain": "Eerst 200 euro, dan 60 cent." },
+        { "id": "1.1-40", "type": "mc", "prompt": "Welk bedrag is 'tweehonderdzestig euro'?", "options": ["€ 260,00", "€ 200,60", "€ 2,60"], "answer": 0 },
+        { "id": "1.1-41", "type": "mc", "prompt": "Een huis kost € 475.000. Hoe spreek je dat uit?", "options": ["vierhonderdvijfenzeventigduizend euro", "vierhonderdvijfenzeventig euro", "vier miljoen vijfenzeventigduizend euro"], "answer": 0, "explain": "De punt staat 3 plekken van achteren. Daar zeg je duizend." },
+        { "id": "1.1-42", "type": "mc", "prompt": "Alpe d'HuZes haalde € 1.043.155,11 op. Hoe spreek je dat uit?", "options": ["één miljoen drieënveertigduizend honderdvijfenvijftig euro elf", "honderdvier miljoen drieduizend euro", "één miljoen vierhonderddrieduizend euro elf"], "answer": 0, "explain": "Punt op 6 plekken van achteren: miljoen. Punt op 3 plekken: duizend." },
+        { "id": "1.1-43", "type": "number", "rekenen": true, "prompt": "Zeven mensen winnen samen € 221.450 in de loterij. Er gaat € 65.327,75 belasting af. Hoeveel krijgt elke persoon?", "unit": "€", "answer": 22303.18, "decimals": 2, "hint": "Eerst de belasting eraf. Daarna delen door 7.", "steps": ["221.450 − 65.327,75 = € 156.122,25", "156.122,25 ÷ 7 = 22.303,178…", "Afronden op 2 decimalen: € 22.303,18"] }
+      ]
+    },
+    {
+      "id": "1.2",
+      "title": "Economie en geld",
+      "intro": "Vroeger ruilden mensen zonder geld. Je leert hoe geld is ontstaan, welke soorten geld er zijn, hoe je betaalt en hoe je je saldo uitrekent.",
+      "goals": [
+        "Ik kan beschrijven hoe geld is ontstaan.",
+        "Ik ken het verschil tussen chartaal en giraal geld.",
+        "Ik kan uitleggen hoe je met verschillende soorten geld betaalt.",
+        "Ik kan een nieuw saldo op een rekening uitrekenen."
+      ],
+      "learn": [
+        {
+          "icon": "🐑",
+          "title": "Ruilen zonder geld",
+          "text": [
+            "Lang geleden was er nog geen geld.",
+            "Mensen ruilden spullen met elkaar. Bijvoorbeeld een schaap voor twee zakken graan.",
+            "Een product ruilen voor een ander product heet **directe ruil**."
+          ],
+          "example": "Drie vissen voor één waterkruik. Dan is één vis een derde (⅓) waterkruik waard.",
+          "check": {
+            "type": "mc",
+            "prompt": "Je ruilt een appel voor een banaan. Wat is dat?",
+            "options": ["Directe ruil", "Indirecte ruil"],
+            "answer": 0,
+            "keepOrder": true
+          }
+        },
+        {
+          "icon": "🪙",
+          "title": "Een goed ruilmiddel",
+          "text": [
+            "Directe ruil is niet handig. Probeer maar eens een half schaap te ruilen!",
+            "Mensen zochten een beter **ruilmiddel**. Dat moest drie dingen hebben:"
+          ],
+          "list": [
+            "Je kunt het goed **bewaren**.",
+            "Je kunt het makkelijk in **stukjes verdelen**.",
+            "**Iedereen** wil het graag hebben."
+          ],
+          "example": "Goud en zilver waren heel geschikt. Maar je moest het elke keer wegen."
+        },
+        {
+          "icon": "🏦",
+          "title": "Van munt tot bankbiljet",
+          "text": [
+            "Een goudsmid maakte **munten**. Elke munt had een vast gewicht en een vaste waarde.",
+            "Maar munten zijn zwaar. En overvallers willen ze graag hebben.",
+            "Daarom gaven geldwisselaars **wisselbrieven**. Die kon je ruilen voor munten.",
+            "Later werden dat **bankbiljetten**: het papiergeld dat we nu nog gebruiken."
+          ]
+        },
+        {
+          "icon": "🔄",
+          "title": "Indirecte ruil",
+          "text": [
+            "Nu ruilen we producten voor geld. Dat heet **indirecte ruil**.",
+            "Bij kopen en verkopen is geld het **ruilmiddel**.",
+            "Geld maakt handelen makkelijker."
+          ],
+          "example": "Je pint voor een broodje: indirecte ruil. Je ruilt een appel voor een banaan: directe ruil.",
+          "check": {
+            "type": "mc",
+            "prompt": "Je bestelt online sportschoenen en betaalt met iDEAL. Wat is dat?",
+            "options": ["Directe ruil", "Indirecte ruil"],
+            "answer": 1,
+            "keepOrder": true
+          }
+        },
+        {
+          "icon": "💶",
+          "title": "Chartaal geld",
+          "text": [
+            "Munten en bankbiljetten heten **chartaal geld**. Je zegt ook: contant geld.",
+            "Charta betekent akte of wet. In de wet staat dat munten en biljetten ons betaalmiddel zijn.",
+            "Munten van 1 en 2 cent gebruiken we bijna niet meer. Bij contant betalen mogen winkels het bedrag afronden op **5 cent**."
+          ]
+        },
+        {
+          "icon": "💳",
+          "title": "Giraal geld",
+          "text": [
+            "**Giraal geld** is het geld op je bankrekening.",
+            "Je kunt het niet zien. Het is 'onzichtbaar geld'. Hoeveel je hebt, zie je in je bankapp.",
+            "We betalen steeds vaker met giraal geld, want dat is makkelijk.",
+            "Bij giraal geld wordt **niet** afgerond. Je hebt geen munten nodig."
+          ],
+          "check": {
+            "type": "mc",
+            "prompt": "Het geld op je bankrekening is…",
+            "options": ["chartaal geld", "giraal geld"],
+            "answer": 1,
+            "keepOrder": true
+          }
+        },
+        {
+          "icon": "🏧",
+          "title": "Hoe betaal je?",
+          "list": [
+            "**Chartaal**: je geeft munten en biljetten. Betaal je te veel? Dan krijg je **wisselgeld** terug.",
+            "**Giraal**: je betaalt **elektronisch**. In de winkel bij de **betaalautomaat** met je pas, telefoon of smartwatch.",
+            "Online betaal je met je bankapp of iDEAL.",
+            "Contant geld nodig? Haal het bij de **geldautomaat**. Dan maak je van giraal geld chartaal geld."
+          ]
+        },
+        {
+          "icon": "🔐",
+          "title": "Veilig bankieren: de 5 B's",
+          "list": [
+            "**Bescherm je codes.** Geef je pincode en inlogcode nooit aan iemand.",
+            "**Bewaak je pas.** Laat je pas niet slingeren.",
+            "**Beveilig je apparatuur.** Zorg dat anderen niet bij je telefoon of computer kunnen.",
+            "**Bekijk je afschrijvingen.** Kijk vaak of de bedragen kloppen.",
+            "**Bij twijfel, bel je bank.** Zeker als je denkt dat er fraude is."
+          ],
+          "example": "**Fraude** is bedrog. Bijvoorbeeld als iemand stiekem geld van jouw rekening haalt."
+        },
+        {
+          "icon": "🧮",
+          "title": "Saldo",
+          "text": [
+            "Je **saldo** is het bedrag dat op je rekening staat.",
+            "Een positief saldo is een **tegoed**. Een negatief saldo is een **tekort**.",
+            "**Nieuw saldo = oud saldo + ontvangsten − uitgaven**"
+          ],
+          "example": "Oud saldo € 115. Je krijgt € 20. Je betaalt € 40. Nieuw saldo: 115 + 20 − 40 = € 95 tegoed.",
+          "check": {
+            "type": "number",
+            "prompt": "Oud saldo € 50. Je krijgt € 10. Je betaalt € 15. Wat is je nieuwe saldo?",
+            "unit": "€",
+            "answer": 45,
+            "decimals": 2,
+            "steps": ["50 + 10 − 15 = € 45"]
+          }
+        }
+      ],
+      "terms": [
+        { "term": "directe ruil", "def": "Een product ruilen voor een ander product, zonder geld.", "example": "Een appel voor een banaan." },
+        { "term": "indirecte ruil", "def": "Producten ruilen voor geld.", "example": "Je koopt een broodje en pint." },
+        { "term": "ruilmiddel", "def": "Iets wat je gebruikt om te ruilen. Nu is dat geld." },
+        { "term": "chartaal geld", "def": "Munten en bankbiljetten. Ook: contant geld." },
+        { "term": "giraal geld", "def": "Het geld op je bankrekening. Je kunt het niet zien." },
+        { "term": "elektronisch betalen", "def": "Betalen met giraal geld: pinnen, met je telefoon of online." },
+        { "term": "wisselgeld", "def": "Het geld dat je terugkrijgt als je te veel contant betaalt." },
+        { "term": "betaalautomaat", "def": "Het apparaat in de winkel waarmee je pint." },
+        { "term": "geldautomaat", "def": "Het apparaat waar je contant geld uit haalt." },
+        { "term": "saldo", "def": "Het bedrag dat op je bankrekening staat." },
+        { "term": "tegoed", "def": "Een positief saldo: er staat geld op je rekening." },
+        { "term": "tekort", "def": "Een negatief saldo: je staat 'rood'." },
+        { "term": "fraude", "def": "Bedrog. Bijvoorbeeld als iemand stiekem geld van je rekening haalt." }
+      ],
+      "questions": [
+        { "id": "1.2-1", "type": "mc", "prompt": "Drie vissen ruil je voor één waterkruik. Wat is één vis waard?", "options": ["Eén derde (⅓) waterkruik", "Eén waterkruik", "Drie waterkruiken"], "answer": 0, "explain": "Drie vissen = 1 waterkruik. Dus 1 vis = ⅓ waterkruik." },
+        { "id": "1.2-2", "type": "mc", "prompt": "Vissen ruilen voor een waterkruik is…", "options": ["directe ruil", "indirecte ruil"], "answer": 0, "keepOrder": true, "explain": "Product voor product, zonder geld: directe ruil." },
+        { "id": "1.2-3", "type": "classify", "prompt": "Is dit een kenmerk van een goed ruilmiddel?", "buckets": ["Wel", "Niet"], "items": [["Je kunt het goed bewaren", 0], ["Je kunt het makkelijk verdelen", 0], ["Iedereen wil het graag hebben", 0], ["Het is zwaar", 1], ["Het is lekker", 1]] },
+        { "id": "1.2-4", "type": "classify", "prompt": "Geldt dit voor vissen?", "buckets": ["Ja", "Nee"], "items": [["Goed te bewaren", 1], ["Makkelijk te verdelen", 1], ["Iedereen wil het hebben", 1]], "explain": "Vissen bederven snel, je kunt ze slecht verdelen en niet iedereen wil vis." },
+        { "id": "1.2-5", "type": "mc", "prompt": "Zijn vissen geschikt als ruilmiddel? En goud?", "options": ["Vissen niet, goud wel", "Vissen wel, goud niet", "Allebei wel"], "answer": 0, "explain": "Goud kun je goed bewaren, makkelijk verdelen en iedereen wil het. Vis niet." },
+        { "id": "1.2-6", "type": "classify", "prompt": "Directe ruil of indirecte ruil?", "buckets": ["Direct", "Indirect"], "items": [["Je koopt een broodje en pint", 1], ["Je betaalt sportschoenen met iDEAL", 1], ["Je geeft een appel en krijgt een banaan", 0], ["Jij maait het gras, de buren helpen jou met huiswerk", 0]] },
+        { "id": "1.2-7", "type": "tf", "prompt": "Aan de munteenheid in het Verenigd Koninkrijk (het pond) kun je zien dat de waarde van geld vroeger door het gewicht werd bepaald.", "answer": true, "explain": "Een pond is ook een gewicht." },
+        { "id": "1.2-8", "type": "tf", "prompt": "Tot 2002 betaalden we in Nederland met de gulden. Aan dat woord zie je dat het vroeger een gouden munt was.", "answer": true, "explain": "Gulden komt van 'gouden'. Het was eerst een gouden munt." },
+        { "id": "1.2-9", "type": "tf", "prompt": "Geldwisselaars werkten vroeger aan een houten tafel: een 'banca'. Daarom heet een geldinstelling nu nog een 'bank'.", "answer": true },
+        { "id": "1.2-10", "type": "match", "prompt": "Welke uitdrukking hoort bij welke betekenis?", "pairs": [["Geld moet rollen", "Geld moet uitgegeven worden"], ["Met klinkende munt betalen", "Contant betalen"], ["Tijd is geld", "Wat veel tijd kost, kost ook veel geld"], ["Zwemmen in het geld", "Erg rijk zijn"]] },
+        { "id": "1.2-11", "type": "classify", "prompt": "Chartaal of giraal geld?", "buckets": ["Chartaal", "Giraal"], "items": [["Munten", 0], ["Een briefje van 10 euro", 0], ["Geld op je bankrekening", 1], ["Betalen met iDEAL", 1], ["Pinnen in de winkel", 1]] },
+        { "id": "1.2-12", "type": "mc", "prompt": "Waarom betalen mensen steeds vaker met giraal geld?", "options": ["Het is makkelijker en sneller.", "Het is verboden om contant te betalen.", "Munten bestaan niet meer."], "answer": 0 },
+        { "id": "1.2-13", "type": "mc", "prompt": "Waarom wordt € 8,97 niet afgerond als je met giraal geld betaalt?", "options": ["Je gebruikt dan geen munten, dus ook geen 1 en 2 cent.", "Omdat de bank dat leuk vindt.", "Omdat online alles duurder is."], "answer": 0, "explain": "Afronden op 5 cent is alleen omdat we geen 1 en 2 cent meer gebruiken. Bij pinnen heb je geen munten nodig." },
+        { "id": "1.2-14", "type": "mc", "prompt": "Je betaalt € 8,97 contant. Winkels ronden af op 5 cent. Hoeveel betaal je?", "options": ["€ 8,95", "€ 9,00", "€ 8,97"], "answer": 0, "explain": "8,97 ligt het dichtst bij 8,95." },
+        { "id": "1.2-15", "type": "number", "rekenen": true, "prompt": "Je moet € 6,65 betalen. Je geeft een briefje van € 10. Hoeveel wisselgeld krijg je?", "unit": "€", "answer": 3.35, "decimals": 2, "hint": "Wisselgeld = wat je geeft − wat het kost.", "steps": ["10,00 − 6,65 = € 3,35"] },
+        { "id": "1.2-16", "type": "mc", "prompt": "Je krijgt € 3,35 terug. Welke munten krijg je, met zo weinig mogelijk munten?", "options": ["5 ct, 10 ct, 20 ct, € 1, € 2", "5 ct, 10 ct, 10 ct, 10 ct, € 1, € 2", "35 ct, € 3"], "answer": 0, "explain": "5 + 10 + 20 cent = 35 cent. € 1 + € 2 = € 3. Samen € 3,35." },
+        { "id": "1.2-17", "type": "number", "rekenen": true, "prompt": "Je moet € 12,80 betalen. Je geeft € 20. Hoeveel wisselgeld krijg je?", "unit": "€", "answer": 7.2, "decimals": 2, "hint": "Wisselgeld = wat je geeft − wat het kost.", "steps": ["20,00 − 12,80 = € 7,20"] },
+        { "id": "1.2-18", "type": "mc", "prompt": "Je krijgt € 7,20 terug. Wat krijg je, met zo weinig mogelijk munten en biljetten?", "options": ["20 ct, € 2, briefje van € 5", "20 ct, € 1, € 1, € 5", "€ 2, € 2, € 2, € 1, 20 ct"], "answer": 0 },
+        { "id": "1.2-19", "type": "mc", "prompt": "Bij een webwinkel kun je alleen elektronisch betalen. Hoe doe je dat?", "options": ["Met iDEAL of je bankapp", "Met munten", "Met een briefje van 10"], "answer": 0 },
+        { "id": "1.2-20", "type": "mc", "prompt": "Vroeger vulde je een formulier in en stuurde je het per post. Na een paar dagen kwam het geld aan. Wat was het nadeel?", "options": ["Het duurde lang en was veel werk.", "Het was gratis.", "Het geld kwam meteen aan."], "answer": 0 },
+        { "id": "1.2-21", "type": "open", "prompt": "Sommige winkels hebben een sticker 'Hier alleen pinnen'. Bedenk twee redenen waarom ze willen dat je pint.", "model": "1. Het is veiliger: er ligt geen contant geld in de winkel, dus minder kans op een overval. 2. Het is minder werk: geen geld tellen, geen wisselgeld en niet naar de bank." },
+        { "id": "1.2-22", "type": "mc", "prompt": "Je haalt contant geld uit een apparaat in de muur. Hoe heet dat apparaat?", "options": ["Geldautomaat", "Betaalautomaat"], "answer": 0, "keepOrder": true },
+        { "id": "1.2-23", "type": "mc", "prompt": "Je betaalt in de winkel met je pas. Hoe heet het apparaat?", "options": ["Geldautomaat", "Betaalautomaat"], "answer": 1, "keepOrder": true },
+        { "id": "1.2-24", "type": "fill", "prompt": "Vul de juiste woorden in.", "text": "Als je geld opneemt, zet je {giraal} geld om in {chartaal} geld.", "bank": ["chartaal", "giraal"] },
+        { "id": "1.2-25", "type": "mc", "prompt": "Iemand pint en houdt de hand boven de toetsen. Waarom?", "options": ["Zodat niemand de pincode kan zien", "Omdat het scherm koud is", "Zodat de pas niet valt"], "answer": 0 },
+        { "id": "1.2-26", "type": "mc", "prompt": "'Bescherm je codes.' Welke codes worden bedoeld?", "options": ["Je pincode en de inlogcode van je bankapp", "Je postcode en huisnummer", "De code van je kluisje"], "answer": 0 },
+        { "id": "1.2-27", "type": "mc", "prompt": "Wat is fraude bij bankrekeningen?", "options": ["Bedrog: iemand haalt stiekem geld van jouw rekening.", "Je rekening is leeg.", "Je krijgt rente."], "answer": 0 },
+        { "id": "1.2-28", "type": "mc", "prompt": "Waarom is het slim om vaak te kijken wat er van je rekening is afgeschreven?", "options": ["Dan zie je snel als er iets niet klopt.", "Dan krijg je meer geld.", "Dat moet van de wet."], "answer": 0 },
+        { "id": "1.2-29", "type": "number", "rekenen": true, "prompt": "Oud saldo € 100,00. Ontvangsten € 34,60. Betalingen € 21,45. Wat is het nieuwe saldo?", "unit": "€", "answer": 113.15, "decimals": 2, "hint": "Nieuw saldo = oud saldo + ontvangsten − uitgaven", "steps": ["100,00 + 34,60 = 134,60", "134,60 − 21,45 = € 113,15"] },
+        { "id": "1.2-30", "type": "number", "rekenen": true, "prompt": "Oud saldo € 13,45. Ontvangsten € 4,50. Betalingen € 12,00. Wat is het nieuwe saldo?", "unit": "€", "answer": 5.95, "decimals": 2, "hint": "Nieuw saldo = oud saldo + ontvangsten − uitgaven", "steps": ["13,45 + 4,50 = 17,95", "17,95 − 12,00 = € 5,95"] },
+        { "id": "1.2-31", "type": "number", "rekenen": true, "prompt": "Oud saldo € 257,98. Betalingen € 69,27. Nieuw saldo € 315,71. Hoeveel waren de ontvangsten?", "unit": "€", "answer": 127, "decimals": 2, "hint": "Werk terug: wat moet erbij om van het oude naar het nieuwe saldo te komen? Vergeet de betalingen niet.", "steps": ["Het saldo ging omhoog: 315,71 − 257,98 = 57,73", "Er ging ook 69,27 af. Dat moest er dus ook bij.", "57,73 + 69,27 = € 127,00"] },
+        { "id": "1.2-32", "type": "number", "rekenen": true, "prompt": "Ontvangsten € 12,00. Betalingen € 6,75. Nieuw saldo € 24,20. Wat was het oude saldo?", "unit": "€", "answer": 18.95, "decimals": 2, "hint": "Werk terug: haal de ontvangsten eraf en tel de betalingen erbij.", "steps": ["24,20 − 12,00 = 12,20", "12,20 + 6,75 = € 18,95"] },
+        { "id": "1.2-33", "type": "mc", "prompt": "Je betaalt een middag alles met je pinpas. Met welk geld betaal je?", "options": ["Chartaal geld", "Giraal geld"], "answer": 1, "keepOrder": true },
+        { "id": "1.2-34", "type": "number", "rekenen": true, "prompt": "Je koopt een broek van € 29, een cadeautje van € 12,50, een game van € 32,95, drinken voor € 4,95 en een broodje van € 6,75. Hoeveel geef je in totaal uit?", "unit": "€", "answer": 86.15, "decimals": 2, "hint": "Tel alle bedragen bij elkaar op.", "steps": ["29 + 12,50 + 32,95 + 4,95 + 6,75 = € 86,15"] },
+        { "id": "1.2-35", "type": "number", "rekenen": true, "prompt": "Je gaf € 86,15 uit en kreeg niets binnen. Aan het eind staat er nog € 2,25 op je rekening. Hoeveel stond er die ochtend op?", "unit": "€", "answer": 88.4, "decimals": 2, "hint": "Tel wat je uitgaf op bij wat er nog over is.", "steps": ["2,25 + 86,15 = € 88,40"] },
+        { "id": "1.2-36", "type": "mc", "prompt": "Hoe heet een positief saldo?", "options": ["Tegoed", "Tekort"], "answer": 0, "keepOrder": true }
+      ]
+    },
+    {
+      "id": "1.3",
+      "title": "Weet wat je nodig hebt!",
+      "intro": "Niet alle behoeften zijn even belangrijk. Je leert over soorten behoeften, goederen en diensten, zelfvoorziening en rekenen met procenten.",
+      "goals": [
+        "Ik kan uitleggen wat voor behoeften je kunt hebben.",
+        "Ik kan met voorbeelden uitleggen waarom mensen verschillende behoeften hebben.",
+        "Ik kan het verschil tussen goederen en diensten uitleggen.",
+        "Ik kan uitleggen hoe je in je behoeften kunt voorzien.",
+        "Ik kan met een percentage een getal uitrekenen."
+      ],
+      "learn": [
+        {
+          "icon": "🍞",
+          "title": "Primaire behoeften",
+          "text": [
+            "Sommige dingen heb je echt nodig om te leven.",
+            "Eten, drinken, kleding, een huis en soms medische hulp.",
+            "Dat zijn **primaire behoeften**. Je zegt ook: **basisbehoeften**."
+          ]
+        },
+        {
+          "icon": "🎮",
+          "title": "Secundaire behoeften",
+          "text": [
+            "Veel dingen wil je wel, maar je kunt ze ook missen.",
+            "Ze maken je leven leuker of makkelijker.",
+            "Dat zijn **secundaire behoeften**. Je zegt ook: **overige behoeften**."
+          ],
+          "example": "Een ijsje, een nieuwe telefoon of op vakantie gaan.",
+          "check": {
+            "type": "mc",
+            "prompt": "Is snoep een primaire of een secundaire behoefte?",
+            "options": ["Primair", "Secundair"],
+            "answer": 1,
+            "keepOrder": true
+          }
+        },
+        {
+          "icon": "❤️",
+          "title": "Materieel en immaterieel",
+          "text": [
+            "Behoeften die je in **geld** kunt uitdrukken, heten **materiële behoeften**.",
+            "Liefde, vriendschap en gezondheid kun je niet kopen. Dat zijn **immateriële behoeften**."
+          ]
+        },
+        {
+          "icon": "🌍",
+          "title": "Behoeften verschillen",
+          "text": [
+            "In Nederland kunnen de meeste mensen in hun primaire behoeften voorzien. In arme landen is dat anders.",
+            "Niet iedereen heeft dezelfde behoeften. Dat hangt onder andere af van:"
+          ],
+          "list": [
+            "hoeveel **geld** je kunt uitgeven",
+            "je **leeftijd**",
+            "je **gender**: meisje, jongen of non-binair",
+            "**waar je woont**",
+            "je **smaak**"
+          ]
+        },
+        {
+          "icon": "📦",
+          "title": "Goederen",
+          "text": [
+            "**Goederen** zijn tastbaar. Je kunt ze aanraken.",
+            "Een **verbruiksgoed** is snel op. Je eet een broodje hap voor hap op.",
+            "Een **gebruiksgoed** gaat lang mee. Je schooltas gebruik je heel vaak."
+          ],
+          "check": {
+            "type": "mc",
+            "prompt": "Wasmiddel is een…",
+            "options": ["verbruiksgoed", "gebruiksgoed"],
+            "answer": 0,
+            "keepOrder": true
+          }
+        },
+        {
+          "icon": "✂️",
+          "title": "Diensten",
+          "text": [
+            "**Diensten** zijn niet tastbaar.",
+            "Iemand doet iets voor jou. Bijvoorbeeld de fietsenmaker die je fiets maakt, of de kapper.",
+            "Als consument koop je dus **goederen** of **diensten**."
+          ]
+        },
+        {
+          "icon": "🔧",
+          "title": "Zelfvoorziening",
+          "text": [
+            "Je kunt je kapotte fiets ook zelf maken. Of zelf brood bakken.",
+            "Dat heet **zelfvoorziening**: je maakt zelf iets voor je eigen behoeften.",
+            "Je doet het omdat je het leuk vindt, of om geld te besparen.",
+            "Consumeren kost vooral **geld**. Zelfvoorziening kost vooral **tijd**."
+          ]
+        },
+        {
+          "icon": "💯",
+          "title": "Rekenen met procenten",
+          "text": [
+            "1% betekent: één honderdste. Dat is 1 ÷ 100 = 0,01.",
+            "**Te berekenen getal = percentage ÷ 100 × totaal**"
+          ],
+          "list": [
+            "**Stap 1**: Maak er een som van. 65% van 120 = …",
+            "**Stap 2**: Maak van het percentage een decimaal getal. 65 ÷ 100 = 0,65",
+            "**Stap 3**: Keer het totaal. 0,65 × 120 = 78"
+          ],
+          "check": {
+            "type": "number",
+            "prompt": "Hoeveel is 10% van 50?",
+            "answer": 5,
+            "decimals": 0,
+            "steps": ["10 ÷ 100 = 0,10", "0,10 × 50 = 5"]
+          }
+        },
+        {
+          "icon": "🏷️",
+          "title": "Korting en verhoging",
+          "text": [
+            "**Korting**: reken het kortingsbedrag uit. Haal het van de prijs af.",
+            "**Verhoging**: reken de verhoging uit. Tel het bij de prijs op."
+          ],
+          "example": "Een broek van € 69 met 15% korting. 0,15 × 69 = € 10,35 korting. Je betaalt 69 − 10,35 = € 58,65."
+        }
+      ],
+      "terms": [
+        { "term": "primaire behoeften", "def": "Wat je echt nodig hebt om te leven. Ook: basisbehoeften.", "example": "Eten, drinken, kleding, een huis." },
+        { "term": "secundaire behoeften", "def": "Wat je leven leuker of makkelijker maakt, maar wat je kunt missen. Ook: overige behoeften.", "example": "Een ijsje, een game, op vakantie." },
+        { "term": "materiële behoeften", "def": "Behoeften die je in geld kunt uitdrukken." },
+        { "term": "immateriële behoeften", "def": "Behoeften die je niet kunt kopen.", "example": "Liefde, vriendschap, gezondheid." },
+        { "term": "goederen", "def": "Tastbare producten: je kunt ze aanraken." },
+        { "term": "verbruiksgoed", "def": "Een goed dat snel op is.", "example": "Een broodje, wasmiddel." },
+        { "term": "gebruiksgoed", "def": "Een goed dat lang meegaat en dat je vaak gebruikt.", "example": "Een schooltas, een fiets." },
+        { "term": "diensten", "def": "Niet-tastbare producten: iemand doet iets voor jou.", "example": "De kapper, de fietsenmaker." },
+        { "term": "zelfvoorziening", "def": "Zelf iets maken of doen voor je eigen behoeften.", "example": "Zelf je band plakken." },
+        { "term": "percentage", "def": "Een deel van 100. 85% betekent 85 van de 100." }
+      ],
+      "questions": [
+        { "id": "1.3-1", "type": "mc", "prompt": "Op de foto zie je een supermarkt met groente, fruit en vlees. Zie je vooral primaire of secundaire behoeften?", "options": ["Primaire: eten heb je nodig om te leven", "Secundaire: eten maakt het leven leuker"], "answer": 0, "keepOrder": true },
+        { "id": "1.3-2", "type": "mc", "prompt": "Welk eten of drinken is géén primaire behoefte?", "options": ["Drop", "Brood", "Water"], "answer": 0, "explain": "Drop is lekker, maar je hebt het niet nodig om te leven." },
+        { "id": "1.3-3", "type": "mc", "prompt": "Wat is het verschil tussen materiële en immateriële behoeften?", "options": ["Materiële kun je in geld uitdrukken, immateriële niet.", "Immateriële kun je kopen, materiële niet.", "Er is geen verschil."], "answer": 0 },
+        { "id": "1.3-4", "type": "classify", "prompt": "Primaire of secundaire behoefte?", "buckets": ["Primair", "Secundair"], "items": [["fruit", 0], ["huis", 0], ["Instagram", 1], ["make-up", 1], ["mountainbike", 1], ["spijkerbroek", 0], ["T-shirt", 0]], "explain": "Eten, een huis en kleding heb je nodig om te leven. Een spijkerbroek en een T-shirt zijn kleding, dus primair." },
+        { "id": "1.3-5", "type": "mc", "prompt": "Is een telefoon volgens de leertekst een primaire behoefte?", "options": ["Nee. Je kunt zonder telefoon leven, dus het is secundair.", "Ja. Iedereen heeft een telefoon."], "answer": 0, "keepOrder": true, "explain": "Veel mensen vinden een telefoon heel belangrijk. Maar je hebt hem niet nodig om te leven." },
+        { "id": "1.3-6", "type": "open", "prompt": "Zijn immateriële behoeften (liefde, vriendschap, gezondheid) volgens jou primair of secundair? Waarom?", "model": "Veel mensen zeggen primair: zonder liefde, vriendschap en gezondheid gaat het niet goed met je. Je kunt ook zeggen secundair, omdat je ze niet nodig hebt om in leven te blijven. Het gaat om je uitleg." },
+        { "id": "1.3-7", "type": "fill", "prompt": "Vul de juiste woorden in.", "text": "Jongeren hebben andere {behoeften} dan volwassenen. Iemand op het platteland heeft andere behoeften dan iemand die in een {stad} woont. Behoeften verschillen omdat {smaken} nu eenmaal verschillen. De hoeveelheid {geld} die je hebt, bepaalt in hoeveel behoeften je kunt voorzien.", "bank": ["behoeften", "stad", "smaken", "geld", "tijd"] },
+        { "id": "1.3-8", "type": "mc", "prompt": "Waar hebben verschillen in primaire behoeften vooral mee te maken?", "options": ["Met waar je woont en hoeveel geld je hebt", "Met je lievelingskleur", "Met de dag van de week"], "answer": 0, "explain": "In een koud land heb je bijvoorbeeld andere kleding en een ander huis nodig. In arme landen is eten niet vanzelfsprekend." },
+        { "id": "1.3-9", "type": "mc", "prompt": "Twee meiden voetballen. Een groep vrienden gaat schaatsen. Ze hebben andere hobby's. Wat kan naast smaak een verklaring zijn?", "options": ["Waar ze wonen: is er een ijsbaan of een voetbalveld dichtbij?", "Hun schoenmaat", "Welke dag het is"], "answer": 0, "explain": "Ook leeftijd, gender of geld kunnen een rol spelen." },
+        { "id": "1.3-10", "type": "classify", "prompt": "Verbruiksgoed of gebruiksgoed?", "buckets": ["Verbruik", "Gebruik"], "items": [["schoolschriften", 0], ["rekenmachine", 1], ["elektriciteit", 0], ["spelcomputer", 1], ["wasmiddel", 0], ["wasmachine", 1], ["droogtrommel", 1]], "explain": "Verbruiksgoed is snel op. Gebruiksgoed gaat lang mee." },
+        { "id": "1.3-11", "type": "classify", "prompt": "Verbruiksgoed of gebruiksgoed?", "buckets": ["Verbruik", "Gebruik"], "items": [["printer", 1], ["papier", 0], ["glas", 1], ["limonade", 0], ["tandenborstel", 1], ["tandpasta", 0]] },
+        { "id": "1.3-12", "type": "classify", "prompt": "Verkopen deze winkels vooral goederen of diensten?", "buckets": ["Goederen", "Diensten"], "items": [["Bloemenwinkel", 0], ["Kledingreparatie", 1], ["Groentewinkel", 0], ["Kapper", 1]] },
+        { "id": "1.3-13", "type": "classify", "prompt": "Cho (16) koopt een scooter. Goed of dienst?", "buckets": ["Goed", "Dienst"], "items": [["scooter", 0], ["helm", 0], ["verzekering", 1], ["benzine", 0], ["onderhoudsbeurt", 1]] },
+        { "id": "1.3-14", "type": "mc", "prompt": "Cho koopt een scooter, een helm en benzine. Welk van deze goederen is een verbruiksgoed?", "options": ["Benzine", "Helm", "Scooter"], "answer": 0, "explain": "Benzine is snel op. Een helm en scooter gaan lang mee." },
+        { "id": "1.3-15", "type": "open", "prompt": "Een restaurant levert zowel goederen als diensten. Leg dit uit.", "model": "Goederen: het eten en drinken (tastbaar). Diensten: het koken, het bedienen en het afwassen (iemand doet iets voor jou)." },
+        { "id": "1.3-16", "type": "fill", "prompt": "Kies de juiste woorden.", "text": "De meisjes plakken zelf de band. Ze doen aan {zelfvoorziening}. Een nieuwe fietsband kopen is {consumeren}. Om te consumeren heb je vooral {geld} nodig. Voor zelfvoorziening heb je vooral {tijd} nodig.", "bank": ["consumeren", "zelfvoorziening", "geld", "tijd"] },
+        { "id": "1.3-17", "type": "classify", "prompt": "Ben je aan het consumeren?", "buckets": ["Wel", "Niet"], "items": [["Je bestelt online sportschoenen", 0], ["Je laat een tattoo zetten", 0], ["Je koopt sieraden om later op de markt te verkopen", 1]], "explain": "Consumeren is kopen voor je eigen behoeften. Sieraden die je doorverkoopt, zijn niet voor jezelf." },
+        { "id": "1.3-18", "type": "mc", "prompt": "Waarom deden mensen vroeger meer aan zelfvoorziening dan nu?", "options": ["Er waren minder winkels en mensen hadden minder geld.", "Ze hadden minder tijd.", "Zelf maken was verboden."], "answer": 0 },
+        { "id": "1.3-19", "type": "number", "rekenen": true, "prompt": "Maak een decimaal getal van 15%.", "answer": 0.15, "decimals": 2, "hint": "Deel door 100.", "steps": ["15 ÷ 100 = 0,15"] },
+        { "id": "1.3-20", "type": "number", "rekenen": true, "prompt": "Maak een decimaal getal van 9%.", "answer": 0.09, "decimals": 2, "hint": "Deel door 100. Let op de nul!", "steps": ["9 ÷ 100 = 0,09"] },
+        { "id": "1.3-21", "type": "number", "rekenen": true, "prompt": "Maak een decimaal getal van 12,5%.", "answer": 0.125, "decimals": 3, "hint": "Deel door 100. De komma schuift 2 plekken naar links.", "steps": ["12,5 ÷ 100 = 0,125"] },
+        { "id": "1.3-22", "type": "number", "rekenen": true, "prompt": "Maak een decimaal getal van 6,3%.", "answer": 0.063, "decimals": 3, "hint": "Deel door 100. De komma schuift 2 plekken naar links.", "steps": ["6,3 ÷ 100 = 0,063"] },
+        { "id": "1.3-23", "type": "number", "rekenen": true, "prompt": "Hoeveel is 36% van € 150?", "unit": "€", "answer": 54, "decimals": 2, "hint": "Stap 2: 36 ÷ 100. Stap 3: keer 150.", "steps": ["36 ÷ 100 = 0,36", "0,36 × 150 = € 54,00"] },
+        { "id": "1.3-24", "type": "number", "rekenen": true, "prompt": "Hoeveel is 7,5% van € 6?", "unit": "€", "answer": 0.45, "decimals": 2, "hint": "Stap 2: 7,5 ÷ 100. Stap 3: keer 6.", "steps": ["7,5 ÷ 100 = 0,075", "0,075 × 6 = € 0,45"] },
+        { "id": "1.3-25", "type": "number", "rekenen": true, "prompt": "Hoeveel is 0,8% van € 75?", "unit": "€", "answer": 0.6, "decimals": 2, "hint": "Stap 2: 0,8 ÷ 100. Stap 3: keer 75.", "steps": ["0,8 ÷ 100 = 0,008", "0,008 × 75 = € 0,60"] },
+        { "id": "1.3-26", "type": "number", "rekenen": true, "prompt": "De leerlingenraad krijgt € 2.500. Daarvan mag 65% naar schoolfeestjes. Hoeveel euro is dat?", "unit": "€", "answer": 1625, "decimals": 2, "hint": "65% van 2500 = …", "steps": ["Stap 1: 65% van 2.500", "Stap 2: 65 ÷ 100 = 0,65", "Stap 3: 0,65 × 2.500 = € 1.625"] },
+        { "id": "1.3-27", "type": "number", "rekenen": true, "prompt": "Bowie verdient € 65 per maand. Het loon gaat 3,4% omhoog. Hoeveel is de verhoging?", "unit": "€", "answer": 2.21, "decimals": 2, "hint": "0,034 × 65", "steps": ["3,4 ÷ 100 = 0,034", "0,034 × 65 = € 2,21"] },
+        { "id": "1.3-28", "type": "number", "rekenen": true, "prompt": "Bowie verdiende € 65. Er komt € 2,21 bij. Hoeveel loon krijgt Bowie nu?", "unit": "€", "answer": 67.21, "decimals": 2, "hint": "Tel de verhoging op bij het oude loon.", "steps": ["65 + 2,21 = € 67,21"] },
+        { "id": "1.3-29", "type": "number", "rekenen": true, "prompt": "Een spijkerbroek kost € 69. Je krijgt 15% korting. Hoeveel is de korting?", "unit": "€", "answer": 10.35, "decimals": 2, "hint": "0,15 × 69", "steps": ["15 ÷ 100 = 0,15", "0,15 × 69 = € 10,35"] },
+        { "id": "1.3-30", "type": "number", "rekenen": true, "prompt": "Een spijkerbroek kost € 69. De korting is € 10,35. Wat betaal je nu?", "unit": "€", "answer": 58.65, "decimals": 2, "hint": "Haal de korting van de prijs af.", "steps": ["69 − 10,35 = € 58,65"] },
+        { "id": "1.3-31", "type": "number", "rekenen": true, "prompt": "Een abonnement bij de sportschool kost € 27,50 per maand. Het wordt 8% duurder. Wat kost het nu?", "unit": "€", "answer": 29.7, "decimals": 2, "hint": "Reken eerst 8% uit. Tel dat op bij € 27,50.", "steps": ["0,08 × 27,50 = € 2,20", "27,50 + 2,20 = € 29,70"] },
+        { "id": "1.3-32", "type": "number", "rekenen": true, "prompt": "De sportschool heeft 650 klanten. 6% stopt. Hoeveel klanten zijn er nog?", "answer": 611, "decimals": 0, "hint": "Reken 6% van 650 uit. Haal dat van 650 af.", "steps": ["0,06 × 650 = 39 klanten stoppen", "650 − 39 = 611 klanten"] },
+        { "id": "1.3-33", "type": "number", "rekenen": true, "prompt": "Eerst: 650 klanten × € 27,50. Nu: 611 klanten × € 29,70. Hoeveel zijn de inkomsten per maand gestegen?", "unit": "€", "answer": 271.7, "decimals": 2, "hint": "Reken eerst en nu uit. Trek ze van elkaar af.", "steps": ["Eerst: 650 × 27,50 = € 17.875,00", "Nu: 611 × 29,70 = € 18.146,70", "18.146,70 − 17.875,00 = € 271,70"] }
+      ]
+    }
+  ]
+}

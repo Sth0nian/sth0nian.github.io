@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#1f6f78" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Leerhulp" />
+    <meta name="description" content="Leerhulp: rustig oefenen, met voorlezen en slimme herhaling." />
+    <title>Leerhulp</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
+    <link rel="preload" href="fonts/lexend-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="app.css" />
+    <script type="module" src="js/app.js"></script>
+  </head>
+  <body>
+    <header class="bar">
+      <a id="back" class="bar-btn" href="#/" aria-label="Terug" hidden>←</a>
+      <h1 id="bar-title" class="bar-title">Leerhulp</h1>
+      <button id="read" class="read-btn" type="button">
+        <span class="icon" aria-hidden="true">🔊</span>
+        <span class="label">Lees voor</span>
+      </button>
+      <a class="bar-btn" href="#/instellingen" aria-label="Instellingen">⚙️</a>
+    </header>
+
+    <main id="view" class="view" tabindex="-1">
+      <noscript>Zet JavaScript aan om Leerhulp te gebruiken.</noscript>
+    </main>
+
+    <div id="ruler" class="ruler" hidden aria-hidden="true"></div>
+  </body>
+</html>
