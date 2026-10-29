@@ -114,14 +114,18 @@ export function mastery(keys) {
   let known = 0;
   let seen = 0;
   let due = 0;
+  let steps = 0;
   for (const key of keys) {
     const item = progress.items[key];
     if (!item) continue;
     seen++;
+    steps += Math.min(item.b, KNOWN_BOX);
     if (item.b >= KNOWN_BOX) known++;
     if (item.due <= Date.now()) due++;
   }
-  return { total: keys.length, known, seen, due, percent: keys.length ? Math.round((known / keys.length) * 100) : 0 };
+  // Every right answer moves the bar; it is full once everything is known
+  const percent = keys.length ? Math.round((steps / (keys.length * KNOWN_BOX)) * 100) : 0;
+  return { total: keys.length, known, seen, due, percent };
 }
 
 export function exportData() {

@@ -145,8 +145,8 @@ async function subjectView(subjectId) {
         return '<a class="card row-card" href="#/h/' + esc(subjectId) + '/' + esc(ch.id) + '">' +
           '<span class="num">' + esc(ch.number) + '</span>' +
           '<span class="grow"><span class="card-title">' + sayOne('Hoofdstuk ' + ch.number + ': ' + ch.title) + '</span>' +
-          bar(m.percent, m.percent + '% gekend') +
-          '<span class="muted small">' + m.percent + '% gekend' + (m.due ? ' · ' + m.due + ' om te herhalen' : '') + '</span></span>' +
+          bar(m.percent, m.percent + '% geleerd') +
+          '<span class="muted small">' + m.percent + '% geleerd' + (m.due ? ' · ' + m.due + ' om te herhalen' : '') + '</span></span>' +
         '</a>';
       }).join('') +
     '</div>';
@@ -166,8 +166,8 @@ async function chapterView(subjectId, chapterId) {
         return '<a class="card row-card" href="#/p/' + base + '/' + esc(sec.id) + '">' +
           '<span class="num">' + esc(sec.id) + '</span>' +
           '<span class="grow"><span class="card-title">' + sayOne(sec.title) + '</span>' +
-          bar(m.percent, m.percent + '% gekend') +
-          '<span class="muted small">' + m.percent + '% gekend' + (m.due ? ' · ' + m.due + ' om te herhalen' : '') + '</span></span>' +
+          bar(m.percent, m.percent + '% geleerd') +
+          '<span class="muted small">' + m.percent + '% geleerd' + (m.due ? ' · ' + m.due + ' om te herhalen' : '') + '</span></span>' +
         '</a>';
       }).join('') +
     '</div>' +
@@ -198,8 +198,8 @@ async function sectionView(subjectId, chapterId, sectionId) {
     (sec.intro ? '<p class="intro">' + say(sec.intro) + '</p>' : '') +
     '<div class="steps-list">' +
       stepCard('#/uitleg/' + base, '📖', '1. Lees de uitleg', read + ' van ' + sec.learn.length + ' kaartjes gelezen', Math.round((read / sec.learn.length) * 100)) +
-      stepCard('#/kaarten/' + base, '🃏', '2. Leer de begrippen', t.known + ' van ' + t.total + ' gekend' + (t.due ? ' · ' + t.due + ' herhalen' : ''), t.percent) +
-      stepCard('#/oefen/' + base, '✏️', '3. Oefen met vragen', q.known + ' van ' + q.total + ' gekend' + (q.due ? ' · ' + q.due + ' herhalen' : ''), q.percent) +
+      stepCard('#/kaarten/' + base, '🃏', '2. Leer de begrippen', t.seen + ' van ' + t.total + ' geoefend · ' + t.known + ' gekend' + (t.due ? ' · ' + t.due + ' herhalen' : ''), t.percent) +
+      stepCard('#/oefen/' + base, '✏️', '3. Oefen met vragen', q.seen + ' van ' + q.total + ' geoefend · ' + q.known + ' gekend' + (q.due ? ' · ' + q.due + ' herhalen' : ''), q.percent) +
     '</div>' +
     '<h2 class="section-title">' + sayOne('Ik kan nu…') + '</h2>' +
     '<p class="muted small">' + sayOne('Vink aan wat je al kunt.') + '</p>' +
@@ -512,7 +512,7 @@ async function progressView() {
           ' <span class="muted small">(' + state.wrong + '× fout)</span></li>').join('') + '</ul>'
       : '<p>' + sayOne('Nog niks lastigs. Lekker bezig!') + '</p>') +
     '</section>' +
-    '<p class="muted small">Gekend = minstens 3 keer goed, verspreid over meerdere dagen. Wat fout gaat, komt vanzelf vaker terug.</p>';
+    '<p class="muted small">De balk groeit bij elk goed antwoord. Gekend = 3 keer goed, verspreid over meerdere dagen. Wat fout gaat, komt vanzelf vaker terug.</p>';
 
   view.innerHTML = html;
 }
